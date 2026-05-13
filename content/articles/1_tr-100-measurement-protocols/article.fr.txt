@@ -1,0 +1,50 @@
+Title: Protocoles de mesure TR-100
+
+----
+
+Date: 2026-04-12
+
+----
+
+Sku: CISR-001
+
+----
+
+Summary: Aperçu du protocole de mesure TR-100 et des conditions dans lesquelles il produit des lectures cohérentes.
+
+----
+
+Body:
+
+[
+  {
+    "id": "b1",
+    "isHidden": false,
+    "type": "heading",
+    "content": { "level": "h2", "text": "Portée" }
+  },
+  {
+    "id": "b2",
+    "isHidden": false,
+    "type": "text",
+    "content": { "text": "<p>Ce document décrit le protocole de mesure TR-100 tel qu'il est appliqué au Centre. Il concerne toutes les lectures d'instruments uniques enregistrées entre les intervalles d'étalonnage.</p>" }
+  },
+  {
+    "id": "b3",
+    "isHidden": false,
+    "type": "heading",
+    "content": { "level": "h2", "text": "Appareillage" }
+  },
+  {
+    "id": "b4",
+    "isHidden": false,
+    "type": "list",
+    "content": { "text": "<ul><li>Un instrument de banc étalonné, numéro de série enregistré.</li><li>Un échantillon de contrôle, scellé.</li><li>Journal ambiant : température, humidité, tension de ligne.</li></ul>" }
+  },
+  {
+    "id": "b5",
+    "isHidden": false,
+    "type": "quote",
+    "content": { "text": "<p>Une mesure qui ne peut pas être répétée n'est pas une mesure.</p>", "citation": "TR-100 §1.2" }
+  }
+]

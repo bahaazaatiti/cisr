@@ -1,0 +1,16 @@
+title: Site
+
+options:
+  changeTitle: true
+
+fields:
+  tagline:
+    label: Tagline
+    type: text
+    translate: true
+    placeholder: CISR — short tagline
+
+sections:
+  pages:
+    type: pages
+    headline: Pages

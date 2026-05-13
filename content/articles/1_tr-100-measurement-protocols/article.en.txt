@@ -1,0 +1,68 @@
+Title: TR-100 Measurement Protocols
+
+----
+
+Date: 2026-04-12
+
+----
+
+Sku: CISR-001
+
+----
+
+Summary: An overview of the TR-100 measurement protocol and the conditions under which it produces consistent readings.
+
+----
+
+Body:
+
+[
+  {
+    "id": "b1",
+    "isHidden": false,
+    "type": "heading",
+    "content": { "level": "h2", "text": "Scope" }
+  },
+  {
+    "id": "b2",
+    "isHidden": false,
+    "type": "text",
+    "content": { "text": "<p>This document describes the TR-100 measurement protocol as practised within the Centre. It applies to all single-instrument readings recorded between calibration intervals and is intended to be read alongside the parent specification.</p>" }
+  },
+  {
+    "id": "b3",
+    "isHidden": false,
+    "type": "heading",
+    "content": { "level": "h2", "text": "Apparatus" }
+  },
+  {
+    "id": "b4",
+    "isHidden": false,
+    "type": "list",
+    "content": { "text": "<ul><li>One calibrated bench instrument, serial logged.</li><li>One control sample, sealed.</li><li>Ambient log: temperature, humidity, line voltage.</li></ul>" }
+  },
+  {
+    "id": "b5",
+    "isHidden": false,
+    "type": "heading",
+    "content": { "level": "h2", "text": "Procedure" }
+  },
+  {
+    "id": "b6",
+    "isHidden": false,
+    "type": "text",
+    "content": { "text": "<p>Warm the instrument for thirty minutes. Take three readings of the control. If the spread exceeds the tolerance band, halt and recalibrate. Otherwise, proceed to the work sample.</p>" }
+  },
+  {
+    "id": "b7",
+    "isHidden": false,
+    "type": "code",
+    "content": { "language": "text", "code": "tolerance = 0.05  # absolute units\nwarm_up   = 1800  # seconds\nreadings  = 3" }
+  },
+  {
+    "id": "b8",
+    "isHidden": false,
+    "type": "quote",
+    "content": { "text": "<p>A measurement that cannot be repeated is not a measurement.</p>", "citation": "TR-100 §1.2" }
+  }
+]

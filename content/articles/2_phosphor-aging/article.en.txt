@@ -1,0 +1,38 @@
+Title: Phosphor Aging in P39 Tubes
+
+----
+
+Date: 2026-05-03
+
+----
+
+Sku: CISR-002
+
+----
+
+Summary: A short note on luminance decay in P39 phosphor tubes and the recalibration cadence the decay implies.
+
+----
+
+Body:
+
+[
+  {
+    "id": "c1",
+    "isHidden": false,
+    "type": "text",
+    "content": { "text": "<p>P39 phosphor exhibits a long-persistence green emission that ages predictably under continuous excitation. The aging curve is roughly logarithmic for the first thousand hours and approximately linear thereafter.</p>" }
+  },
+  {
+    "id": "c2",
+    "isHidden": false,
+    "type": "heading",
+    "content": { "level": "h2", "text": "Implication" }
+  },
+  {
+    "id": "c3",
+    "isHidden": false,
+    "type": "text",
+    "content": { "text": "<p>A tube held at constant beam current loses roughly 8% of peak luminance per thousand hours. Operators should recalibrate brightness at the 500 and 1500 hour marks and substitute the tube at 4000 hours.</p>" }
+  }
+]

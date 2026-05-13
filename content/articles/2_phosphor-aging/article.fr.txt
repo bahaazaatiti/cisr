@@ -1,0 +1,26 @@
+Title: Vieillissement du phosphore dans les tubes P39
+
+----
+
+Date: 2026-05-03
+
+----
+
+Sku: CISR-002
+
+----
+
+Summary: Brève note sur la dégradation de la luminance dans les tubes phosphore P39 et la cadence de recalibrage qu'elle implique.
+
+----
+
+Body:
+
+[
+  {
+    "id": "c1",
+    "isHidden": false,
+    "type": "text",
+    "content": { "text": "<p>Le phosphore P39 présente une émission verte à longue persistance qui vieillit de façon prévisible sous excitation continue. La courbe de vieillissement est approximativement logarithmique pendant les mille premières heures et approximativement linéaire ensuite.</p>" }
+  }
+]

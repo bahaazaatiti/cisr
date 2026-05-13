@@ -1,0 +1,35 @@
+title: Home
+
+options:
+  changeSlug: false
+  changeStatus: false
+  changeTemplate: false
+  delete: false
+  preview: true
+
+columns:
+  - width: 1/2
+    fields:
+      intro:
+        label: Intro
+        type: textarea
+        size: large
+        translate: true
+        buttons:
+          - bold
+          - italic
+          - link
+  - width: 1/2
+    sections:
+      latest:
+        type: pages
+        headline: Latest articles
+        parent: site.find("articles")
+        template: article
+        status: listed
+        sortBy: date desc
+        limit: 5
+        info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
+        create:
+          template: article
+          redirect: true

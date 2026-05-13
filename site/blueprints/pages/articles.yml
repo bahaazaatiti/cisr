@@ -1,0 +1,28 @@
+title: Articles
+
+options:
+  changeSlug: false
+  changeTemplate: false
+  delete: false
+  preview: true
+
+sections:
+  drafts:
+    type: pages
+    headline: Drafts
+    status: draft
+    template: article
+    info: "{{ page.date.toDate('Y-m-d') }}"
+    create:
+      template: article
+      redirect: true
+  published:
+    type: pages
+    headline: Published
+    status: listed
+    template: article
+    sortBy: date desc
+    info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
+    create:
+      template: article
+      redirect: true
