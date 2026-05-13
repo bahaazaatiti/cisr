@@ -36,3 +36,7 @@ Body:
     "content": { "text": "<p>A tube held at constant beam current loses roughly 8% of peak luminance per thousand hours. Operators should recalibrate brightness at the 500 and 1500 hour marks and substitute the tube at 4000 hours.</p>" }
   }
 ]
+
+----
+
+Uuid: 4dkuvztwqcsgagiu

@@ -3,14 +3,37 @@ title: Site
 options:
   changeTitle: true
 
-fields:
-  tagline:
-    label: Tagline
-    type: text
-    translate: true
-    placeholder: CISR — short tagline
+columns:
+  - width: 1/3
+    sections:
+      meta:
+        type: fields
+        fields:
+          tagline:
+            label: Tagline
+            type: text
+            translate: true
+            placeholder: CISR — short tagline
+      navigation:
+        type: pages
+        headline: Pages
+        status: all
+        templates:
+          - home
+          - articles
+        info: "{{ page.intendedTemplate.name }}"
 
-sections:
-  pages:
-    type: pages
-    headline: Pages
+  - width: 2/3
+    sections:
+      articles:
+        type: pages
+        headline: Articles
+        parent: site.find("articles")
+        template: article
+        status: all
+        sortBy: date desc
+        limit: 20
+        info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
+        create:
+          template: article
+          redirect: true
