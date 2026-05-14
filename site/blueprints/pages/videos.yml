@@ -1,0 +1,19 @@
+title: Videos
+
+icon: video
+
+options:
+  preview: false
+  changeTemplate: false
+
+sections:
+  list:
+    type: pages
+    headline: Videos
+    status: all
+    template: video
+    sortBy: date desc
+    info: "{{ page.date.toDate('Y-m-d') }} · {{ page.youtube_url }}"
+    create:
+      template: video
+      redirect: true

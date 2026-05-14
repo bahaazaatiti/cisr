@@ -21,6 +21,8 @@ columns:
         templates:
           - home
           - articles
+          - library
+          - videos
         info: "{{ page.intendedTemplate.name }}"
 
   - width: 2/3

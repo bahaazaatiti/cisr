@@ -1,6 +1,16 @@
 <?php
   /** @var \Kirby\Cms\Page $page */
-  $list = $page->children()->listed()->sortBy('date', 'desc');
+  $sort = in_array(get('sort'), ['latest', 'sku', 'alpha'], true) ? get('sort') : 'latest';
+  $list = match ($sort) {
+    'sku'   => $page->children()->listed()->sortBy('sku', 'asc', SORT_NATURAL | SORT_FLAG_CASE),
+    'alpha' => $page->children()->listed()->sortBy('title', 'asc', SORT_NATURAL | SORT_FLAG_CASE),
+    default => $page->children()->listed()->sortBy('date', 'desc'),
+  };
+  $sortOptions = [
+    'latest' => t('sort.latest', 'Latest'),
+    'sku'    => t('sort.sku',    'Index'),
+    'alpha'  => t('sort.alpha',  'A–Z'),
+  ];
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
   [t('nav.home', 'Home'), site()->homePage()->url()],
@@ -10,6 +20,13 @@
   <div class="usgc-sku">CISR / INDEX</div>
   <h1 class="text-xl" data-title><?= esc($page->title()) ?></h1>
 </header>
+
+<nav class="sort-bar usgc-sku" aria-label="Sort">
+  <span><?= t('sort.label', 'Sort:') ?></span>
+  <?php foreach ($sortOptions as $key => $label): ?>
+    <a href="?sort=<?= esc($key) ?>" data-link class="<?= $sort === $key ? 'active' : '' ?>"><?= esc($label) ?></a>
+  <?php endforeach ?>
+</nav>
 
 <?php if (count($list) === 0): ?>
   <p class="text-[color:var(--muted-foreground)]"><?= t('msg.no_articles', 'No articles yet.') ?></p>

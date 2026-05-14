@@ -1,12 +1,13 @@
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const panel = () => $('#panel');
   const sidebar = () => $('[data-sidebar]');
   const loadbar = () => $('#loadbar');
 
   function syncActive() {
     const cur = location.pathname.replace(/\/+$/, '') || '/';
-    document.querySelectorAll('[data-sidebar] a[data-link]').forEach(a => {
+    $$('[data-sidebar] a[data-link]').forEach(a => {
       const path = new URL(a.href, location.origin).pathname.replace(/\/+$/, '') || '/';
       a.classList.toggle('active', path === cur);
     });
@@ -57,17 +58,226 @@
     }
   }
 
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('[data-sidebar-toggle]')) {
-      sidebar()?.classList.toggle('translate-x-0');
+  // --- Video player ---
+  let currentVideo = null;
+  function playerHost() {
+    // If fullscreen dialog open, use its stage; else inline #player container.
+    const fs = $('#vid-fs');
+    if (fs && fs.open) return $('.vid-fs-stage', fs);
+    return $('#player');
+  }
+  function renderPlayer(data) {
+    currentVideo = data;
+    const host = playerHost();
+    if (!host) return;
+    if (!data || !data.src) {
+      host.innerHTML = '<span class="usgc-sku" data-player-placeholder>NO SOURCE</span>';
+      host.classList.add('vid-frame-empty');
       return;
     }
+    host.classList.remove('vid-frame-empty');
+    const autoplay = data.src.includes('?') ? '&autoplay=1' : '?autoplay=1';
+    host.innerHTML = '<iframe class="vid-frame" src="' + data.src + autoplay +
+      '" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen' +
+      ' referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+  }
+  function pickVideo(btn) {
+    const data = {
+      src: btn.dataset.vidSrc,
+      title: btn.dataset.vidTitle || '',
+    };
+    $$('.vid-pick').forEach(b => b.classList.toggle('active', b === btn));
+    renderPlayer(data);
+  }
+  function openFullscreen() {
+    const dlg = $('#vid-fs');
+    if (!dlg || !currentVideo) return;
+    const titleEl = $('[data-fs-title]', dlg);
+    if (titleEl) titleEl.textContent = (currentVideo.title || 'VIDEO').toUpperCase();
+    // Clear inline player so the video re-mounts in the dialog (preserves nothing
+    // but is simpler than moving the live element across).
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+    renderPlayer(currentVideo);
+  }
+  function closeFullscreen() {
+    const dlg = $('#vid-fs');
+    if (!dlg) return;
+    if (dlg.close) dlg.close(); else dlg.removeAttribute('open');
+    // Re-mount in inline player.
+    renderPlayer(currentVideo);
+  }
+
+  // --- Library mode toggle ---
+  function setLibMode(mode) {
+    $$('[data-mode-set]').forEach(b => b.classList.toggle('active', b.dataset.modeSet === mode));
+    $$('.ar-library, .drawer-panel .ar-library').forEach(s => s.dataset.mode = mode);
+    $$('.lib-gui').forEach(el => el.hidden = mode !== 'gui');
+    $$('.lib-list').forEach(el => el.hidden = mode !== 'list');
+  }
+
+  // --- Library GUI file browser ---
+  function escHtml(s) {
+    return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+  function libResolve(root, path) {
+    // root: root tree node. path: array of slug segments.
+    let node = root;
+    for (const seg of path) {
+      const child = (node.folders || []).find(f => f.slug === seg);
+      if (!child) return node;
+      node = child;
+    }
+    return node;
+  }
+  function renderLibGrid(container) {
+    let tree;
+    try { tree = JSON.parse(container.dataset.libTree || 'null'); } catch (e) { return; }
+    if (!tree) return;
+    const path = (container.dataset.libPath || '').split('/').filter(Boolean);
+    const node = libResolve(tree, path);
+    const grid = container.querySelector('[data-lib-grid]');
+    const cwd  = container.querySelector('[data-lib-cwd]');
+    const up   = container.querySelector('[data-lib-up]');
+    if (cwd) cwd.textContent = '/' + path.join('/');
+    if (up)  up.disabled = path.length === 0;
+    if (!grid) return;
+    let html = '';
+    (node.folders || []).forEach(f => {
+      html += '<button type="button" class="lib-cell lib-cell-folder" data-lib-folder="' + escHtml(f.slug) + '" title="' + escHtml(f.name) + '">'
+           +    '<span class="lib-cell-icon" aria-hidden="true">[/]</span>'
+           +    '<span class="lib-cell-name">' + escHtml(f.name) + '</span>'
+           +  '</button>';
+    });
+    (node.files || []).forEach(f => {
+      html += '<a class="lib-cell lib-cell-file" href="' + escHtml(f.url) + '" download data-file title="' + escHtml(f.name) + ' · ' + escHtml(f.size) + '">'
+           +    '<span class="lib-cell-icon" aria-hidden="true">[ ]</span>'
+           +    '<span class="lib-cell-name">' + escHtml(f.name) + '</span>'
+           +    '<span class="lib-cell-meta usgc-sku">' + escHtml(f.size) + '</span>'
+           +  '</a>';
+    });
+    if (!html) {
+      html = '<div class="usgc-sku lib-empty-grid">' + escHtml(container.dataset.libEmpty || 'empty') + '</div>';
+    }
+    grid.innerHTML = html;
+  }
+  function renderAllLibGrids() { $$('.lib-gui[data-lib-tree]').forEach(renderLibGrid); }
+  function libNavigate(container, segment) {
+    const cur = (container.dataset.libPath || '').split('/').filter(Boolean);
+    cur.push(segment);
+    container.dataset.libPath = cur.join('/');
+    renderLibGrid(container);
+  }
+  function libUp(container) {
+    const cur = (container.dataset.libPath || '').split('/').filter(Boolean);
+    cur.pop();
+    container.dataset.libPath = cur.join('/');
+    renderLibGrid(container);
+  }
+
+  // --- Drawer ---
+  let drawerCloned = false;
+  function cloneIntoDrawer() {
+    if (drawerCloned) return;
+    const aside = $('[data-aside-right]');
+    const libSrc = $('.ar-library', aside);
+    const vidSrc = $('.ar-video', aside);
+    const libDst = $('[data-panel="library"]');
+    const vidDst = $('[data-panel="video"]');
+    if (libSrc && libDst) libDst.appendChild(libSrc.cloneNode(true));
+    if (vidSrc && vidDst) vidDst.appendChild(vidSrc.cloneNode(true));
+    drawerCloned = true;
+    renderAllLibGrids();
+  }
+  function openDrawer() {
+    const d = $('[data-drawer]');
+    if (!d) return;
+    cloneIntoDrawer();
+    d.hidden = false;
+    requestAnimationFrame(() => d.classList.add('open'));
+  }
+  function closeDrawer() {
+    const d = $('[data-drawer]');
+    if (!d) return;
+    d.classList.remove('open');
+    setTimeout(() => { d.hidden = true; }, 160);
+  }
+  function setDrawerTab(name) {
+    $$('[data-tab]').forEach(b => {
+      const on = b.dataset.tab === name;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== name);
+  }
+
+  // --- Context menu ---
+  let ctxTargetUrl = null;
+  function showCtx(x, y, url) {
+    ctxTargetUrl = url;
+    const m = $('#ctxmenu'); if (!m) return;
+    // Use physical left/top — viewport-absolute coords don't mirror with dir.
+    m.style.left = x + 'px';
+    m.style.top = y + 'px';
+    m.style.right = 'auto';
+    m.style.bottom = 'auto';
+    m.hidden = false;
+  }
+  function hideCtx() { const m = $('#ctxmenu'); if (m) m.hidden = true; ctxTargetUrl = null; }
+
+  // --- Library grid: single-click on file = download (native); double-click on folder = enter ---
+  document.addEventListener('dblclick', (e) => {
+    const f = e.target.closest('[data-lib-folder]');
+    if (!f) return;
+    const container = f.closest('.lib-gui[data-lib-tree]');
+    if (!container) return;
+    e.preventDefault();
+    libNavigate(container, f.dataset.libFolder);
+  });
+
+  // --- Global click handler (delegated) ---
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-sidebar-toggle]')) { sidebar()?.classList.toggle('translate-x-0'); return; }
     if (e.target.closest('[data-theme-toggle]')) {
       const dark = !document.documentElement.classList.contains('dark');
       document.documentElement.classList.toggle('dark', dark);
       try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (_) {}
       return;
     }
+    const mode = e.target.closest('[data-mode-set]');
+    if (mode) { setLibMode(mode.dataset.modeSet); return; }
+    const up = e.target.closest('[data-lib-up]');
+    if (up) {
+      const container = up.closest('.lib-gui[data-lib-tree]');
+      if (container) libUp(container);
+      return;
+    }
+    const vid = e.target.closest('[data-video]');
+    if (vid) { pickVideo(vid); return; }
+    if (e.target.closest('[data-video-fullscreen]')) { openFullscreen(); return; }
+    if (e.target.closest('[data-fs-close]')) { closeFullscreen(); return; }
+    if (e.target.closest('[data-drawer-toggle]')) {
+      const d = $('[data-drawer]');
+      (d && !d.hidden) ? closeDrawer() : openDrawer();
+      return;
+    }
+    if (e.target.closest('[data-drawer-close]')) { closeDrawer(); return; }
+    const tab = e.target.closest('[data-tab]');
+    if (tab) { setDrawerTab(tab.dataset.tab); return; }
+    const ctxBtn = e.target.closest('#ctxmenu button');
+    if (ctxBtn && ctxTargetUrl) {
+      if (ctxBtn.dataset.ctx === 'download') {
+        const a = document.createElement('a');
+        a.href = ctxTargetUrl; a.download = '';
+        document.body.appendChild(a); a.click(); a.remove();
+      } else if (ctxBtn.dataset.ctx === 'copy') {
+        try { navigator.clipboard?.writeText(ctxTargetUrl); } catch (_) {}
+      }
+      hideCtx();
+      return;
+    }
+    // Hide context menu on any unrelated click
+    if (!e.target.closest('#ctxmenu')) hideCtx();
+
     const a = e.target.closest('a[data-link]');
     if (!a) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
@@ -75,10 +285,21 @@
     swap(a.href, true);
   });
 
+  // Right-click on files
+  document.addEventListener('contextmenu', (e) => {
+    const f = e.target.closest('a[data-file]');
+    if (!f) return;
+    e.preventDefault();
+    showCtx(e.clientX, e.clientY, f.href);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { hideCtx(); }
+  });
+
   addEventListener('popstate', (e) => {
     if (e.state && e.state.swap) swap(location.href, false);
   });
 
-  // Ensure active state matches on first paint too (server already renders it, this is belt-and-suspenders).
   syncActive();
+  renderAllLibGrids();
 })();

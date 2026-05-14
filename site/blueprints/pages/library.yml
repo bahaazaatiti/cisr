@@ -1,0 +1,23 @@
+title: Library
+
+options:
+  preview: false
+  changeTemplate: false
+
+icon: folder
+
+sections:
+  files:
+    type: files
+    headline: Files
+    layout: list
+    info: "{{ file.niceSize }} · {{ file.modified('Y-m-d') }}"
+    template: library-file
+  folders:
+    type: pages
+    headline: Subfolders
+    template: library
+    info: "{{ page.children.count }} folders · {{ page.files.count }} files"
+    create:
+      template: library
+      redirect: true

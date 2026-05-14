@@ -19,6 +19,14 @@ columns:
           - bold
           - italic
           - link
+      featured:
+        label: Featured articles (up to 5)
+        type: pages
+        query: site.find("articles").children.listed
+        multiple: true
+        max: 5
+        layout: list
+        info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
   - width: 1/2
     sections:
       latest:

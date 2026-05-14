@@ -4,13 +4,14 @@
   /** @var \Kirby\Cms\Page $page */
   $current   = $page;
   $articles  = page('articles');
-  $recent    = $articles ? $articles->children()->listed()->sortBy('date', 'desc')->limit(8) : [];
+  $recent    = $articles ? $articles->children()->listed()->sortBy('date', 'desc')->limit(5) : [];
   $langs     = $kirby->languages();
   $homeUrl   = $site->homePage()->url();
   $articlesUrl = $articles ? $articles->url() : url('articles');
 ?>
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
+    <img class="sidebar-sign" src="<?= url('assets/img/sign.svg') ?>" alt="" aria-hidden="true">
     <div class="usgc-sku">CISR / TR-100</div>
     <div class="font-bold uppercase tracking-[0.08em]"><?= esc($site->title()) ?></div>
     <?php if ($site->tagline()->isNotEmpty()): ?>
@@ -19,14 +20,30 @@
   </div>
 
   <nav class="sidebar-nav">
-    <div class="group-label">Sections</div>
+    <div class="group-label"><?= t('nav.sections', 'Sections') ?></div>
     <ul>
       <li><a class="nav-item<?= $current->isHomePage() ? ' active' : '' ?>" href="<?= $homeUrl ?>" data-link><?= t('nav.home', 'Home') ?></a></li>
       <li><a class="nav-item<?= $current->is($articles) ? ' active' : '' ?>" href="<?= $articlesUrl ?>" data-link><?= t('nav.articles', 'Articles') ?></a></li>
     </ul>
 
+    <?php
+      $featured = page('home')?->featured()?->toPages() ?? new \Kirby\Cms\Pages();
+    ?>
+    <?php if (count($featured)): ?>
+      <div class="group-label mt-3"><?= t('nav.featured', 'Featured') ?></div>
+      <ul>
+        <?php foreach ($featured as $f): ?>
+          <li>
+            <a class="nav-item nav-featured<?= $current->is($f) ? ' active' : '' ?>" href="<?= $f->url() ?>" data-link title="<?= esc($f->title()) ?>">
+              <?= esc($f->title()) ?>
+            </a>
+          </li>
+        <?php endforeach ?>
+      </ul>
+    <?php endif ?>
+
     <?php if (count($recent)): ?>
-      <div class="group-label mt-3"><?= t('nav.recent', 'Recent') ?></div>
+      <div class="group-label mt-3"><?= t('nav.latest', 'Latest') ?></div>
       <ul>
         <?php foreach ($recent as $a): ?>
           <li>

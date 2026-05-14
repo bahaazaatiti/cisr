@@ -3,3 +3,4 @@
 <div class="layout">
   <?php snippet('sidebar') ?>
   <main id="panel" class="main">
+

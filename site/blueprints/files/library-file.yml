@@ -1,0 +1,10 @@
+title: Library file
+
+accept:
+  mime: '*/*'
+
+fields:
+  label:
+    label: Display title
+    type: text
+    translate: true
