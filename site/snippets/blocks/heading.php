@@ -4,6 +4,6 @@
   $allowed = ['h1','h2','h3','h4','h5','h6'];
   if (!in_array($level, $allowed, true)) { $level = 'h2'; }
 ?>
-<<?= $level ?> id="<?= esc($block->id()) ?>" class="mt-8 mb-2 uppercase tracking-[0.08em] font-bold">
+<<?= $level ?> id="<?= esc($block->id()) ?>" class="mt-8 mb-2">
   <?= $block->text() ?>
 </<?= $level ?>>

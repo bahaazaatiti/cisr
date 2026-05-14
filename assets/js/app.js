@@ -13,17 +13,9 @@
     });
   }
 
+  const SKELETON = '<div class="usgc-skeleton" aria-hidden="true"><div class="sk sk-h"></div><div class="sk sk-line"></div><div class="sk sk-line"></div><div class="sk sk-line w-2/3"></div></div>';
   let skeletonTimer = 0;
-  function showSkeleton() {
-    const p = panel(); if (!p) return;
-    p.innerHTML =
-      '<div class="usgc-skeleton" aria-hidden="true">' +
-        '<div class="sk sk-h"></div>' +
-        '<div class="sk sk-line"></div>' +
-        '<div class="sk sk-line"></div>' +
-        '<div class="sk sk-line w-2/3"></div>' +
-      '</div>';
-  }
+  function showSkeleton() { const p = panel(); if (p) p.innerHTML = SKELETON; }
 
   async function swap(url, push) {
     const u = new URL(url, location.origin);
@@ -46,7 +38,7 @@
       p.innerHTML = html;
       if (push) history.pushState({ swap: 1 }, '', u.pathname + u.search);
       const t = p.querySelector('[data-title]');
-      if (t) document.title = t.textContent.trim();
+      if (t) document.title = t.dataset.title || t.textContent.trim();
       syncActive();
       p.scrollIntoView({ block: 'start' });
       sidebar()?.classList.remove('translate-x-0');
@@ -161,15 +153,9 @@
     grid.innerHTML = html;
   }
   function renderAllLibGrids() { $$('.lib-gui[data-lib-tree]').forEach(renderLibGrid); }
-  function libNavigate(container, segment) {
+  function libGo(container, segment) {
     const cur = (container.dataset.libPath || '').split('/').filter(Boolean);
-    cur.push(segment);
-    container.dataset.libPath = cur.join('/');
-    renderLibGrid(container);
-  }
-  function libUp(container) {
-    const cur = (container.dataset.libPath || '').split('/').filter(Boolean);
-    cur.pop();
+    segment ? cur.push(segment) : cur.pop();
     container.dataset.libPath = cur.join('/');
     renderLibGrid(container);
   }
@@ -179,12 +165,11 @@
   function cloneIntoDrawer() {
     if (drawerCloned) return;
     const aside = $('[data-aside-right]');
-    const libSrc = $('.ar-library', aside);
-    const vidSrc = $('.ar-video', aside);
-    const libDst = $('[data-panel="library"]');
-    const vidDst = $('[data-panel="video"]');
-    if (libSrc && libDst) libDst.appendChild(libSrc.cloneNode(true));
-    if (vidSrc && vidDst) vidDst.appendChild(vidSrc.cloneNode(true));
+    [['library', '.ar-library'], ['video', '.ar-video']].forEach(([panel, sel]) => {
+      const src = aside && aside.querySelector(sel);
+      const dst = $(`[data-panel="${panel}"]`);
+      if (src && dst) dst.appendChild(src.cloneNode(true));
+    });
     drawerCloned = true;
     renderAllLibGrids();
   }
@@ -231,16 +216,15 @@
     const container = f.closest('.lib-gui[data-lib-tree]');
     if (!container) return;
     e.preventDefault();
-    libNavigate(container, f.dataset.libFolder);
+    libGo(container, f.dataset.libFolder);
   });
 
   // --- Global click handler (delegated) ---
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-sidebar-toggle]')) { sidebar()?.classList.toggle('translate-x-0'); return; }
     if (e.target.closest('[data-theme-toggle]')) {
-      const dark = !document.documentElement.classList.contains('dark');
-      document.documentElement.classList.toggle('dark', dark);
-      try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (_) {}
+      const dark = document.documentElement.classList.toggle('dark');
+      try { localStorage.theme = dark ? 'dark' : 'light'; } catch (_) {}
       return;
     }
     const mode = e.target.closest('[data-mode-set]');
@@ -248,7 +232,7 @@
     const up = e.target.closest('[data-lib-up]');
     if (up) {
       const container = up.closest('.lib-gui[data-lib-tree]');
-      if (container) libUp(container);
+      if (container) libGo(container);
       return;
     }
     const vid = e.target.closest('[data-video]');

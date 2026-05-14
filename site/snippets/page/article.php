@@ -13,9 +13,9 @@
     <?php if ($page->date()->isNotEmpty()): ?><span>· <?= $page->date()->toDate('Y-m-d') ?></span><?php endif ?>
     <?php snippet('ui/status-badge', ['page' => $page]) ?>
   </div>
-  <h1 class="text-xl" data-title><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>"><?= esc($page->title()) ?></h1>
   <?php if ($page->summary()->isNotEmpty()): ?>
-    <p class="text-sm text-[color:var(--muted-foreground)] mt-2"><?= esc($page->summary()) ?></p>
+    <p class="text-sm text-muted-foreground mt-2"><?= esc($page->summary()) ?></p>
   <?php endif ?>
 </header>
 

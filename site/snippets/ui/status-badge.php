@@ -4,6 +4,4 @@
   $status = $page->status();
   if (!in_array($status, ['draft', 'unlisted', 'listed'], true)) return;
 ?>
-<span class="usgc-badge" data-status="<?= esc($status) ?>" style="<?= $status === 'draft' ? 'color:var(--destructive)' : ($status === 'unlisted' ? 'color:var(--muted-foreground)' : 'color:var(--accent)') ?>">
-  <?= esc(strtoupper($status)) ?>
-</span>
+<span class="usgc-badge" data-status="<?= esc($status) ?>"><?= esc(strtoupper($status)) ?></span>

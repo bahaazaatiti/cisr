@@ -18,7 +18,7 @@
 ]]) ?>
 <header class="mb-6">
   <div class="usgc-sku">CISR / INDEX</div>
-  <h1 class="text-xl" data-title><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>"><?= esc($page->title()) ?></h1>
 </header>
 
 <nav class="sort-bar usgc-sku" aria-label="Sort">
@@ -29,7 +29,7 @@
 </nav>
 
 <?php if (count($list) === 0): ?>
-  <p class="text-[color:var(--muted-foreground)]"><?= t('msg.no_articles', 'No articles yet.') ?></p>
+  <p class="text-muted-foreground"><?= t('msg.no_articles', 'No articles yet.') ?></p>
 <?php else: ?>
   <table class="usgc-table">
     <thead>
@@ -42,8 +42,8 @@
     <tbody>
       <?php foreach ($list as $a): ?>
         <tr>
-          <td class="whitespace-nowrap"><?= $a->date()->isNotEmpty() ? $a->date()->toDate('Y-m-d') : '—' ?></td>
-          <td class="whitespace-nowrap"><?= $a->sku()->isNotEmpty() ? esc($a->sku()) : '—' ?></td>
+          <td class="whitespace-nowrap"><?= $a->date()->toDate('Y-m-d') ?: '—' ?></td>
+          <td class="whitespace-nowrap"><?= esc($a->sku()->or('—')) ?></td>
           <td><a href="<?= $a->url() ?>" data-link><?= esc($a->title()) ?></a></td>
         </tr>
       <?php endforeach ?>

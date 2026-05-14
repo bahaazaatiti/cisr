@@ -115,6 +115,9 @@
     font-size: 0.75em;
     line-height: 1.6;
   }
+  .usgc-badge[data-status="draft"]    { color: var(--destructive); }
+  .usgc-badge[data-status="unlisted"] { color: var(--muted-foreground); }
+  .usgc-badge[data-status="listed"]   { color: var(--accent); }
   .usgc-sku {
     font-size: 0.75em;
     text-transform: uppercase;
@@ -140,6 +143,7 @@
     font-size: 0.75rem;
   }
   .usgc-table tr:last-child td { border-bottom: 0; }
+  .usgc-table td a { display: inline-block; min-height: 24px; line-height: 24px; vertical-align: middle; }
 
   .prose-usgc h1, .prose-usgc h2, .prose-usgc h3 { margin-top: 2rem; margin-bottom: 0.5rem; }
   .prose-usgc h1 { font-size: 1.25rem; }

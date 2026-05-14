@@ -11,11 +11,11 @@
 ?>
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
-    <img class="sidebar-sign" src="<?= url('assets/img/sign.svg') ?>" alt="" aria-hidden="true">
+    <img class="sidebar-sign" src="<?= url('assets/img/sign.svg') ?>" alt="" aria-hidden="true" width="200" height="230">
     <div class="usgc-sku">CISR / TR-100</div>
     <div class="font-bold uppercase tracking-[0.08em]"><?= esc($site->title()) ?></div>
     <?php if ($site->tagline()->isNotEmpty()): ?>
-      <div class="text-xs text-[color:var(--muted-foreground)] mt-1"><?= esc($site->tagline()) ?></div>
+      <div class="text-xs text-muted-foreground mt-1"><?= esc($site->tagline()) ?></div>
     <?php endif ?>
   </div>
 
@@ -61,9 +61,9 @@
 
   <div class="sidebar-foot">
     <div class="flex gap-2 items-baseline flex-1">
-      <?php $first = true; foreach ($langs as $l): ?>
-        <?php if (!$first): ?><span aria-hidden="true">·</span><?php endif; $first = false; ?>
-        <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $kirby->language()->code() === $l->code() ? ' class="font-bold"' : '' ?>>
+      <?php foreach ($langs as $i => $l): ?>
+        <?php if ($i): ?><span aria-hidden="true">·</span><?php endif ?>
+        <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $l->code() === $kirby->language()->code() ? ' class="font-bold"' : '' ?>>
           <?= esc(strtoupper($l->code())) ?>
         </a>
       <?php endforeach ?>

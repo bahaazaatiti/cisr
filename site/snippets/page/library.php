@@ -10,9 +10,9 @@
 
 <header class="mb-6">
   <div class="usgc-sku">CISR / LIBRARY</div>
-  <h1 class="text-xl" data-title><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>"><?= esc($page->title()) ?></h1>
   <?php if ($page->description()->isNotEmpty()): ?>
-    <p class="text-sm text-[color:var(--muted-foreground)] mt-2"><?= esc($page->description()) ?></p>
+    <p class="text-sm text-muted-foreground mt-2"><?= esc($page->description()) ?></p>
   <?php endif ?>
 </header>
 
@@ -20,7 +20,7 @@
 <?php $files = $page->files(); ?>
 
 <?php if (count($folders) === 0 && count($files) === 0): ?>
-  <p class="text-[color:var(--muted-foreground)]"><?= t('msg.empty_folder', 'This folder is empty.') ?></p>
+  <p class="text-muted-foreground"><?= t('msg.empty_folder', 'This folder is empty.') ?></p>
 <?php else: ?>
   <table class="usgc-table">
     <thead>

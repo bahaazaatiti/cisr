@@ -2,10 +2,7 @@
 
 if (!function_exists('isPartialRequest')) {
     function isPartialRequest(): bool {
-        $r = kirby()->request();
-        return get('partial') === '1'
-            || $r->header('X-Partial') === '1'
-            || $r->header('HX-Request') === 'true';
+        return get('partial') === '1' || kirby()->request()->header('X-Partial') === '1';
     }
 }
 
@@ -16,13 +13,6 @@ if (!function_exists('cisr_youtube_id')) {
             return $m[1];
         }
         return null;
-    }
-}
-
-if (!function_exists('cisr_youtube_embed')) {
-    function cisr_youtube_embed(?string $url): ?string {
-        $id = cisr_youtube_id($url);
-        return $id ? 'https://www.youtube-nocookie.com/embed/' . $id . '?rel=0' : null;
     }
 }
 
@@ -49,12 +39,19 @@ Kirby::plugin('cisr/helpers', [
     'pageMethods' => [
         'videoEmbedUrl' => function () {
             /** @var \Kirby\Cms\Page $this */
-            return cisr_youtube_embed((string) $this->youtube_url());
+            $id = cisr_youtube_id((string) $this->youtube_url());
+            return $id ? 'https://www.youtube-nocookie.com/embed/' . $id . '?rel=0' : null;
         },
         'youtubeThumbUrl' => function () {
             /** @var \Kirby\Cms\Page $this */
             $id = cisr_youtube_id((string) $this->youtube_url());
             return $id ? 'https://i.ytimg.com/vi/' . $id . '/hqdefault.jpg' : null;
+        },
+        'fullTitle' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            return $this->isHomePage()
+                ? (string) $this->site()->title()
+                : $this->title() . ' · ' . $this->site()->title();
         },
     ],
 ]);

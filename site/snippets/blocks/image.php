@@ -11,7 +11,7 @@
 ?>
 <figure class="my-6">
   <?php if ($src): ?>
-    <img src="<?= esc($src) ?>" alt="<?= esc($alt) ?>" loading="lazy" decoding="async" class="border border-[color:var(--border)] max-w-full h-auto block">
+    <img src="<?= esc($src) ?>" alt="<?= esc($alt) ?>" loading="lazy" decoding="async">
   <?php endif ?>
   <?php if ($caption->isNotEmpty()): ?>
     <figcaption class="mt-2 usgc-sku"><?= $caption ?></figcaption>

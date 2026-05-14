@@ -54,6 +54,22 @@ AddOutputFilterByType DEFLATE text/javascript
 AddOutputFilterByType DEFLATE application/json
 AddOutputFilterByType DEFLATE application/javascript
 AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE image/svg+xml
+AddOutputFilterByType DEFLATE font/woff2
+</IfModule>
+
+# long-lived asset caching
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType image/svg+xml "access plus 1 year"
+ExpiresByType font/woff2 "access plus 1 year"
+ExpiresByType text/css "access plus 1 year"
+ExpiresByType application/javascript "access plus 1 year"
+</IfModule>
+<IfModule mod_headers.c>
+<FilesMatch "\.(woff2|svg|css|js)$">
+Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
 </IfModule>
 
 # set security headers in all responses
