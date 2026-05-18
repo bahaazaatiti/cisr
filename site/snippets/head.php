@@ -15,14 +15,11 @@
   <?php $desc = $page->summary()->or($site->tagline())->value(); ?>
   <?php if ($desc): ?><meta name="description" content="<?= esc($desc) ?>"><?php endif ?>
   <script>try{const m=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
-  <link rel="preload" href="<?= url('assets/fonts/jetbrains-mono-latin.woff2') ?>" as="font" type="font/woff2" crossorigin>
-  <!--style added here and not inline in app.css to avoid FOUC on first load, since the font is used in the sidebar which is visible immediately. The rest of the styles can be loaded asynchronously without causing layout shifts. -->
   <style>
   :root{--background:#FFFFFF;--foreground:#000000;--secondary:#F2F2F2;--muted-foreground:#666666;--accent:#0000FF;--accent-foreground:#FFFFFF;--border:#000000;--ring:#0000FF}
   .dark{--background:#000000;--foreground:#00A645;--secondary:#0a0a0a;--muted-foreground:#999999;--border:#00A645;--ring:#FFFFFF}
-  @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("/assets/fonts/jetbrains-mono-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+20AC,U+2122,U+2212}
   *,*::before,*::after{box-sizing:border-box;border:0 solid var(--border);margin:0;padding:0}
-  html,body{background:var(--background);color:var(--foreground);font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  html,body{background:var(--background);color:var(--foreground);font-family:monospace;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
   a:hover{color:var(--accent)}
   h1,h2,h3,h4,h5,h6{font-weight:700;text-transform:uppercase;letter-spacing:.08em}
