@@ -1,0 +1,9 @@
+Title: Fraternal Organizations
+
+----
+
+Intro: A registry of sister sections, allied organizations, friendly publications, and historical archives. Maintained by hand; links are verified periodically.
+
+----
+
+Uuid: fraternals

@@ -16,6 +16,7 @@
   <?php if ($desc): ?><meta name="description" content="<?= esc($desc) ?>"><?php endif ?>
   <script>try{const m=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
   <link rel="preload" href="<?= url('assets/fonts/jetbrains-mono-latin.woff2') ?>" as="font" type="font/woff2" crossorigin>
+  <!--style added here and not inline in app.css to avoid FOUC on first load, since the font is used in the sidebar which is visible immediately. The rest of the styles can be loaded asynchronously without causing layout shifts. -->
   <style>
   :root{--background:#FFFFFF;--foreground:#000000;--secondary:#F2F2F2;--muted-foreground:#666666;--accent:#0000FF;--accent-foreground:#FFFFFF;--border:#000000;--ring:#0000FF}
   .dark{--background:#000000;--foreground:#00A645;--secondary:#0a0a0a;--muted-foreground:#999999;--border:#00A645;--ring:#FFFFFF}
@@ -97,12 +98,18 @@
   .lib-table th{text-transform:uppercase;letter-spacing:.05em;font-weight:700}
   .lib-table a{text-decoration:none}
   .lib-table a:hover{background:var(--secondary)}
+  .lib-row-folder{cursor:pointer}
+  .lib-row-folder:hover td{background:var(--secondary)}
+  .lib-toggle{color:var(--accent);user-select:none}
   .lib-flat-folder{color:var(--muted-foreground)}
 
   .vid-stage{padding:.5rem}
   .vid-frame{display:block;width:100%;aspect-ratio:16/9;border:1px solid var(--border)}
   iframe.vid-frame,video.vid-frame{background:#000;outline:0}
   .vid-frame-empty{background:var(--secondary);display:flex;align-items:center;justify-content:center}
+  .ar-video #player{--vid-zoom:.7;overflow:hidden}
+  .ar-video #player > iframe.vid-frame{width:calc(100% / var(--vid-zoom));height:calc(100% / var(--vid-zoom));transform:scale(var(--vid-zoom));transform-origin:top left;border:0}
+  html[dir=rtl] .ar-video #player > iframe.vid-frame{transform-origin:top right}
   .vid-list{list-style:none;padding:0;margin:0;border-block-start:1px solid var(--border)}
   .vid-list li{border-block-end:1px solid var(--border)}
   .vid-pick{display:flex;gap:.4rem;width:100%;text-align:start;font:inherit;background:transparent;border:0;cursor:pointer;padding:.35rem .5rem;align-items:baseline}
@@ -123,14 +130,6 @@
   .drawer-x{margin-inline-start:auto;border-inline-end:0!important;border-inline-start:1px solid var(--border)!important}
   .drawer-panels{flex:1;overflow:hidden;position:relative}
   .drawer-panel{position:absolute;inset:0;overflow:auto;padding:.5rem}
-
-  /* Fullscreen video dialog */
-  .vid-fs{padding:0;border:1px solid var(--border);background:var(--background);color:var(--foreground);max-width:90vw;max-height:90vh;width:90vw}
-  .vid-fs::backdrop{background:rgba(0,0,0,.7)}
-  .vid-fs-bar{display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;border-block-end:1px solid var(--border)}
-  .vid-fs-bar button{font:inherit;border:1px solid var(--border);background:transparent;padding:0 .5em;cursor:pointer}
-  .vid-fs-stage{padding:.5rem}
-  .vid-fs-stage .vid-frame{aspect-ratio:16/9;max-height:80vh}
 
   /* Context menu */
   .ctxmenu{position:fixed;z-index:60;background:var(--background);border:1px solid var(--border);display:flex;flex-direction:column;min-width:9rem}

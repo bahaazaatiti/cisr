@@ -2,12 +2,14 @@
   /** @var \Kirby\Cms\App $kirby */
   /** @var \Kirby\Cms\Site $site */
   /** @var \Kirby\Cms\Page $page */
-  $current   = $page;
-  $articles  = page('articles');
-  $recent    = $articles ? $articles->children()->listed()->sortBy('date', 'desc')->limit(5) : [];
-  $langs     = $kirby->languages();
-  $homeUrl   = $site->homePage()->url();
+  $current    = $page;
+  $articles   = page('articles');
+  $fraternals = page('fraternals');
+  $recent     = $articles ? $articles->children()->listed()->sortBy('date', 'desc')->limit(5) : [];
+  $langs      = $kirby->languages();
+  $homeUrl    = $site->homePage()->url();
   $articlesUrl = $articles ? $articles->url() : url('articles');
+  $fraternalsUrl = $fraternals ? $fraternals->url() : url('fraternals');
 ?>
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
@@ -24,6 +26,7 @@
     <ul>
       <li><a class="nav-item<?= $current->isHomePage() ? ' active' : '' ?>" href="<?= $homeUrl ?>" data-link><?= t('nav.home', 'Home') ?></a></li>
       <li><a class="nav-item<?= $current->is($articles) ? ' active' : '' ?>" href="<?= $articlesUrl ?>" data-link><?= t('nav.articles', 'Articles') ?></a></li>
+      <li><a class="nav-item<?= ($fraternals && ($current->is($fraternals) || $current->parents()->find($fraternals->id()))) ? ' active' : '' ?>" href="<?= $fraternalsUrl ?>" data-link><?= t('nav.fraternals', 'Fraternal') ?></a></li>
     </ul>
 
     <?php

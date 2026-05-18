@@ -172,4 +172,101 @@
   }
   .prose-usgc pre code { border: 0; padding: 0; }
   .prose-usgc img { border: 1px solid var(--border); max-width: 100%; height: auto; }
+
+  /* Fraternal organizations — spec-card listing */
+  .frat-group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-block-end: 0.5rem;
+    padding-block-end: 0.25rem;
+    border-block-end: 1px solid var(--border);
+  }
+  .frat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  @media (min-width: 720px) {
+    .frat-list { grid-template-columns: repeat(2, 1fr); }
+  }
+  .frat-card {
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: transparent;
+  }
+  .frat-card:hover { background: var(--secondary); }
+  .frat-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.4rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-foreground);
+  }
+  .frat-dot { opacity: 0.5; }
+  .frat-region {
+    margin-inline-start: auto;
+    border: 1px solid currentColor;
+    padding: 0 0.4em;
+    line-height: 1.5;
+  }
+  .frat-name h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .frat-native {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    margin-block-start: 0.1rem;
+  }
+  .frat-summary {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+  .frat-foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-block-start: auto;
+    padding-block-start: 0.3rem;
+    border-block-start: 1px dashed var(--border);
+  }
+  .frat-link {
+    text-decoration: none;
+    font-size: 0.78rem;
+  }
+  .frat-link:hover { color: var(--accent); }
+  .frat-more { text-decoration: none; }
+
+  /* Fraternal detail page spec list */
+  .frat-spec {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.3rem 1rem;
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.75rem;
+    font-size: 0.82rem;
+  }
+  .frat-spec dt {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+    color: var(--muted-foreground);
+    align-self: baseline;
+  }
+  .frat-spec dd { margin: 0; }
 }

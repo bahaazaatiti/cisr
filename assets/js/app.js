@@ -51,16 +51,7 @@
   }
 
   // --- Video player ---
-  let currentVideo = null;
-  function playerHost() {
-    // If fullscreen dialog open, use its stage; else inline #player container.
-    const fs = $('#vid-fs');
-    if (fs && fs.open) return $('.vid-fs-stage', fs);
-    return $('#player');
-  }
-  function renderPlayer(data) {
-    currentVideo = data;
-    const host = playerHost();
+  function renderPlayer(host, data) {
     if (!host) return;
     if (!data || !data.src) {
       host.innerHTML = '<span class="usgc-sku" data-player-placeholder>NO SOURCE</span>';
@@ -70,33 +61,14 @@
     host.classList.remove('vid-frame-empty');
     const autoplay = data.src.includes('?') ? '&autoplay=1' : '?autoplay=1';
     host.innerHTML = '<iframe class="vid-frame" src="' + data.src + autoplay +
-      '" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen' +
+      '" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen' +
       ' referrerpolicy="strict-origin-when-cross-origin"></iframe>';
   }
   function pickVideo(btn) {
-    const data = {
-      src: btn.dataset.vidSrc,
-      title: btn.dataset.vidTitle || '',
-    };
+    const section = btn.closest('.ar-video') || document;
+    const host = section.querySelector('#player') || $('#player');
     $$('.vid-pick').forEach(b => b.classList.toggle('active', b === btn));
-    renderPlayer(data);
-  }
-  function openFullscreen() {
-    const dlg = $('#vid-fs');
-    if (!dlg || !currentVideo) return;
-    const titleEl = $('[data-fs-title]', dlg);
-    if (titleEl) titleEl.textContent = (currentVideo.title || 'VIDEO').toUpperCase();
-    // Clear inline player so the video re-mounts in the dialog (preserves nothing
-    // but is simpler than moving the live element across).
-    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
-    renderPlayer(currentVideo);
-  }
-  function closeFullscreen() {
-    const dlg = $('#vid-fs');
-    if (!dlg) return;
-    if (dlg.close) dlg.close(); else dlg.removeAttribute('open');
-    // Re-mount in inline player.
-    renderPlayer(currentVideo);
+    renderPlayer(host, { src: btn.dataset.vidSrc, title: btn.dataset.vidTitle || '' });
   }
 
   // --- Library mode toggle ---
@@ -229,6 +201,28 @@
     }
     const mode = e.target.closest('[data-mode-set]');
     if (mode) { setLibMode(mode.dataset.modeSet); return; }
+    const fold = e.target.closest('tr.lib-row-folder');
+    if (fold) {
+      const id   = fold.dataset.folder;
+      const open = fold.classList.toggle('open');
+      const root = fold.closest('table') || document;
+      const tog  = fold.querySelector('.lib-toggle');
+      if (tog) tog.textContent = open ? '[-]' : '[+]';
+      if (open) {
+        root.querySelectorAll('tr[data-parent="' + CSS.escape(id) + '"]').forEach(r => r.hidden = false);
+      } else {
+        // Collapse self + all descendants
+        root.querySelectorAll('tr[data-parent="' + CSS.escape(id) + '"], tr[data-parent^="' + CSS.escape(id) + '/"]').forEach(r => {
+          r.hidden = true;
+          if (r.classList.contains('lib-row-folder')) {
+            r.classList.remove('open');
+            const t = r.querySelector('.lib-toggle');
+            if (t) t.textContent = '[+]';
+          }
+        });
+      }
+      return;
+    }
     const up = e.target.closest('[data-lib-up]');
     if (up) {
       const container = up.closest('.lib-gui[data-lib-tree]');
@@ -237,8 +231,6 @@
     }
     const vid = e.target.closest('[data-video]');
     if (vid) { pickVideo(vid); return; }
-    if (e.target.closest('[data-video-fullscreen]')) { openFullscreen(); return; }
-    if (e.target.closest('[data-fs-close]')) { closeFullscreen(); return; }
     if (e.target.closest('[data-drawer-toggle]')) {
       const d = $('[data-drawer]');
       (d && !d.hidden) ? closeDrawer() : openDrawer();

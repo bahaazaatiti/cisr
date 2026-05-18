@@ -23,6 +23,7 @@ columns:
           - articles
           - library
           - videos
+          - fraternals
         info: "{{ page.intendedTemplate.name }}"
 
   - width: 2/3

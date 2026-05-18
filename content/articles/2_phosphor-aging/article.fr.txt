@@ -1,4 +1,12 @@
-Title: Vieillissement du phosphore dans les tubes P39
+Title: Informations sur la Situation de la Classe Laborieuse en Algérie
+
+----
+
+Slug: situation-classe-laborieuse-en-algerie
+
+----
+
+Body: [{"content":{"text":"<p>Le prolétariat irakien est coincé entre l’Etat qui réprime et tue d’un côté et les groupes islamistes armées qui massacre et violent de l’autre. Ils sont entrainés dans une guerre sans merci entre les différents impérialismes surtout US, Britannique, Russe, Iran, Arabie Saoudite et France qui a causé et cause tous les jours des morts et des pertes économiques gigantesques.</p>"},"id":"c1","isHidden":false,"type":"text"}]
 
 ----
 
@@ -6,21 +14,4 @@ Date: 2026-05-03
 
 ----
 
-Sku: CISR-002
-
-----
-
-Summary: Brève note sur la dégradation de la luminance dans les tubes phosphore P39 et la cadence de recalibrage qu'elle implique.
-
-----
-
-Body:
-
-[
-  {
-    "id": "c1",
-    "isHidden": false,
-    "type": "text",
-    "content": { "text": "<p>Le phosphore P39 présente une émission verte à longue persistance qui vieillit de façon prévisible sous excitation continue. La courbe de vieillissement est approximativement logarithmique pendant les mille premières heures et approximativement linéaire ensuite.</p>" }
-  }
-]
+Summary: Le prolétariat irakien est coincé entre l’Etat qui réprime et tue d’un côté et les groupes islamistes armées qui massacre et violent de l’autre. Ils sont entrainés dans une guerre sans merci entre les différents impérialismes surtout US, Britannique, Russe, Iran, Arabie Saoudite et France qui a causé et cause tous les jours des morts et des pertes économiques gigantesques.

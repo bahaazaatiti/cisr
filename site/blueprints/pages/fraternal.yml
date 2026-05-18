@@ -1,0 +1,99 @@
+title: Fraternal Organization
+
+options:
+  changeTemplate: false
+  preview: true
+
+columns:
+  - width: 2/3
+    fields:
+      native_name:
+        label: Native name
+        type: text
+        translate: false
+        placeholder: e.g. منظمة الشيوعية الجزائرية
+        help: The organization's name in its own script. Leave blank if same as title.
+      homepage:
+        label: Homepage URL
+        type: url
+        required: true
+        translate: false
+        placeholder: https://...
+      summary:
+        label: Summary
+        type: textarea
+        size: small
+        translate: true
+        help: One or two sentences describing the organization.
+      notes:
+        label: Notes (optional)
+        type: textarea
+        size: medium
+        translate: true
+        help: Longer commentary. Filling this in unlocks a detail page for this organization.
+
+  - width: 1/3
+    fields:
+      sku:
+        label: SKU
+        type: text
+        placeholder: CISR/FRA-XXX
+        translate: false
+      affinity:
+        label: Affinity
+        type: select
+        required: true
+        translate: false
+        default: aligned
+        options:
+          sister:     Sister section
+          aligned:    Aligned organization
+          friendly:   Friendly publication
+          historical: Historical / archive
+        help: Drives grouping on the listing page.
+      type:
+        label: Type
+        type: select
+        translate: false
+        options:
+          party:        Party
+          journal:      Journal
+          publication:  Publication
+          study-circle: Study circle
+          collective:   Collective
+          archive:      Archive
+          other:        Other
+      region:
+        label: Region
+        type: text
+        translate: false
+        placeholder: e.g. Algeria, Italy, International
+      languages:
+        label: Languages
+        type: tags
+        translate: false
+        accept: options
+        options:
+          ar: AR
+          en: EN
+          fr: FR
+          it: IT
+          es: ES
+          pt: PT
+          de: DE
+          tr: TR
+          fa: FA
+          ku: KU
+        help: Publishing languages.
+      founded:
+        label: Founded
+        type: text
+        translate: false
+        placeholder: e.g. 1976 or 1976–1995
+      verified:
+        label: Last verified
+        type: date
+        time: false
+        translate: false
+        default: today
+        help: Set when you last manually checked the link is alive.

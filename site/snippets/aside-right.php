@@ -26,29 +26,30 @@
   };
   $libraryJson = $library ? json_encode($buildTree($library), JSON_UNESCAPED_UNICODE) : 'null';
 
-  // Flat rows for LIST mode (recursive, depth-prefixed name)
+  // Flat rows for LIST mode (recursive, depth-prefixed name, collapsible via parent path)
   $flatRows = [];
-  $flatten = function ($node, $prefix = '') use (&$flatten, &$flatRows) {
+  $flatten = function ($node, $prefix = '', $parent = '') use (&$flatten, &$flatRows) {
     foreach ($node->children()->listed() as $f) {
       $title = (string) ($f->title()->value() ?: $f->slug());
+      $path  = ($parent === '' ? '' : $parent . '/') . $f->slug();
       $flatRows[] = [
-        'icon' => '[/]',
-        'name' => $prefix . $title . '/',
-        'size' => '—',
-        'date' => (string) ($f->modified('Y-m-d') ?: '—'),
-        'href' => (string) $f->url(),
-        'type' => 'folder',
+        'type'   => 'folder',
+        'folder' => $path,
+        'parent' => $parent,
+        'name'   => $prefix . $title . '/',
+        'size'   => '—',
+        'date'   => (string) ($f->modified('Y-m-d') ?: '—'),
       ];
-      $flatten($f, $prefix . $title . '/');
+      $flatten($f, $prefix . $title . '/', $path);
     }
     foreach ($node->files() as $file) {
       $flatRows[] = [
-        'icon' => '[ ]',
-        'name' => $prefix . $file->filename(),
-        'size' => (string) ($file->niceSize() ?: '—'),
-        'date' => (string) ($file->modified('Y-m-d') ?: '—'),
-        'href' => (string) $file->url(),
-        'type' => 'file',
+        'type'   => 'file',
+        'parent' => $parent,
+        'name'   => $prefix . $file->filename(),
+        'size'   => (string) ($file->niceSize() ?: '—'),
+        'date'   => (string) ($file->modified('Y-m-d') ?: '—'),
+        'href'   => (string) $file->url(),
       ];
     }
   };
@@ -84,12 +85,18 @@
             </tr></thead>
             <tbody>
             <?php foreach ($flatRows as $r): ?>
-              <tr>
-                <td><?= esc($r['icon']) ?></td>
-                <td><?php if ($r['type'] === 'file'): ?>
-                  <a href="<?= esc($r['href']) ?>" download data-file title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></a>
-                <?php else: ?>
+              <?php
+                $isFolder = $r['type'] === 'folder';
+                $hidden   = $r['parent'] !== '';
+                $attrs    = ' data-parent="' . esc($r['parent'], 'attr') . '"';
+                if ($isFolder) $attrs .= ' data-folder="' . esc($r['folder'], 'attr') . '"';
+              ?>
+              <tr<?= $isFolder ? ' class="lib-row-folder"' : '' ?><?= $attrs ?><?= $hidden ? ' hidden' : '' ?>>
+                <td><span<?= $isFolder ? ' class="lib-toggle"' : '' ?>><?= $isFolder ? '[+]' : '[ ]' ?></span></td>
+                <td><?php if ($isFolder): ?>
                   <span class="lib-flat-folder"><?= esc($r['name']) ?></span>
+                <?php else: ?>
+                  <a href="<?= esc($r['href']) ?>" download data-file title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></a>
                 <?php endif ?></td>
                 <td class="usgc-sku"><?= esc($r['size']) ?></td>
                 <td class="usgc-sku"><?= esc($r['date']) ?></td>
@@ -105,9 +112,6 @@
   <section class="ar-half ar-video">
     <header class="ar-head">
       <span class="ar-title"><?= t('media.video', 'VIDEO') ?></span>
-      <div class="ar-tools">
-        <button data-video-fullscreen class="ar-mode" type="button" aria-label="<?= t('media.fullscreen', 'Fullscreen') ?>" title="<?= t('media.fullscreen', 'Fullscreen') ?>">⧉</button>
-      </div>
     </header>
     <div class="vid-stage">
       <div id="player" class="vid-frame vid-frame-empty">
@@ -152,14 +156,6 @@
     <div data-panel="video"   class="drawer-panel" hidden></div>
   </div>
 </div>
-
-<dialog id="vid-fs" class="vid-fs" aria-label="<?= t('media.video', 'Video') ?>">
-  <div class="vid-fs-bar">
-    <span class="usgc-sku" data-fs-title><?= t('media.video', 'VIDEO') ?></span>
-    <button type="button" data-fs-close aria-label="Close">✕</button>
-  </div>
-  <div class="vid-fs-stage"></div>
-</dialog>
 
 <div id="ctxmenu" class="ctxmenu" hidden>
   <button type="button" data-ctx="download"><?= t('media.download', 'DOWNLOAD') ?></button>
