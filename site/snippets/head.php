@@ -129,6 +129,7 @@
   .drawer-panel{position:absolute;inset:0;overflow:auto;padding:.5rem}
 
   /* Context menu */
+  .ctxmenu[hidden]{display:none}
   .ctxmenu{position:fixed;z-index:60;background:var(--background);border:1px solid var(--border);display:flex;flex-direction:column;min-width:9rem}
   .ctxmenu button{font:inherit;border:0;background:transparent;text-align:start;padding:.35rem .6rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;font-size:.72rem}
   .ctxmenu button:hover{background:var(--secondary)}
@@ -144,7 +145,6 @@
   .sort-bar a{text-decoration:none}
   .sort-bar a.active{font-weight:700;text-decoration:underline;color:var(--foreground)}
   </style>
-  <link rel="stylesheet" href="<?= url('assets/css/app.css') ?>" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="<?= url('assets/css/app.css') ?>"></noscript>
+  <link rel="stylesheet" href="<?= url('assets/css/app.css') ?>">
 </head>
 <body>
