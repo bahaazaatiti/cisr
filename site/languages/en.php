@@ -72,6 +72,13 @@ return [
         'frat.est'             => 'EST.',
         'label.more'           => 'more',
 
+        // UI / aria
+        'ui.toggle_theme'   => 'Toggle theme',
+        'ui.toggle_sidebar' => 'Toggle sidebar',
+        'ui.close'          => 'Close',
+        'ui.sort'           => 'Sort',
+        'ui.breadcrumb'     => 'Breadcrumb',
+
         // media widget
         'media.library'    => 'LIBRARY',
         'media.video'      => 'VIDEO',

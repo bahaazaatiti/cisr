@@ -9,7 +9,7 @@
 
 <header class="mb-6">
   <div class="usgc-sku">CISR / VIDEOS</div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
 </header>
 
 <?php if (count($list) === 0): ?>

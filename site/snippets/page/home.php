@@ -8,7 +8,7 @@
 ?>
 <header class="mb-6">
   <div class="usgc-sku"><?= esc(strtoupper($page->kirby()->language()->code())) ?> / HOME</div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
 </header>
 
 <figure class="home-art home-art-signal" aria-hidden="true">
@@ -29,7 +29,7 @@
 <?php if (count($featured)): ?>
   <section class="featured mb-8">
     <div class="flex items-baseline justify-between mb-2">
-      <h2 class="usgc-badge" style="color:var(--accent)">★ <?= t('section.featured', 'FEATURED') ?></h2>
+      <h2 class="usgc-badge text-accent"><span aria-hidden="true">★</span> <?= t('section.featured', 'FEATURED') ?></h2>
       <span class="usgc-sku"><?= count($featured) ?> <?= t('label.entries', 'entries') ?></span>
     </div>
     <ul class="featured-list">
@@ -58,8 +58,8 @@
     <table class="usgc-table">
       <thead>
         <tr>
-          <th class="w-24"><?= t('th.date', 'Date') ?></th>
-          <th class="w-24"><?= t('th.sku', 'SKU') ?></th>
+          <th class="w-32"><?= t('th.date', 'Date') ?></th>
+          <th class="w-28"><?= t('th.sku', 'SKU') ?></th>
           <th><?= t('th.title', 'Title') ?></th>
         </tr>
       </thead>

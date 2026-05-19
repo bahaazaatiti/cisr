@@ -53,5 +53,11 @@ Kirby::plugin('cisr/helpers', [
                 ? (string) $this->site()->title()
                 : $this->title() . ' · ' . $this->site()->title();
         },
+        'metaDescription' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            $s = $this->summary();
+            $v = ($s && $s->isNotEmpty()) ? (string) $s : (string) $this->site()->tagline();
+            return $v;
+        },
     ],
 ]);

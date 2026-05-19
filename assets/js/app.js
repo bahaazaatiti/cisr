@@ -14,39 +14,59 @@
   }
 
   const SKELETON = '<div class="usgc-skeleton" aria-hidden="true"><div class="sk sk-h"></div><div class="sk sk-line"></div><div class="sk sk-line"></div><div class="sk sk-line w-2/3"></div></div>';
-  let skeletonTimer = 0;
   function showSkeleton() { const p = panel(); if (p) p.innerHTML = SKELETON; }
 
+  let currentAbort = null;
   async function swap(url, push) {
     const u = new URL(url, location.origin);
     if (u.origin !== location.origin) { location.href = url; return; }
-    const sep = u.search ? '&' : '?';
 
+    // Cancel any in-flight swap so only the latest click wins.
+    if (currentAbort) currentAbort.abort();
+    const abort = new AbortController();
+    currentAbort = abort;
+
+    const sep = u.search ? '&' : '?';
     loadbar()?.classList.add('loading');
-    skeletonTimer = setTimeout(showSkeleton, 120);
+    const skTimer = setTimeout(() => { if (!abort.signal.aborted) showSkeleton(); }, 120);
 
     try {
       const r = await fetch(u.pathname + u.search + sep + 'partial=1', {
         headers: { 'X-Partial': '1' },
         credentials: 'same-origin',
+        signal: abort.signal,
       });
       if (!r.ok) throw 0;
       const html = await r.text();
-      clearTimeout(skeletonTimer);
+      if (abort.signal.aborted) return;
+      clearTimeout(skTimer);
       const p = panel();
       if (!p) { location.href = url; return; }
       p.innerHTML = html;
       if (push) history.pushState({ swap: 1 }, '', u.pathname + u.search);
       const t = p.querySelector('[data-title]');
       if (t) document.title = t.dataset.title || t.textContent.trim();
+      const dd = p.querySelector('[data-description]');
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (dd && metaDesc) metaDesc.setAttribute('content', dd.dataset.description || '');
       syncActive();
       p.scrollIntoView({ block: 'start' });
       sidebar()?.classList.remove('translate-x-0');
+      // a11y: shift focus to the new heading so screen readers announce the new page.
+      const h = p.querySelector('h1');
+      if (h) {
+        if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+        try { h.focus({ preventScroll: true }); } catch (_) {}
+      }
     } catch (e) {
-      clearTimeout(skeletonTimer);
+      if (abort.signal.aborted) return;
+      clearTimeout(skTimer);
       location.href = url;
     } finally {
-      loadbar()?.classList.remove('loading');
+      if (currentAbort === abort) {
+        currentAbort = null;
+        loadbar()?.classList.remove('loading');
+      }
     }
   }
 
@@ -181,18 +201,17 @@
   }
   function hideCtx() { const m = $('#ctxmenu'); if (m) m.hidden = true; ctxTargetUrl = null; }
 
-  // --- Library grid: single-click on file = download (native); double-click on folder = enter ---
-  document.addEventListener('dblclick', (e) => {
-    const f = e.target.closest('[data-lib-folder]');
-    if (!f) return;
-    const container = f.closest('.lib-gui[data-lib-tree]');
-    if (!container) return;
-    e.preventDefault();
-    libGo(container, f.dataset.libFolder);
-  });
+  // --- Library grid: single-click on file = native download; single-click on folder = enter ---
+  // (Web users expect single-click to navigate; desktop double-click was non-discoverable.)
 
   // --- Global click handler (delegated) ---
   document.addEventListener('click', (e) => {
+    const lf = e.target.closest('[data-lib-folder]');
+    if (lf) {
+      const container = lf.closest('.lib-gui[data-lib-tree]');
+      if (container) libGo(container, lf.dataset.libFolder);
+      return;
+    }
     if (e.target.closest('[data-sidebar-toggle]')) { sidebar()?.classList.toggle('translate-x-0'); return; }
     if (e.target.closest('[data-theme-toggle]')) {
       const dark = document.documentElement.classList.toggle('dark');
@@ -272,9 +291,9 @@
     if (e.key === 'Escape') { hideCtx(); }
   });
 
-  addEventListener('popstate', (e) => {
-    if (e.state && e.state.swap) swap(location.href, false);
-  });
+  // Mark the initial page with a swap state so popstate to it re-renders content.
+  history.replaceState({ swap: 1 }, '', location.href);
+  addEventListener('popstate', () => { swap(location.href, false); });
 
   syncActive();
   renderAllLibGrids();

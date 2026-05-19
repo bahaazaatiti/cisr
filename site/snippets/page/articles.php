@@ -18,10 +18,10 @@
 ]]) ?>
 <header class="mb-6">
   <div class="usgc-sku">CISR / INDEX</div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
 </header>
 
-<nav class="sort-bar usgc-sku" aria-label="Sort">
+<nav class="sort-bar usgc-sku" aria-label="<?= t('ui.sort', 'Sort') ?>">
   <span><?= t('sort.label', 'Sort:') ?></span>
   <?php foreach ($sortOptions as $key => $label): ?>
     <a href="?sort=<?= esc($key) ?>" data-link class="<?= $sort === $key ? 'active' : '' ?>"><?= esc($label) ?></a>
@@ -34,8 +34,8 @@
   <table class="usgc-table">
     <thead>
       <tr>
-        <th class="w-24"><?= t('th.date', 'Date') ?></th>
-        <th class="w-24"><?= t('th.sku', 'SKU') ?></th>
+        <th class="w-32"><?= t('th.date', 'Date') ?></th>
+        <th class="w-28"><?= t('th.sku', 'SKU') ?></th>
         <th><?= t('th.title', 'Title') ?></th>
       </tr>
     </thead>

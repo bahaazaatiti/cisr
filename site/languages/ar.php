@@ -71,6 +71,13 @@ return [
         'frat.est'             => 'منذ',
         'label.more'           => 'المزيد',
 
+        // UI / aria
+        'ui.toggle_theme'   => 'تبديل السمة',
+        'ui.toggle_sidebar' => 'تبديل الشريط الجانبي',
+        'ui.close'          => 'إغلاق',
+        'ui.sort'           => 'ترتيب',
+        'ui.breadcrumb'     => 'مسار التنقل',
+
         // media widget
         'media.library'    => 'المكتبة',
         'media.video'      => 'فيديو',

@@ -149,7 +149,7 @@
   <div class="drawer-tabs" role="tablist">
     <button type="button" data-tab="library" class="active" role="tab" aria-selected="true"><?= t('media.library', 'LIBRARY') ?></button>
     <button type="button" data-tab="video" role="tab" aria-selected="false"><?= t('media.video', 'VIDEO') ?></button>
-    <button type="button" data-drawer-close class="drawer-x" aria-label="Close">✕</button>
+    <button type="button" data-drawer-close class="drawer-x" aria-label="<?= t('ui.close', 'Close') ?>">✕</button>
   </div>
   <div class="drawer-panels">
     <div data-panel="library" class="drawer-panel"></div>

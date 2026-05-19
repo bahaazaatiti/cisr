@@ -71,6 +71,13 @@ return [
         'frat.est'             => 'DEPUIS',
         'label.more'           => 'plus',
 
+        // UI / aria
+        'ui.toggle_theme'   => 'Changer de thème',
+        'ui.toggle_sidebar' => 'Afficher/masquer la barre latérale',
+        'ui.close'          => 'Fermer',
+        'ui.sort'           => 'Trier',
+        'ui.breadcrumb'     => 'Fil d’Ariane',
+
         // media widget
         'media.library'    => 'BIBLIOTHÈQUE',
         'media.video'      => 'VIDÉO',

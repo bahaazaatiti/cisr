@@ -12,19 +12,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title><?= esc($page->fullTitle()) ?></title>
-  <?php $desc = $page->summary()->or($site->tagline())->value(); ?>
-  <?php if ($desc): ?><meta name="description" content="<?= esc($desc) ?>"><?php endif ?>
+  <?php $desc = $page->metaDescription(); ?>
+  <meta name="description" content="<?= esc($desc) ?>">
+  <link rel="icon" type="image/svg+xml" href="<?= url('assets/img/favicon.svg') ?>">
+  <link rel="canonical" href="<?= esc($page->url()) ?>">
+  <?php foreach ($kirby->languages() as $l): ?>
+    <link rel="alternate" hreflang="<?= esc($l->code()) ?>" href="<?= esc($page->url($l->code())) ?>">
+  <?php endforeach ?>
+  <?php if ($default = $kirby->defaultLanguage()): ?>
+    <link rel="alternate" hreflang="x-default" href="<?= esc($page->url($default->code())) ?>">
+  <?php endif ?>
+  <meta property="og:type" content="<?= $page->intendedTemplate()->name() === 'article' ? 'article' : 'website' ?>">
+  <meta property="og:site_name" content="<?= esc($site->title()) ?>">
+  <meta property="og:title" content="<?= esc($page->fullTitle()) ?>">
+  <meta property="og:description" content="<?= esc($desc) ?>">
+  <meta property="og:url" content="<?= esc($page->url()) ?>">
+  <meta property="og:locale" content="<?= esc(str_replace('-', '_', $code)) ?>">
+  <meta name="twitter:card" content="summary">
   <script>try{const m=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
   <style>
   :root{--background:#FFFFFF;--foreground:#000000;--secondary:#F2F2F2;--muted-foreground:#666666;--accent:#0000FF;--accent-foreground:#FFFFFF;--border:#000000;--ring:#0000FF}
-  .dark{--background:#000000;--foreground:#00A645;--secondary:#0a0a0a;--muted-foreground:#999999;--border:#00A645;--ring:#FFFFFF}
+  .dark{--background:#000000;--foreground:#00A645;--secondary:#0a0a0a;--muted-foreground:#999999;--accent:#FFB000;--accent-foreground:#000000;--border:#00A645;--ring:#FFFFFF}
   *,*::before,*::after{box-sizing:border-box;border:0 solid var(--border);margin:0;padding:0}
   html,body{background:var(--background);color:var(--foreground);font-family:monospace;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
   a:hover{color:var(--accent)}
   h1,h2,h3,h4,h5,h6{font-weight:700;text-transform:uppercase;letter-spacing:.08em}
   ::selection{background:var(--accent);color:var(--accent-foreground)}
-  .layout{display:flex;min-height:100vh}
+  .layout{display:flex;min-height:100svh}
   .sidebar{width:16rem;border-inline-end:1px solid var(--border);display:flex;flex-direction:column;position:fixed;inset-block:0;inset-inline-start:0;background:var(--background);z-index:30;transition:transform .15s ease}
   @media (max-width:767px){.sidebar{transform:translateX(-100%)}html[dir=rtl] .sidebar{transform:translateX(100%)}.sidebar.translate-x-0{transform:translateX(0)!important}}
   .sidebar-head{padding:.75rem 1rem;border-block-end:1px solid var(--border);position:relative;overflow:hidden}
@@ -118,7 +133,7 @@
   /* Drawer (mobile) */
   .drawer-toggle{display:none;position:fixed;inset-block-end:.5rem;inset-inline-end:.5rem;z-index:40;border:1px solid var(--border);background:var(--background);padding:.3rem .6rem;font:inherit;cursor:pointer;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}
   @media (max-width:1023px){.drawer-toggle{display:inline-block}}
-  .drawer{position:fixed;inset-inline:0;inset-block-end:0;height:50vh;border-block-start:1px solid var(--border);background:var(--background);z-index:50;transform:translateY(100%);transition:transform .15s ease;display:flex;flex-direction:column}
+  .drawer{position:fixed;inset-inline:0;inset-block-end:0;height:50dvh;border-block-start:1px solid var(--border);background:var(--background);z-index:50;transform:translateY(100%);transition:transform .15s ease;display:flex;flex-direction:column}
   .drawer:not([hidden]){display:flex}
   .drawer.open{transform:none}
   .drawer-tabs{display:flex;border-block-end:1px solid var(--border)}

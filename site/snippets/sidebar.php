@@ -71,8 +71,8 @@
         </a>
       <?php endforeach ?>
     </div>
-    <button data-theme-toggle class="usgc-badge" type="button" aria-label="Toggle theme" title="Toggle light/dark">◐</button>
+    <button data-theme-toggle class="usgc-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
   </div>
 </aside>
 
-<button class="sidebar-toggle" data-sidebar-toggle type="button" aria-label="Toggle sidebar">≡</button>
+<button class="sidebar-toggle" data-sidebar-toggle type="button" aria-label="<?= t('ui.toggle_sidebar', 'Toggle sidebar') ?>">≡</button>

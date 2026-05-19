@@ -3,7 +3,7 @@
   $crumbs ??= [];
   if (empty($crumbs)) return;
 ?>
-<nav class="breadcrumb" aria-label="Breadcrumb">
+<nav class="breadcrumb" aria-label="<?= t('ui.breadcrumb', 'Breadcrumb') ?>">
   <?php $last = count($crumbs) - 1; foreach ($crumbs as $i => $c): ?>
     <?php [$label, $href] = $c + [null, null]; ?>
     <?php if ($href && $i !== $last): ?>

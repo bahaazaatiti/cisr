@@ -2,6 +2,6 @@
   <?php snippet('aside-right') ?>
 </div>
 
-<script src="<?= url('assets/js/app.js') ?>" defer></script>
+<script src="<?= url('assets/js/app.min.js') ?>" defer></script>
 </body>
 </html>

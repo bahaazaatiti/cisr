@@ -67,8 +67,8 @@
   --secondary-foreground: #00A645;
   --muted: #0a0a0a;
   --muted-foreground: #999999;
-  --accent: #0000FF;
-  --accent-foreground: #FFFFFF;
+  --accent: #FFB000;
+  --accent-foreground: #000000;
   --destructive: #FF0000;
   --destructive-foreground: #FFFFFF;
   --border: #00A645;
@@ -119,6 +119,7 @@
     width: 100%;
     border-collapse: collapse;
     border: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
   }
   .usgc-table th,
   .usgc-table td {
@@ -164,7 +165,7 @@
   .prose-usgc pre code { border: 0; padding: 0; }
   .prose-usgc img { border: 1px solid var(--border); max-width: 100%; height: auto; }
 
-  /* Fraternal organizations — spec-card listing */
+  /* Fraternal organizations — group section heading above table */
   .frat-group-head {
     display: flex;
     align-items: baseline;
@@ -174,74 +175,50 @@
     padding-block-end: 0.25rem;
     border-block-end: 1px solid var(--border);
   }
-  .frat-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-  @media (min-width: 720px) {
-    .frat-list { grid-template-columns: repeat(2, 1fr); }
-  }
-  .frat-card {
-    border: 1px solid var(--border);
-    padding: 0.6rem 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    background: transparent;
-  }
-  .frat-card:hover { background: var(--secondary); }
-  .frat-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem 0.4rem;
-    font-size: 0.7rem;
+  /* Roomier listing table for fraternals — title + native + meta stacked in one wide name cell */
+  .frat-table th,
+  .frat-table td { padding-block: 0.85rem; padding-inline: 0.875rem; vertical-align: top; }
+  .frat-col-sku  { width: 8rem; }
+  .frat-col-link { width: 2.5rem; }
+  .frat-cell-sku  { white-space: nowrap; }
+  .frat-cell-link { text-align: end; }
+  .frat-cell-link a { color: var(--accent); text-decoration: none; font-size: 1rem; }
+  .frat-cell-link a:hover { text-decoration: underline; }
+  .frat-title {
+    display: inline-block;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--muted-foreground);
-  }
-  .frat-dot { opacity: 0.5; }
-  .frat-region {
-    margin-inline-start: auto;
-    border: 1px solid currentColor;
-    padding: 0 0.4em;
-    line-height: 1.5;
-  }
-  .frat-name h3 {
-    margin: 0;
     font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    line-height: 1.3;
   }
   .frat-native {
     font-size: 0.85rem;
     color: var(--muted-foreground);
-    margin-block-start: 0.1rem;
+    margin-block-start: 0.2rem;
+    line-height: 1.3;
   }
-  .frat-summary {
-    margin: 0;
-    font-size: 0.82rem;
-    line-height: 1.45;
+  .frat-meta {
+    margin-block-start: 0.45rem;
+    line-height: 1.5;
+    word-spacing: 0.15em;
   }
-  .frat-foot {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-block-start: auto;
-    padding-block-start: 0.3rem;
-    border-block-start: 1px dashed var(--border);
+  /* Stack each entry on narrow viewports — table semantics preserved, layout linearized */
+  @media (max-width: 640px) {
+    .frat-table thead { display: none; }
+    .frat-table,
+    .frat-table tbody,
+    .frat-table tr { display: block; width: 100%; }
+    .frat-table td  { display: block; width: 100%; padding-inline: 0.75rem; border-block-end: 0; }
+    .frat-table tbody tr {
+      border-block-end: 1px solid var(--border);
+      padding-block: 0.5rem;
+    }
+    .frat-table tbody tr:last-child { border-block-end: 0; }
+    .frat-cell-sku  { padding-block: 0.25rem 0; }
+    .frat-cell-name { padding-block: 0.25rem 0; }
+    .frat-cell-link { padding-block: 0.25rem 0.5rem; text-align: start; }
   }
-  .frat-link {
-    text-decoration: none;
-    font-size: 0.78rem;
-  }
-  .frat-link:hover { color: var(--accent); }
-  .frat-more { text-decoration: none; }
 
   /* Fraternal detail page spec list */
   .frat-spec {
