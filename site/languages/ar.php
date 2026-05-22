@@ -32,6 +32,14 @@ return [
         'th.modified' => 'تاريخ التعديل',
         'th.kind'     => 'النوع',
         'th.duration' => 'المدة',
+        'th.added'    => 'أُضيف',
+
+        // labels
+        'label.kind'      => 'النوع',
+        'label.added'     => 'أُضيف',
+        'label.languages' => 'اللغات',
+        'label.infohash'  => 'معرّف التورنت',
+        'label.peers'     => 'النظراء',
 
         // sort
         'sort.label'  => 'ترتيب:',
@@ -46,6 +54,7 @@ return [
         'msg.empty_folder'   => 'هذا المجلد فارغ.',
         'msg.no_source'      => 'لا يوجد مصدر فيديو.',
         'msg.pick_video'     => 'اختر فيديو',
+        'msg.empty_library'  => 'هذا المجلد فارغ.',
 
         // fraternals
         'frat.group.sister'     => 'الأقسام الشقيقة',
@@ -77,6 +86,20 @@ return [
         'ui.close'          => 'إغلاق',
         'ui.sort'           => 'ترتيب',
         'ui.breadcrumb'     => 'مسار التنقل',
+        'ui.open_player'    => 'افتح في المشغل',
+        'ui.download'       => 'تنزيل',
+        'ui.copy_magnet'    => 'نسخ الرابط المغناطيسي',
+        'ui.play'           => 'تشغيل',
+        'ui.privacy_note'   => 'يستخدم هذا المشغل WebRTC. عنوان IP الخاص بك مرئي للنظراء الآخرين أثناء الاتصال؛ ويشارك متصفحك في النطاق الترددي.',
+
+        // library kinds
+        'library.kind.pdf'     => 'PDF',
+        'library.kind.epub'    => 'EPUB',
+        'library.kind.audio'   => 'صوت',
+        'library.kind.video'   => 'فيديو',
+        'library.kind.image'   => 'صورة',
+        'library.kind.archive' => 'أرشيف',
+        'library.kind.other'   => 'أخرى',
 
         // media widget
         'media.library'    => 'المكتبة',

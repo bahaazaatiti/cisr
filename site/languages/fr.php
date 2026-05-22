@@ -32,6 +32,14 @@ return [
         'th.modified' => 'Modifié',
         'th.kind'     => 'Type',
         'th.duration' => 'Durée',
+        'th.added'    => 'Ajouté',
+
+        // labels
+        'label.kind'      => 'Type',
+        'label.added'     => 'Ajouté',
+        'label.languages' => 'Langues',
+        'label.infohash'  => 'Empreinte',
+        'label.peers'     => 'Pairs',
 
         // sort
         'sort.label'  => 'Tri :',
@@ -46,6 +54,7 @@ return [
         'msg.empty_folder'   => 'Ce dossier est vide.',
         'msg.no_source'      => 'Aucune source vidéo.',
         'msg.pick_video'     => 'CHOISIR UNE VIDÉO',
+        'msg.empty_library'  => 'Ce dossier est vide.',
 
         // fraternals
         'frat.group.sister'     => 'Sections sœurs',
@@ -77,6 +86,20 @@ return [
         'ui.close'          => 'Fermer',
         'ui.sort'           => 'Trier',
         'ui.breadcrumb'     => 'Fil d’Ariane',
+        'ui.open_player'    => 'Ouvrir dans le lecteur',
+        'ui.download'       => 'Télécharger',
+        'ui.copy_magnet'    => 'Copier le magnet',
+        'ui.play'           => 'Lire',
+        'ui.privacy_note'   => 'Ce lecteur utilise WebRTC. Votre IP est visible des autres pairs pendant la lecture ; votre navigateur partage de la bande passante.',
+
+        // library kinds
+        'library.kind.pdf'     => 'PDF',
+        'library.kind.epub'    => 'EPUB',
+        'library.kind.audio'   => 'Audio',
+        'library.kind.video'   => 'Vidéo',
+        'library.kind.image'   => 'Image',
+        'library.kind.archive' => 'Archive',
+        'library.kind.other'   => 'Autre',
 
         // media widget
         'media.library'    => 'BIBLIOTHÈQUE',

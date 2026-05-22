@@ -1,0 +1,52 @@
+Title: QuinternaLab
+
+----
+
+Native-name: QuinternaLab
+
+----
+
+Homepage: https://www.quinternalab.org/
+
+----
+
+Summary:
+
+Perché "n + 1"
+L'espressione 'n + 1' fu utilizzata dalla Sinistra Comunista nel 1958 in un articolo sulla successione dei modi di produzione. Essa richiama il principio matematico di induzione, il quinto assioma di Peano e il principio di ricorrenza completo di Poincaré.
+
+----
+
+Notes: «n+1»
+
+----
+
+Sku: CISR/FRA-007
+
+----
+
+Affinity: friendly
+
+----
+
+Type: journal
+
+----
+
+Region: Italy
+
+----
+
+Languages: it
+
+----
+
+Founded: 1958
+
+----
+
+Verified: 2026-05-19
+
+----
+
+Uuid: jhuu9fhyvrokkmzp

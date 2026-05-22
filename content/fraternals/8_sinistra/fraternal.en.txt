@@ -1,0 +1,53 @@
+Title: Sinistra
+
+----
+
+Native-name: Sinistra
+
+----
+
+Homepage: https://sinistra.net/
+
+----
+
+Summary:
+
+ARCHIVES EN LIGNE DE LA GAUCHE COMMUNISTE
+
+SINISTRA.NET is neither a group nor a organisation. It is a kind of project of workers and other people from different countries to publish marxist literature on the web, especially those textes of the «Communist Left», also known under the (not exact) name «Italian Left».
+
+----
+
+Notes: »Marxismus & Klassenkampf«
+
+----
+
+Sku: CISR/FRA-008
+
+----
+
+Affinity: historical
+
+----
+
+Type: archive
+
+----
+
+Region: Italy
+
+----
+
+Languages: it, en, de, fr
+
+----
+
+Founded: 
+
+----
+
+Verified: 2026-05-19
+
+----
+
+Uuid: hv4mh8izykkt4w2x

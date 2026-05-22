@@ -25,6 +25,8 @@
     if (currentAbort) currentAbort.abort();
     const abort = new AbortController();
     currentAbort = abort;
+    // Release any active P2P session before navigating.
+    try { window.cisrP2P?.teardown?.(); } catch (_) {}
 
     const sep = u.search ? '&' : '?';
     loadbar()?.classList.add('loading');
@@ -43,6 +45,14 @@
       const p = panel();
       if (!p) { location.href = url; return; }
       p.innerHTML = html;
+      // innerHTML doesn't execute <script> tags — re-create them so per-page
+      // scripts (e.g. p2p.min.js on library-item / magnet-video pages) run.
+      p.querySelectorAll('script').forEach(old => {
+        const fresh = document.createElement('script');
+        for (const a of old.attributes) fresh.setAttribute(a.name, a.value);
+        if (old.textContent) fresh.textContent = old.textContent;
+        old.replaceWith(fresh);
+      });
       if (push) history.pushState({ swap: 1 }, '', u.pathname + u.search);
       const t = p.querySelector('[data-title]');
       if (t) document.title = t.dataset.title || t.textContent.trim();
@@ -87,9 +97,22 @@
   function pickVideo(btn) {
     const section = btn.closest('.ar-video') || document;
     const host = section.querySelector('#player') || $('#player');
+    const status = section.querySelector('[data-ar-p2p-status]');
     $$('.vid-pick').forEach(b => b.classList.toggle('active', b === btn));
+    // Always tear down any active torrent before switching sources.
+    try { window.cisrP2P?.teardown?.(); } catch (_) {}
+    const magnet = btn.dataset.vidMagnet;
+    if (magnet) {
+      host.classList.remove('vid-frame-empty');
+      window.cisrP2P?.open?.(magnet, 'video', host, status);
+      return;
+    }
+    if (status) status.textContent = '';
     renderPlayer(host, { src: btn.dataset.vidSrc, title: btn.dataset.vidTitle || '' });
   }
+
+  const KIND_LABEL = { pdf:'PDF', epub:'EPB', audio:'AUD', video:'VID', image:'IMG', archive:'ZIP', other:'OTH' };
+  function kindLabel(k) { return KIND_LABEL[k] || 'OTH'; }
 
   // --- Library mode toggle ---
   function setLibMode(mode) {
@@ -133,10 +156,15 @@
            +  '</button>';
     });
     (node.files || []).forEach(f => {
-      html += '<a class="lib-cell lib-cell-file" href="' + escHtml(f.url) + '" download data-file title="' + escHtml(f.name) + ' · ' + escHtml(f.size) + '">'
-           +    '<span class="lib-cell-icon" aria-hidden="true">[ ]</span>'
+      const icon = '[' + kindLabel(f.kind) + ']';
+      const meta = (f.size || '') + (f.date ? ' · ' + f.date : '');
+      html += '<a class="lib-cell lib-cell-file" href="' + escHtml(f.url) + '" data-link'
+           +    ' data-magnet="' + escHtml(f.magnet || '') + '"'
+           +    ' data-kind="' + escHtml(f.kind || 'other') + '"'
+           +    ' title="' + escHtml(f.name) + (meta ? ' · ' + escHtml(meta) : '') + '">'
+           +    '<span class="lib-cell-icon" aria-hidden="true">' + escHtml(icon) + '</span>'
            +    '<span class="lib-cell-name">' + escHtml(f.name) + '</span>'
-           +    '<span class="lib-cell-meta usgc-sku">' + escHtml(f.size) + '</span>'
+           +    '<span class="lib-cell-meta usgc-sku">' + escHtml(f.size || '') + '</span>'
            +  '</a>';
     });
     if (!html) {

@@ -1,0 +1,60 @@
+Title: International Communist Party ICP
+
+----
+
+Native-name: International Communist Party
+
+----
+
+Homepage: https://www.international-communist-party.org/
+
+----
+
+Summary:
+
+What distinguishes our party:
+ – The line running from Marx to Lenin to the foundation of the Third International and the birth of the Communist Party of Italy in Leghorn (Livorno) 1921, and from there to the struggle of the Italian Communist Left against the degeneration in Moscow and to the rejection of popular fronts and coalitions of resistance groups;
+ – The tough work of restoring the revolutionary doctrine and the party organ, in contact with the working class, outside the realm of personal politics and electoralist manoevrings.
+
+----
+
+Notes:
+
+«Communism»
+«The International Communist Party»
+«Il Partito Comunista Internazionale»
+«Comunismo»
+«El Partido Comunista Internacional»
+«Enternasyonal Komünist Partisi»
+
+----
+
+Sku: CISR/FRA-002
+
+----
+
+Affinity: sister
+
+----
+
+Type: party
+
+----
+
+Region: North America
+
+----
+
+Languages: en, fr, ar, it, es, de, tr
+
+----
+
+Founded: 2016
+
+----
+
+Verified: 2026-05-18
+
+----
+
+Uuid: ulcxtkgvdckuutvq

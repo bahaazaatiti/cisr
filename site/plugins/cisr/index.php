@@ -16,6 +16,45 @@ if (!function_exists('cisr_youtube_id')) {
     }
 }
 
+if (!function_exists('cisr_magnet_parse')) {
+    /**
+     * Parse a magnet URI. Returns null if it doesn't look like one.
+     * Shape: ['infohash' => '...', 'dn' => '...', 'trackers' => [...]]
+     */
+    function cisr_magnet_parse(?string $magnet): ?array {
+        if (!$magnet || strncmp($magnet, 'magnet:?', 8) !== 0) return null;
+        $query = substr($magnet, 8);
+        $parts = explode('&', $query);
+        $hash = null; $dn = null; $trackers = [];
+        foreach ($parts as $p) {
+            $eq = strpos($p, '=');
+            if ($eq === false) continue;
+            $k = substr($p, 0, $eq);
+            $v = urldecode(substr($p, $eq + 1));
+            if ($k === 'xt' && strncmp($v, 'urn:btih:', 9) === 0) {
+                $hash = strtolower(substr($v, 9));
+            } elseif ($k === 'dn') {
+                $dn = $v;
+            } elseif ($k === 'tr') {
+                $trackers[] = $v;
+            }
+        }
+        if (!$hash) return null;
+        return ['infohash' => $hash, 'dn' => $dn, 'trackers' => $trackers];
+    }
+}
+
+if (!function_exists('cisr_magnet_has_wss')) {
+    function cisr_magnet_has_wss(?string $magnet): bool {
+        $p = cisr_magnet_parse($magnet);
+        if (!$p) return false;
+        foreach ($p['trackers'] as $t) {
+            if (stripos($t, 'wss://') === 0) return true;
+        }
+        return false;
+    }
+}
+
 if (!function_exists('cisr_file_kind')) {
     function cisr_file_kind(\Kirby\Cms\File $file): string {
         $ext = strtolower($file->extension());
@@ -58,6 +97,48 @@ Kirby::plugin('cisr/helpers', [
             $s = $this->summary();
             $v = ($s && $s->isNotEmpty()) ? (string) $s : (string) $this->site()->tagline();
             return $v;
+        },
+        'hasYouTubeSource' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            if ($this->intendedTemplate()->name() !== 'video') return false;
+            $type = (string) $this->source_type();
+            if ($type === 'magnet') return false;
+            return $this->youtube_url()->isNotEmpty();
+        },
+        'hasMagnetSource' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            $tpl = $this->intendedTemplate()->name();
+            if ($tpl === 'video') {
+                if ((string) $this->source_type() !== 'magnet') return false;
+            } elseif ($tpl !== 'library-item') {
+                return false;
+            }
+            return $this->magnet()->isNotEmpty();
+        },
+        'magnetUrl' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            $m = trim((string) $this->magnet());
+            return $m !== '' ? $m : null;
+        },
+        'magnetParsed' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            return cisr_magnet_parse((string) $this->magnet());
+        },
+        'magnetKind' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            $tpl = $this->intendedTemplate()->name();
+            if ($tpl === 'library-item') {
+                $k = (string) $this->kind();
+                return $k !== '' ? $k : 'other';
+            }
+            if ($tpl === 'video') return 'video';
+            return 'other';
+        },
+        'magnetDisplayName' => function () {
+            /** @var \Kirby\Cms\Page $this */
+            $p = cisr_magnet_parse((string) $this->magnet());
+            if ($p && $p['dn']) return $p['dn'];
+            return (string) $this->title();
         },
     ],
 ]);

@@ -1,0 +1,54 @@
+Title: International Communist Party
+
+----
+
+Native-name: International Communist Party
+
+----
+
+Homepage: https://www.internationalcommunistparty.org/
+
+----
+
+Summary: WHAT DISTINGUISHES OUR PARTY: The political continuity which goes from Marx to Lenin, to the foundation of the Communist Party of Italy (Livorno, 1921); the struggle of the Communist Left against the degeneration of the Communist International, against the theory of „socialism in one country“, against the Stalinist counter-revolution; the rejection of the Popular Fronts and the Resistance Blocs; the difficult task of restoring the revolutionary doctrine and organization in close interrelationship with the working class, against all personal and electoral politics.
+
+----
+
+Notes:
+
+«il programma comunista»
+«the internationalist»
+»Kommunistisches Programm«
+«cahiers internationalistes»
+
+----
+
+Sku: CISR/FRA-004
+
+----
+
+Affinity: sister
+
+----
+
+Type: party
+
+----
+
+Region: Italy
+
+----
+
+Languages: en, it, de, es
+
+----
+
+Founded: 1953
+
+----
+
+Verified: 2026-05-19
+
+----
+
+Uuid: 8bryx9br9cfksqci

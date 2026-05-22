@@ -3,6 +3,16 @@
 $uri  = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $file = __DIR__ . $uri;
 if ($uri !== '/' && file_exists($file) && !is_dir($file)) {
+    // Serve the WebTorrent service worker ourselves so we can set
+    // Service-Worker-Allowed: / — lets it control the whole site, not just
+    // its own directory. (PHP's built-in server doesn't invoke this router
+    // for static files, so a `header()` call there would be a no-op.)
+    if (substr($uri, -strlen('/sw.min.js')) === '/sw.min.js') {
+        header('Content-Type: application/javascript');
+        header('Service-Worker-Allowed: /');
+        readfile($file);
+        exit;
+    }
     return false; // serve the file directly
 }
 // PHP's built-in server sets SCRIPT_NAME / PHP_SELF to the requested path when

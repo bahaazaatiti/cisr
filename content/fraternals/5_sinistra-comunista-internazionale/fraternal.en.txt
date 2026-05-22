@@ -1,0 +1,65 @@
+Title: La Sinistra Comunista Internazionale
+
+----
+
+Native-name: La Sinistra Comunista Internazionale
+
+----
+
+Homepage: https://sinistracomunistainternazionale.com/
+
+----
+
+Summary:
+
+Riproponiamo, dopo dieci anni, l'introduzione che accompagnava il primo
+numero della nostra rivista. Ci sembrano infatti ancora valide le tesi e le analisi
+ivi contenute. Quell'introduzione può essere quindi un ottimo viatico per la
+rivista che torneremo a pubblicare alla fine di giugno, dopo due anni di
+interruzione della diffusione di testi in forma cartacea (esclusi i soliti volantini e
+manifesti). Nel giugno/luglio del 2013 alcune cose sono infatti cambiate nella
+nostra piccola organizzazione, i cambiamenti hanno reso più efficace e
+determinata la nostra battaglia politica, permettendoci di andare oltre una
+serie di condizionamenti interni sterili e negativi. Il lavoro politico e teorico non
+si è mai interrotto da allora, e ora proviamo a raccogliere in una rivista digitale
+e cartacea gli articoli contenuti nel nostro sito web, proponendo ai lettori e ai
+compagni il nostro sforzo di lettura e di denuncia dei variegati aspetti della
+moderna barbarie della società capitalistica (precedentemente discussi in varie
+riunioni pubbliche svoltesi nella nostra sede storica di Schio, con cadenza
+almeno quadrimestrale)
+
+----
+
+Notes: 
+
+----
+
+Sku: CISR/FRA-005
+
+----
+
+Affinity: aligned
+
+----
+
+Type: publication
+
+----
+
+Region: Italy
+
+----
+
+Languages: it
+
+----
+
+Founded: 2013
+
+----
+
+Verified: 2026-05-19
+
+----
+
+Uuid: hww1pg4brieihqv1

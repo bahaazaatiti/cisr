@@ -16,19 +16,22 @@
   <?php endif ?>
 </header>
 
-<?php $folders = $page->children()->listed(); ?>
-<?php $files = $page->files(); ?>
+<?php
+  $children = $page->children()->listed();
+  $folders = $children->filterBy('intendedTemplate', 'library');
+  $items   = $children->filterBy('intendedTemplate', 'library-item')->sortBy('added', 'desc');
+?>
 
-<?php if (count($folders) === 0 && count($files) === 0): ?>
-  <p class="text-muted-foreground"><?= t('msg.empty_folder', 'This folder is empty.') ?></p>
+<?php if (count($folders) === 0 && count($items) === 0): ?>
+  <p class="text-muted-foreground"><?= t('msg.empty_library', 'This folder is empty.') ?></p>
 <?php else: ?>
   <table class="usgc-table">
     <thead>
       <tr>
-        <th class="w-8"></th>
+        <th class="w-12"><?= t('th.kind', 'Kind') ?></th>
         <th><?= t('th.name', 'Name') ?></th>
         <th class="w-24"><?= t('th.size', 'Size') ?></th>
-        <th class="w-28"><?= t('th.modified', 'Modified') ?></th>
+        <th class="w-28"><?= t('th.added', 'Added') ?></th>
       </tr>
     </thead>
     <tbody>
@@ -46,12 +49,16 @@
           <td><?= $f->modified('Y-m-d') ?></td>
         </tr>
       <?php endforeach ?>
-      <?php foreach ($files as $f): ?>
+      <?php foreach ($items as $i):
+        $k = (string) $i->kind();
+        $size = (string) $i->size_human();
+        $added = $i->added()->isNotEmpty() ? $i->added()->toDate('Y-m-d') : '—';
+      ?>
         <tr>
-          <td>[<?= cisr_file_kind($f) ?>]</td>
-          <td><a href="<?= $f->url() ?>" download data-file><?= esc($f->filename()) ?></a></td>
-          <td><?= $f->niceSize() ?></td>
-          <td><?= $f->modified('Y-m-d') ?></td>
+          <td>[<?= esc(strtoupper($k ?: '...')) ?>]</td>
+          <td><a href="<?= $i->url() ?>" data-link><?= esc($i->title()) ?></a></td>
+          <td><?= $size !== '' ? esc($size) : '—' ?></td>
+          <td><?= esc($added) ?></td>
         </tr>
       <?php endforeach ?>
     </tbody>

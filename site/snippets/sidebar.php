@@ -14,7 +14,7 @@
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
     <img class="sidebar-sign" src="<?= url('assets/img/sign.svg') ?>" alt="" aria-hidden="true" width="200" height="230">
-    <div class="usgc-sku">CISR / TR-100</div>
+    <div class="usgc-sku">CISR / LB-001</div>
     <div class="font-bold uppercase tracking-[0.08em]"><?= esc($site->title()) ?></div>
     <?php if ($site->tagline()->isNotEmpty()): ?>
       <div class="text-xs text-muted-foreground mt-1"><?= esc($site->tagline()) ?></div>

@@ -8,3 +8,4 @@ cd "$(dirname "$0")"
   --minify
 echo "built: assets/css/app.css — $(wc -c < assets/css/app.css) bytes raw, $(gzip -9 -c assets/css/app.css | wc -c) bytes gz"
 php build-js.php assets/js/app.js assets/js/app.min.js
+php build-js.php assets/js/p2p.js assets/js/p2p.min.js

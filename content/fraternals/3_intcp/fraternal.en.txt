@@ -1,0 +1,57 @@
+Title: International Communist Party INTCP
+
+----
+
+Native-name: International Communist Party
+
+----
+
+Homepage: https://intcp.org/
+
+----
+
+Summary:
+
+What distinguishes our party
+The line running from Marx to Lenin to the foundation of the Third International and the birth of the Communist Party of Italy at Livorno in 1921, and from there to the struggle of the Italian Communist Left against the degeneration in Moscow and to the rejection of popular fronts and coalitions of resistance groups.
+The tough work of restoring the revolutionary doctrine and the party organ, in contact with the working class, outside the realm of personal politics and electoral maneuvers.
+
+----
+
+Notes:
+
+«The International Communist»
+«Il Partito Comunista»
+«Comunismo»
+
+----
+
+Sku: CISR/FRA-003
+
+----
+
+Affinity: sister
+
+----
+
+Type: party
+
+----
+
+Region: Italy
+
+----
+
+Languages: ar, en, fr, it, es, de
+
+----
+
+Founded: 1953
+
+----
+
+Verified: 2026-05-19
+
+----
+
+Uuid: ruvklufrgh3qce7k

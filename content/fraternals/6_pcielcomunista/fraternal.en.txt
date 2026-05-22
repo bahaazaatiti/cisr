@@ -1,0 +1,49 @@
+Title: Partido Comunista Internacional
+
+----
+
+Native-name: Partido Comunista Internacional
+
+----
+
+Homepage: https://pcielcomunista.org
+
+----
+
+Summary: 
+
+----
+
+Notes: «El Comunista»
+
+----
+
+Sku: CISR/FRA-006
+
+----
+
+Affinity: sister
+
+----
+
+Type: publication
+
+----
+
+Region: Italy
+
+----
+
+Languages: es, en, it
+
+----
+
+Founded: 1953
+
+----
+
+Verified: 2026-05-19
+
+----
+
+Uuid: 3yswwafsjpzjh3d7

@@ -3,19 +3,25 @@
   $videos  = page('videos');
 
   // Build a JSON tree of the library for the GUI mode (client-side file explorer).
+  // Folders = nested library pages; items = library-item leaf pages with magnets.
   $buildTree = function ($node) use (&$buildTree) {
     $folders = [];
-    foreach ($node->children()->listed()->sortBy('title', 'asc', SORT_NATURAL | SORT_FLAG_CASE) as $f) {
-      $folders[] = $buildTree($f);
-    }
-    $files = [];
-    foreach ($node->files()->sortBy('filename', 'asc', SORT_NATURAL | SORT_FLAG_CASE) as $file) {
-      $files[] = [
-        'name' => $file->filename(),
-        'url'  => (string) $file->url(),
-        'size' => (string) ($file->niceSize() ?: ''),
-        'date' => (string) ($file->modified('Y-m-d') ?: ''),
-      ];
+    $files   = [];
+    foreach ($node->children()->listed()->sortBy('title', 'asc', SORT_NATURAL | SORT_FLAG_CASE) as $c) {
+      $tpl = $c->intendedTemplate()->name();
+      if ($tpl === 'library') {
+        $folders[] = $buildTree($c);
+      } elseif ($tpl === 'library-item') {
+        $kind = (string) $c->kind() ?: 'other';
+        $files[] = [
+          'name' => (string) ($c->title()->value() ?: $c->slug()),
+          'url'  => (string) $c->url(),
+          'size' => (string) ($c->size_human()->or('')),
+          'date' => $c->added()->isNotEmpty() ? $c->added()->toDate('Y-m-d') : '',
+          'kind' => $kind,
+          'magnet' => (string) $c->magnet(),
+        ];
+      }
     }
     return [
       'name'    => (string) ($node->title()->value() ?: $node->slug()),
@@ -29,31 +35,45 @@
   // Flat rows for LIST mode (recursive, depth-prefixed name, collapsible via parent path)
   $flatRows = [];
   $flatten = function ($node, $prefix = '', $parent = '') use (&$flatten, &$flatRows) {
-    foreach ($node->children()->listed() as $f) {
-      $title = (string) ($f->title()->value() ?: $f->slug());
-      $path  = ($parent === '' ? '' : $parent . '/') . $f->slug();
-      $flatRows[] = [
-        'type'   => 'folder',
-        'folder' => $path,
-        'parent' => $parent,
-        'name'   => $prefix . $title . '/',
-        'size'   => '—',
-        'date'   => (string) ($f->modified('Y-m-d') ?: '—'),
-      ];
-      $flatten($f, $prefix . $title . '/', $path);
-    }
-    foreach ($node->files() as $file) {
-      $flatRows[] = [
-        'type'   => 'file',
-        'parent' => $parent,
-        'name'   => $prefix . $file->filename(),
-        'size'   => (string) ($file->niceSize() ?: '—'),
-        'date'   => (string) ($file->modified('Y-m-d') ?: '—'),
-        'href'   => (string) $file->url(),
-      ];
+    foreach ($node->children()->listed() as $c) {
+      $tpl   = $c->intendedTemplate()->name();
+      $title = (string) ($c->title()->value() ?: $c->slug());
+      if ($tpl === 'library') {
+        $path = ($parent === '' ? '' : $parent . '/') . $c->slug();
+        $flatRows[] = [
+          'type'   => 'folder',
+          'folder' => $path,
+          'parent' => $parent,
+          'name'   => $prefix . $title . '/',
+          'size'   => '—',
+          'date'   => (string) ($c->modified('Y-m-d') ?: '—'),
+        ];
+        $flatten($c, $prefix . $title . '/', $path);
+      } elseif ($tpl === 'library-item') {
+        $kind = (string) $c->kind() ?: 'other';
+        $flatRows[] = [
+          'type'   => 'item',
+          'parent' => $parent,
+          'name'   => $prefix . $title,
+          'size'   => (string) ($c->size_human()->or('—')),
+          'date'   => $c->added()->isNotEmpty() ? $c->added()->toDate('Y-m-d') : '—',
+          'href'   => (string) $c->url(),
+          'kind'   => $kind,
+          'magnet' => (string) $c->magnet(),
+        ];
+      }
     }
   };
   if ($library) { $flatten($library); }
+
+  // 3-letter PHP-side kind labels (mirror JS map in app.js).
+  $kindLabel = function ($k) {
+    static $m = [
+      'pdf' => 'PDF', 'epub' => 'EPB', 'audio' => 'AUD', 'video' => 'VID',
+      'image' => 'IMG', 'archive' => 'ZIP', 'other' => 'OTH',
+    ];
+    return $m[$k] ?? 'OTH';
+  };
 ?>
 <aside class="aside-right" data-aside-right>
   <section class="ar-half ar-library" data-mode="gui">
@@ -81,7 +101,7 @@
               <th class="w-6"></th>
               <th><?= t('th.name', 'NAME') ?></th>
               <th class="w-12"><?= t('th.size', 'SIZE') ?></th>
-              <th class="w-20"><?= t('th.modified', 'MODIFIED') ?></th>
+              <th class="w-20"><?= t('th.added', 'ADDED') ?></th>
             </tr></thead>
             <tbody>
             <?php foreach ($flatRows as $r): ?>
@@ -90,14 +110,20 @@
                 $hidden   = $r['parent'] !== '';
                 $attrs    = ' data-parent="' . esc($r['parent'], 'attr') . '"';
                 if ($isFolder) $attrs .= ' data-folder="' . esc($r['folder'], 'attr') . '"';
+                $icon     = $isFolder ? '[+]' : '[' . $kindLabel($r['kind'] ?? 'other') . ']';
               ?>
               <tr<?= $isFolder ? ' class="lib-row-folder"' : '' ?><?= $attrs ?><?= $hidden ? ' hidden' : '' ?>>
-                <td><span<?= $isFolder ? ' class="lib-toggle"' : '' ?>><?= $isFolder ? '[+]' : '[ ]' ?></span></td>
-                <td><?php if ($isFolder): ?>
-                  <span class="lib-flat-folder"><?= esc($r['name']) ?></span>
-                <?php else: ?>
-                  <a href="<?= esc($r['href']) ?>" download data-file title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></a>
-                <?php endif ?></td>
+                <td><span<?= $isFolder ? ' class="lib-toggle"' : '' ?>><?= $icon ?></span></td>
+                <td>
+                  <?php if ($isFolder): ?>
+                    <span class="lib-flat-folder"><?= esc($r['name']) ?></span>
+                  <?php else: ?>
+                    <a href="<?= esc($r['href']) ?>" data-link
+                       data-magnet="<?= esc($r['magnet'] ?? '', 'attr') ?>"
+                       data-kind="<?= esc($r['kind'] ?? 'other', 'attr') ?>"
+                       title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></a>
+                  <?php endif ?>
+                </td>
                 <td class="usgc-sku"><?= esc($r['size']) ?></td>
                 <td class="usgc-sku"><?= esc($r['date']) ?></td>
               </tr>
@@ -118,19 +144,25 @@
         <span class="usgc-sku" data-player-placeholder><?= t('msg.pick_video', 'PICK A VIDEO') ?></span>
       </div>
     </div>
+    <div class="usgc-sku ar-p2p-status" data-ar-p2p-status></div>
     <ul class="vid-list">
-      <?php if ($videos): foreach ($videos->children()->listed()->sortBy('date', 'desc') as $v): ?>
-        <?php
-          $vsrc = $v->videoEmbedUrl();
-          if (!$vsrc) continue;
-        ?>
+      <?php if ($videos): foreach ($videos->children()->listed()->sortBy('date', 'desc') as $v):
+        $isYT     = $v->hasYouTubeSource();
+        $isMagnet = $v->hasMagnetSource();
+        if (!$isYT && !$isMagnet) continue;
+        $vsrc     = $isYT ? $v->videoEmbedUrl() : null;
+        $vmagnet  = $isMagnet ? (string) $v->magnet() : null;
+        $badge    = $isMagnet ? 'WT' : 'YT';
+      ?>
         <li>
           <button type="button" class="vid-pick"
             data-video
-            data-vid-src="<?= esc($vsrc) ?>"
+            <?php if ($vsrc): ?>data-vid-src="<?= esc($vsrc) ?>"<?php endif ?>
+            <?php if ($vmagnet): ?>data-vid-magnet="<?= esc($vmagnet) ?>"<?php endif ?>
             data-vid-title="<?= esc($v->title()) ?>">
             <span class="vid-pick-icon" aria-hidden="true">▷</span>
             <span class="vid-pick-title"><?= esc($v->title()) ?></span>
+            <span class="usgc-sku vid-pick-badge"><?= $badge ?></span>
             <?php if ($v->duration()->isNotEmpty()): ?>
               <span class="usgc-sku vid-pick-dur"><?= esc($v->duration()) ?></span>
             <?php endif ?>

@@ -1,0 +1,49 @@
+Title: International Communist Party PCINT
+
+----
+
+Native-name: International Communist Party PCINT
+
+----
+
+Homepage: https://www.pcint.org/
+
+----
+
+Summary: «le prolétaire» «il comunista» «el proletario» «programme communiste» «Proletarian»
+
+----
+
+Notes: 
+
+----
+
+Sku: CISR/FRA-001
+
+----
+
+Affinity: sister
+
+----
+
+Type: party
+
+----
+
+Region: Italy
+
+----
+
+Languages: en, fr, it
+
+----
+
+Founded: 1952
+
+----
+
+Verified: 2026-05-18
+
+----
+
+Uuid: 7xjkd8wzrcdzh5tw

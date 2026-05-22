@@ -33,6 +33,14 @@ return [
         'th.modified' => 'Modified',
         'th.kind'     => 'Kind',
         'th.duration' => 'Dur.',
+        'th.added'    => 'Added',
+
+        // labels
+        'label.kind'      => 'Kind',
+        'label.added'     => 'Added',
+        'label.languages' => 'Languages',
+        'label.infohash'  => 'Infohash',
+        'label.peers'     => 'Peers',
 
         // sort
         'sort.label'  => 'Sort:',
@@ -47,6 +55,7 @@ return [
         'msg.empty_folder'   => 'This folder is empty.',
         'msg.no_source'      => 'No video source.',
         'msg.pick_video'     => 'PICK A VIDEO',
+        'msg.empty_library'  => 'This folder is empty.',
 
         // fraternals
         'frat.group.sister'     => 'Sister sections',
@@ -78,6 +87,20 @@ return [
         'ui.close'          => 'Close',
         'ui.sort'           => 'Sort',
         'ui.breadcrumb'     => 'Breadcrumb',
+        'ui.open_player'    => 'Open in viewer',
+        'ui.download'       => 'Download',
+        'ui.copy_magnet'    => 'Copy magnet',
+        'ui.play'           => 'Play',
+        'ui.privacy_note'   => 'This viewer uses WebRTC. Your IP is visible to other peers while connected; your browser shares bandwidth.',
+
+        // library kinds
+        'library.kind.pdf'     => 'PDF',
+        'library.kind.epub'    => 'EPUB',
+        'library.kind.audio'   => 'Audio',
+        'library.kind.video'   => 'Video',
+        'library.kind.image'   => 'Image',
+        'library.kind.archive' => 'Archive',
+        'library.kind.other'   => 'Other',
 
         // media widget
         'media.library'    => 'LIBRARY',

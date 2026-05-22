@@ -25,10 +25,12 @@
       </tr>
     </thead>
     <tbody>
-      <?php foreach ($list as $v): ?>
+      <?php foreach ($list as $v):
+        $src = $v->hasMagnetSource() ? 'WT' : ($v->hasYouTubeSource() ? 'YT' : '—');
+      ?>
         <tr>
           <td><?= $v->date()->toDate('Y-m-d') ?: '—' ?></td>
-          <td><?= esc(strtoupper($v->kind()->or('—'))) ?></td>
+          <td><?= esc($src) ?></td>
           <td><a href="<?= $v->url() ?>" data-link><?= esc($v->title()) ?></a></td>
           <td><?= esc($v->duration()->or('—')) ?></td>
         </tr>
