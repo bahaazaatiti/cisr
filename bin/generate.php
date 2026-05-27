@@ -65,6 +65,7 @@ $preserve = [
     'README.md', 'MIRROR.md', 'MIRRORS.md',
     'sw.min.js',
     '_build.json',
+    '_headers',
 ];
 $ssg->generate($outputFolder, $baseUrl, $preserve);
 fwrite(STDERR, "rendered: {$outputFolder}\n");
@@ -95,7 +96,8 @@ $copies = [
     'MIRRORS.md',
     'README.md',
     '_build.json',
-    'CNAME', // optional — present only when a custom domain is set
+    'CNAME',     // optional — present only when a custom domain is set
+    '_headers',  // Netlify / CF Pages — ignored on gh-pages (meta CSP covers that)
 ];
 foreach ($copies as $name) {
     $src = $root . '/' . $name;

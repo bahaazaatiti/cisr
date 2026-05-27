@@ -11,6 +11,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ytimg.com data: blob:; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' wss: https:; worker-src 'self' blob:; manifest-src 'self'">
   <title><?= esc($page->fullTitle()) ?></title>
   <?php $desc = $page->metaDescription(); ?>
   <meta name="description" content="<?= esc($desc) ?>">
