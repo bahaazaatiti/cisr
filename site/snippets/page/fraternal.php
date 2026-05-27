@@ -24,7 +24,7 @@
     <span>· <?= esc(strtoupper(t('frat.aff.' . $aff, $aff))) ?></span>
     <?php if ($type): ?><span>· <?= esc(strtoupper(t('frat.type.' . $type, $type))) ?></span><?php endif ?>
   </div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl"><?= esc($page->title()) ?></h1>
   <?php if ($native): ?><div class="frat-native mt-1"><?= esc($native) ?></div><?php endif ?>
   <?php if ($page->summary()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->summary()) ?></p>

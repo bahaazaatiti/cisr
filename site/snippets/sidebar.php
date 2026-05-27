@@ -62,16 +62,40 @@
     <?php endif ?>
   </nav>
 
+  <?php
+    $stamp   = cisr_build_stamp();
+    $mirrors = cisr_mirrors(3);
+  ?>
   <div class="sidebar-foot">
-    <div class="flex gap-2 items-baseline flex-1">
-      <?php foreach ($langs as $i => $l): ?>
-        <?php if ($i): ?><span aria-hidden="true">·</span><?php endif ?>
-        <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $l->code() === $kirby->language()->code() ? ' class="font-bold"' : '' ?>>
-          <?= esc(strtoupper($l->code())) ?>
-        </a>
-      <?php endforeach ?>
+    <div class="sidebar-foot-row">
+      <div class="flex gap-2 items-baseline flex-1">
+        <?php foreach ($langs as $i => $l): ?>
+          <?php if ($i): ?><span aria-hidden="true">·</span><?php endif ?>
+          <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $l->code() === $kirby->language()->code() ? ' class="font-bold"' : '' ?>>
+            <?= esc(strtoupper($l->code())) ?>
+          </a>
+        <?php endforeach ?>
+      </div>
+      <button data-theme-toggle class="usgc-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
     </div>
-    <button data-theme-toggle class="usgc-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
+    <?php if (!empty($stamp) || !empty($mirrors)): ?>
+      <div class="sidebar-foot-meta usgc-sku">
+        <?php if (!empty($stamp['sha'])): ?>
+          <div title="<?= esc($stamp['sha_full'] ?? $stamp['sha']) ?>">
+            <?= t('mirror.label', 'MIRROR') ?> · <?= esc($stamp['sha']) ?>
+            <?php if (!empty($stamp['built_at'])): ?> · <?= esc(substr($stamp['built_at'], 0, 10)) ?><?php endif ?>
+          </div>
+        <?php endif ?>
+        <?php if ($mirrors): ?>
+          <div><?= t('mirror.also_at', 'Also at:') ?>
+            <?php foreach ($mirrors as $i => $m): ?>
+              <?php if ($i): ?> · <?php endif ?>
+              <a href="<?= esc($m['url']) ?>" rel="noopener" target="_blank"><?= esc($m['name']) ?> <span aria-hidden="true">↗</span></a>
+            <?php endforeach ?>
+          </div>
+        <?php endif ?>
+      </div>
+    <?php endif ?>
   </div>
 </aside>
 

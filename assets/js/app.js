@@ -21,20 +21,20 @@
     const u = new URL(url, location.origin);
     if (u.origin !== location.origin) { location.href = url; return; }
 
-    // Cancel any in-flight swap so only the latest click wins.
     if (currentAbort) currentAbort.abort();
     const abort = new AbortController();
     currentAbort = abort;
-    // Release any active P2P session before navigating.
     try { window.cisrP2P?.teardown?.(); } catch (_) {}
 
-    const sep = u.search ? '&' : '?';
     loadbar()?.classList.add('loading');
     const skTimer = setTimeout(() => { if (!abort.signal.aborted) showSkeleton(); }, 120);
 
     try {
-      const r = await fetch(u.pathname + u.search + sep + 'partial=1', {
-        headers: { 'X-Partial': '1' },
+      // Fetch the full HTML page and extract #panel from it. No ?partial=1
+      // endpoint — the pre-rendered HTML serves both as the full-page entry
+      // and as the swap source. Works identically against a live Kirby site
+      // and a static export.
+      const r = await fetch(u.pathname + u.search, {
         credentials: 'same-origin',
         signal: abort.signal,
       });
@@ -42,9 +42,17 @@
       const html = await r.text();
       if (abort.signal.aborted) return;
       clearTimeout(skTimer);
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const newPanel = doc.querySelector('#panel');
       const p = panel();
-      if (!p) { location.href = url; return; }
-      p.innerHTML = html;
+      if (!p || !newPanel) { location.href = url; return; }
+      p.innerHTML = newPanel.innerHTML;
+      // Also refresh the sidebar — its labels, tagline, and language indicator
+      // change between language variants. The right aside (data-aside-right)
+      // is intentionally preserved so an in-flight video / torrent keeps playing.
+      const newSidebar = doc.querySelector('[data-sidebar]');
+      const oldSidebar = sidebar();
+      if (newSidebar && oldSidebar) oldSidebar.innerHTML = newSidebar.innerHTML;
       // innerHTML doesn't execute <script> tags — re-create them so per-page
       // scripts (e.g. p2p.min.js on library-item / magnet-video pages) run.
       p.querySelectorAll('script').forEach(old => {
@@ -54,15 +62,18 @@
         old.replaceWith(fresh);
       });
       if (push) history.pushState({ swap: 1 }, '', u.pathname + u.search);
-      const t = p.querySelector('[data-title]');
-      if (t) document.title = t.dataset.title || t.textContent.trim();
-      const dd = p.querySelector('[data-description]');
+      // Sync <html lang>/dir from the new document so RTL flips immediately
+      // when navigating to an Arabic page (today's bug under the old SPA).
+      const newHtml = doc.documentElement;
+      if (newHtml.lang) document.documentElement.lang = newHtml.lang;
+      if (newHtml.dir) document.documentElement.dir = newHtml.dir;
+      if (doc.title) document.title = doc.title;
+      const newDesc = doc.querySelector('meta[name="description"]');
       const metaDesc = document.querySelector('meta[name="description"]');
-      if (dd && metaDesc) metaDesc.setAttribute('content', dd.dataset.description || '');
+      if (newDesc && metaDesc) metaDesc.setAttribute('content', newDesc.getAttribute('content') || '');
       syncActive();
       p.scrollIntoView({ block: 'start' });
       sidebar()?.classList.remove('translate-x-0');
-      // a11y: shift focus to the new heading so screen readers announce the new page.
       const h = p.querySelector('h1');
       if (h) {
         if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
@@ -78,6 +89,31 @@
         loadbar()?.classList.remove('loading');
       }
     }
+  }
+
+  // --- Client-side table sort ---
+  // Rows carry `data-sort-<key>` attrs; buttons carry `data-sort="<key>"` and
+  // optional `data-sort-dir="desc"`. Replaces the old server-side ?sort= flow
+  // so the URL stays a single canonical path under static hosting.
+  function sortTable(btn) {
+    const key = btn.dataset.sort;
+    const dir = btn.dataset.sortDir === 'desc' ? -1 : 1;
+    const bar = btn.parentElement;
+    const next = bar?.nextElementSibling;
+    const table = (next && next.matches && next.matches('table[data-sortable]'))
+      ? next
+      : document.querySelector('#panel table[data-sortable]');
+    if (!table || !table.tBodies[0]) return;
+    const tbody = table.tBodies[0];
+    const attr = 'sort' + key.charAt(0).toUpperCase() + key.slice(1);
+    Array.from(tbody.rows)
+      .sort((a, b) => {
+        const av = a.dataset[attr] || '';
+        const bv = b.dataset[attr] || '';
+        return av < bv ? -dir : av > bv ? dir : 0;
+      })
+      .forEach(r => tbody.appendChild(r));
+    bar?.querySelectorAll('[data-sort]').forEach(b => b.classList.toggle('active', b === btn));
   }
 
   // --- Video player ---
@@ -99,7 +135,6 @@
     const host = section.querySelector('#player') || $('#player');
     const status = section.querySelector('[data-ar-p2p-status]');
     $$('.vid-pick').forEach(b => b.classList.toggle('active', b === btn));
-    // Always tear down any active torrent before switching sources.
     try { window.cisrP2P?.teardown?.(); } catch (_) {}
     const magnet = btn.dataset.vidMagnet;
     if (magnet) {
@@ -114,7 +149,6 @@
   const KIND_LABEL = { pdf:'PDF', epub:'EPB', audio:'AUD', video:'VID', image:'IMG', archive:'ZIP', other:'OTH' };
   function kindLabel(k) { return KIND_LABEL[k] || 'OTH'; }
 
-  // --- Library mode toggle ---
   function setLibMode(mode) {
     $$('[data-mode-set]').forEach(b => b.classList.toggle('active', b.dataset.modeSet === mode));
     $$('.ar-library, .drawer-panel .ar-library').forEach(s => s.dataset.mode = mode);
@@ -122,12 +156,10 @@
     $$('.lib-list').forEach(el => el.hidden = mode !== 'list');
   }
 
-  // --- Library GUI file browser ---
   function escHtml(s) {
     return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
   function libResolve(root, path) {
-    // root: root tree node. path: array of slug segments.
     let node = root;
     for (const seg of path) {
       const child = (node.folders || []).find(f => f.slug === seg);
@@ -180,7 +212,6 @@
     renderLibGrid(container);
   }
 
-  // --- Drawer ---
   let drawerCloned = false;
   function cloneIntoDrawer() {
     if (drawerCloned) return;
@@ -215,12 +246,10 @@
     $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== name);
   }
 
-  // --- Context menu ---
   let ctxTargetUrl = null;
   function showCtx(x, y, url) {
     ctxTargetUrl = url;
     const m = $('#ctxmenu'); if (!m) return;
-    // Use physical left/top — viewport-absolute coords don't mirror with dir.
     m.style.left = x + 'px';
     m.style.top = y + 'px';
     m.style.right = 'auto';
@@ -229,11 +258,9 @@
   }
   function hideCtx() { const m = $('#ctxmenu'); if (m) m.hidden = true; ctxTargetUrl = null; }
 
-  // --- Library grid: single-click on file = native download; single-click on folder = enter ---
-  // (Web users expect single-click to navigate; desktop double-click was non-discoverable.)
-
-  // --- Global click handler (delegated) ---
   document.addEventListener('click', (e) => {
+    const sort = e.target.closest('[data-sort]');
+    if (sort) { sortTable(sort); return; }
     const lf = e.target.closest('[data-lib-folder]');
     if (lf) {
       const container = lf.closest('.lib-gui[data-lib-tree]');
@@ -258,7 +285,6 @@
       if (open) {
         root.querySelectorAll('tr[data-parent="' + CSS.escape(id) + '"]').forEach(r => r.hidden = false);
       } else {
-        // Collapse self + all descendants
         root.querySelectorAll('tr[data-parent="' + CSS.escape(id) + '"], tr[data-parent^="' + CSS.escape(id) + '/"]').forEach(r => {
           r.hidden = true;
           if (r.classList.contains('lib-row-folder')) {
@@ -298,7 +324,6 @@
       hideCtx();
       return;
     }
-    // Hide context menu on any unrelated click
     if (!e.target.closest('#ctxmenu')) hideCtx();
 
     const a = e.target.closest('a[data-link]');
@@ -308,7 +333,6 @@
     swap(a.href, true);
   });
 
-  // Right-click on files
   document.addEventListener('contextmenu', (e) => {
     const f = e.target.closest('a[data-file]');
     if (!f) return;
@@ -319,7 +343,6 @@
     if (e.key === 'Escape') { hideCtx(); }
   });
 
-  // Mark the initial page with a swap state so popstate to it re-renders content.
   history.replaceState({ swap: 1 }, '', location.href);
   addEventListener('popstate', () => { swap(location.href, false); });
 

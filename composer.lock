@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "da1c3a8eb3e9e3b252ad405f32a3f585",
+    "content-hash": "cde710e96a0c5dfdb0ad7982ba7a4a89",
     "packages": [
         {
             "name": "christian-riesen/base32",
@@ -412,6 +412,43 @@
                 }
             ],
             "time": "2020-12-28T12:54:39+00:00"
+        },
+        {
+            "name": "jreisdorf/kirby-static-site-generator",
+            "version": "2.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jonathan-reisdorf/kirby-static-site-generator.git",
+                "reference": "71f07fde0c2b433bc0175b42eb703186661318ac"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jonathan-reisdorf/kirby-static-site-generator/zipball/71f07fde0c2b433bc0175b42eb703186661318ac",
+                "reference": "71f07fde0c2b433bc0175b42eb703186661318ac",
+                "shasum": ""
+            },
+            "require": {
+                "getkirby/composer-installer": "^1.1"
+            },
+            "type": "kirby-plugin",
+            "extra": {
+                "installer-name": "static-site-generator"
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jonathan Reisdorf"
+                }
+            ],
+            "description": "Static site generator plugin for Kirby 3, 4 and 5",
+            "support": {
+                "issues": "https://github.com/jonathan-reisdorf/kirby-static-site-generator/issues",
+                "source": "https://github.com/jonathan-reisdorf/kirby-static-site-generator/tree/2.4.1"
+            },
+            "time": "2026-05-09T17:14:55+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
@@ -1219,5 +1256,5 @@
         "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.2.0"
+    "plugin-api-version": "2.6.0"
 }

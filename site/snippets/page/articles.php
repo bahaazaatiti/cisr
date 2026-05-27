@@ -1,15 +1,13 @@
 <?php
   /** @var \Kirby\Cms\Page $page */
-  $sort = in_array(get('sort'), ['latest', 'sku', 'alpha'], true) ? get('sort') : 'latest';
-  $list = match ($sort) {
-    'sku'   => $page->children()->listed()->sortBy('sku', 'asc', SORT_NATURAL | SORT_FLAG_CASE),
-    'alpha' => $page->children()->listed()->sortBy('title', 'asc', SORT_NATURAL | SORT_FLAG_CASE),
-    default => $page->children()->listed()->sortBy('date', 'desc'),
-  };
+  // Sorting is client-side (JS reads data-sort-* attrs from rows). The default
+  // server-side order is date desc; the JS toggles to other orders without
+  // touching the URL — works on static hosts where ?sort= can't be honored.
+  $list = $page->children()->listed()->sortBy('date', 'desc');
   $sortOptions = [
-    'latest' => t('sort.latest', 'Latest'),
-    'sku'    => t('sort.sku',    'Index'),
-    'alpha'  => t('sort.alpha',  'A–Z'),
+    ['key' => 'date',  'dir' => 'desc', 'label' => t('sort.latest', 'Latest')],
+    ['key' => 'sku',   'dir' => 'asc',  'label' => t('sort.sku',    'Index')],
+    ['key' => 'alpha', 'dir' => 'asc',  'label' => t('sort.alpha',  'A–Z')],
   ];
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
@@ -18,20 +16,23 @@
 ]]) ?>
 <header class="mb-6">
   <div class="usgc-sku">CISR / INDEX</div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
 <nav class="sort-bar usgc-sku" aria-label="<?= t('ui.sort', 'Sort') ?>">
   <span><?= t('sort.label', 'Sort:') ?></span>
-  <?php foreach ($sortOptions as $key => $label): ?>
-    <a href="?sort=<?= esc($key) ?>" data-link class="<?= $sort === $key ? 'active' : '' ?>"><?= esc($label) ?></a>
+  <?php foreach ($sortOptions as $i => $o): ?>
+    <button type="button"
+            data-sort="<?= esc($o['key']) ?>"
+            data-sort-dir="<?= esc($o['dir']) ?>"
+            class="<?= $i === 0 ? 'active' : '' ?>"><?= esc($o['label']) ?></button>
   <?php endforeach ?>
 </nav>
 
 <?php if (count($list) === 0): ?>
   <p class="text-muted-foreground"><?= t('msg.no_articles', 'No articles yet.') ?></p>
 <?php else: ?>
-  <table class="usgc-table">
+  <table class="usgc-table" data-sortable>
     <thead>
       <tr>
         <th class="w-32"><?= t('th.date', 'Date') ?></th>
@@ -40,9 +41,13 @@
       </tr>
     </thead>
     <tbody>
-      <?php foreach ($list as $a): ?>
-        <tr>
-          <td class="whitespace-nowrap"><?= $a->date()->toDate('Y-m-d') ?: '—' ?></td>
+      <?php foreach ($list as $a):
+        $dateStr = $a->date()->toDate('Y-m-d') ?: '';
+        $skuStr  = (string) $a->sku();
+        $alphaStr = strtolower((string) $a->title());
+      ?>
+        <tr data-sort-date="<?= esc($dateStr) ?>" data-sort-sku="<?= esc($skuStr) ?>" data-sort-alpha="<?= esc($alphaStr) ?>">
+          <td class="whitespace-nowrap"><?= $dateStr ?: '—' ?></td>
           <td class="whitespace-nowrap"><?= esc($a->sku()->or('—')) ?></td>
           <td><a href="<?= $a->url() ?>" data-link><?= esc($a->title()) ?></a></td>
         </tr>

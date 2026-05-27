@@ -17,7 +17,7 @@
     <?php if ($page->duration()->isNotEmpty()): ?><span>· <?= esc($page->duration()) ?></span><?php endif ?>
     <span>· <?= $hasMagnet ? 'WEBTORRENT' : ($hasYT ? 'YOUTUBE' : '—') ?></span>
   </div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
 <div class="vid-stage mb-4">

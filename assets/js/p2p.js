@@ -16,7 +16,10 @@
   }
 
   function swUrl() {
-    return vendorUrl().replace(/webtorrent\.min\.js.*$/, 'sw.min.js');
+    // SW must live at site root so scope:'/' works without a custom
+    // Service-Worker-Allowed header (GitHub Pages can't set one).
+    // router.php special-cases /sw.min.js in local dev to add the header.
+    return '/sw.min.js';
   }
 
   function loadWebTorrent() {

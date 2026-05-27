@@ -53,4 +53,11 @@ Icon
 # ---------------
 
 /.bin/
-.claude
+
+# Static-site build artifacts
+# ---------------
+/static/
+/_build.json
+vendor
+kirby
+site/plugins/static-site-generator

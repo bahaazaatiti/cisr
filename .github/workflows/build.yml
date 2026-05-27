@@ -1,0 +1,72 @@
+name: Build & deploy static mirror
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # cisr_build_stamp() reads the short SHA — full history not needed,
+          # but fetch-depth: 0 makes blame/log fully available if anything else wants it later.
+          fetch-depth: 1
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer deps
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install Composer deps
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: Cache Tailwind binary
+        id: tailwind-cache
+        uses: actions/cache@v4
+        with:
+          path: .bin
+          key: tailwind-v4-linux-x64
+
+      - name: Download Tailwind binary
+        if: steps.tailwind-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .bin
+          curl -sLo .bin/tailwindcss \
+            https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64
+          chmod +x .bin/tailwindcss
+
+      - name: Rebuild CSS + minified JS
+        run: ./build.sh
+
+      - name: Generate static site
+        run: php bin/generate.php
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./static
+          publish_branch: gh-pages
+          enable_jekyll: false
+          commit_message: 'deploy ${{ github.sha }}'
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'

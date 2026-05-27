@@ -13,7 +13,7 @@
     <?php if ($page->date()->isNotEmpty()): ?><span>· <?= $page->date()->toDate('Y-m-d') ?></span><?php endif ?>
     <?php snippet('ui/status-badge', ['page' => $page]) ?>
   </div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl"><?= esc($page->title()) ?></h1>
   <?php if ($page->summary()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->summary()) ?></p>
   <?php endif ?>

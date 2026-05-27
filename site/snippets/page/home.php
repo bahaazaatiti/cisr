@@ -8,7 +8,7 @@
 ?>
 <header class="mb-6">
   <div class="usgc-sku"><?= esc(strtoupper($page->kirby()->language()->code())) ?> / HOME</div>
-  <h1 class="text-xl" data-title="<?= esc($page->fullTitle()) ?>" data-description="<?= esc($page->metaDescription()) ?>"><?= esc($page->title()) ?></h1>
+  <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
 <figure class="home-art home-art-signal" aria-hidden="true">

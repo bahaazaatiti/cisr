@@ -1,11 +1,5 @@
 <?php
 
-if (!function_exists('isPartialRequest')) {
-    function isPartialRequest(): bool {
-        return get('partial') === '1' || kirby()->request()->header('X-Partial') === '1';
-    }
-}
-
 if (!function_exists('cisr_youtube_id')) {
     function cisr_youtube_id(?string $url): ?string {
         if (!$url) return null;
@@ -52,6 +46,49 @@ if (!function_exists('cisr_magnet_has_wss')) {
             if (stripos($t, 'wss://') === 0) return true;
         }
         return false;
+    }
+}
+
+if (!function_exists('cisr_repo_root')) {
+    function cisr_repo_root(): string {
+        // site/plugins/cisr/ → site/plugins/ → site/ → repo root
+        return realpath(__DIR__ . '/../../..') ?: dirname(__DIR__, 3);
+    }
+}
+
+if (!function_exists('cisr_build_stamp')) {
+    /**
+     * Build stamp written by bin/generate.php before SSG rendering. Returns
+     * null when running locally without a prior build (sidebar then skips
+     * rendering the stamp row entirely).
+     */
+    function cisr_build_stamp(): ?array {
+        static $cache = null;
+        if ($cache !== null) return $cache ?: null;
+        $f = cisr_repo_root() . '/_build.json';
+        if (!file_exists($f)) return $cache = [];
+        $j = json_decode((string) @file_get_contents($f), true);
+        return $cache = (is_array($j) ? $j : []);
+    }
+}
+
+if (!function_exists('cisr_mirrors')) {
+    /**
+     * Parse the first `$limit` markdown link entries from MIRRORS.md.
+     * Format expected per line: `- [name](https://url) — optional notes`.
+     */
+    function cisr_mirrors(int $limit = 3): array {
+        static $cache = null;
+        if ($cache !== null) return array_slice($cache, 0, $limit);
+        $cache = [];
+        $f = cisr_repo_root() . '/MIRRORS.md';
+        if (!file_exists($f)) return [];
+        foreach (file($f, FILE_IGNORE_NEW_LINES) as $line) {
+            if (preg_match('/^\s*-\s*\[([^\]]+)\]\(([^)\s]+)\)/', $line, $m)) {
+                $cache[] = ['name' => $m[1], 'url' => $m[2]];
+            }
+        }
+        return array_slice($cache, 0, $limit);
     }
 }
 
