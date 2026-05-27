@@ -110,7 +110,8 @@ return [
         'media.media'      => 'MEDIA',
         'media.up'         => 'Up',
         'media.root'       => 'root',
+        'media.open'       => 'OPEN',
         'media.download'   => 'DOWNLOAD',
-        'media.copylink'   => 'COPY LINK',
+        'media.copylink'   => 'COPY MAGNET',
     ],
 ];

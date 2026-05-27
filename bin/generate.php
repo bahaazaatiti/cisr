@@ -38,7 +38,14 @@ if (!is_dir($outputFolder)) {
 }
 touch($outputFolder . '/.kirbystatic');
 
-// 3. Render.
+// 3. Render. BASE_URL env lets the Action pass the deploy prefix
+//    ('/cisr/' for a project page, '/' for user/org pages or custom domains).
+//    All Kirby url() / $page->url() / $site->url() output is rewritten to
+//    use this prefix by the SSG (see _modifyBaseUrl in the plugin).
+$baseUrl = (string) (getenv('BASE_URL') ?: '/');
+if ($baseUrl !== '' && substr($baseUrl, -1) !== '/') $baseUrl .= '/';
+fwrite(STDERR, "baseUrl:  {$baseUrl}\n");
+
 $kirby = new Kirby\Cms\App();
 $ssg   = new JR\StaticSiteGenerator($kirby);
 $preserve = [
@@ -48,7 +55,7 @@ $preserve = [
     'sw.min.js',
     '_build.json',
 ];
-$ssg->generate($outputFolder, '/', $preserve);
+$ssg->generate($outputFolder, $baseUrl, $preserve);
 fwrite(STDERR, "rendered: {$outputFolder}\n");
 
 // 4. Copy dissemination + runtime extras into the output root. Run after

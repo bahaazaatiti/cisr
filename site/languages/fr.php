@@ -109,7 +109,8 @@ return [
         'media.media'      => 'MÉDIA',
         'media.up'         => 'Haut',
         'media.root'       => 'racine',
+        'media.open'       => 'OUVRIR',
         'media.download'   => 'TÉLÉCHARGER',
-        'media.copylink'   => 'COPIER LIEN',
+        'media.copylink'   => 'COPIER MAGNET',
     ],
 ];

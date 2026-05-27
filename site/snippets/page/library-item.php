@@ -46,16 +46,26 @@
   <?php endif ?>
 </dl>
 
+<?php
+  // Only kinds the browser can actually render get an "Open in viewer" button
+  // and a p2p-stage. For epub/archive/other the in-browser viewer would just
+  // show a download fallback, which the dedicated Download button already does.
+  $isViewable = in_array($kind, ['video', 'audio', 'image', 'pdf'], true);
+?>
 <?php if ($magnet): ?>
   <div class="p2p-actions usgc-sku mb-3 flex flex-wrap gap-3">
-    <button type="button" class="usgc-badge" data-p2p-action="open" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"><?= t('ui.open_player', 'Open in viewer') ?></button>
+    <?php if ($isViewable): ?>
+      <button type="button" class="usgc-badge" data-p2p-action="open" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"><?= t('ui.open_player', 'Open in viewer') ?></button>
+    <?php endif ?>
     <button type="button" class="usgc-badge" data-p2p-action="download" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"><?= t('ui.download', 'Download') ?></button>
     <button type="button" class="usgc-badge" data-p2p-action="copy" data-magnet="<?= esc($magnet) ?>"><?= t('ui.copy_magnet', 'Copy magnet') ?></button>
   </div>
 
   <div class="p2p-status usgc-sku mb-2" data-p2p-status></div>
 
-  <div class="p2p-stage mb-4" data-p2p-stage data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"></div>
+  <?php if ($isViewable): ?>
+    <div class="p2p-stage mb-4" data-p2p-stage data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"></div>
+  <?php endif ?>
 
   <p class="text-xs text-muted-foreground mb-4"><?= t('ui.privacy_note', 'This viewer uses WebRTC. Your IP is visible to other peers while connected; your browser shares bandwidth.') ?></p>
 <?php else: ?>

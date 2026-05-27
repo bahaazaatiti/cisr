@@ -30,7 +30,11 @@
       'files'   => $files,
     ];
   };
-  $libraryJson = $library ? json_encode($buildTree($library), JSON_UNESCAPED_UNICODE) : 'null';
+  // JSON_UNESCAPED_SLASHES is critical: the SSG plugin string-replaces a
+  // `https://jr-ssg-base-url` placeholder in the final HTML to inject the
+  // deploy base. PHP's default json_encode escapes `/` to `\/`, which would
+  // hide the placeholder from that replace and leak it into the browser.
+  $libraryJson = $library ? json_encode($buildTree($library), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 'null';
 
   // Flat rows for LIST mode (recursive, depth-prefixed name, collapsible via parent path)
   $flatRows = [];
@@ -85,10 +89,17 @@
       </div>
     </header>
     <div class="ar-body">
-      <div class="lib-gui" data-lib-tree='<?= esc($libraryJson, 'attr') ?>' data-lib-path="">
+      <?php
+        // Note on attribute quoting: we use double quotes + esc(default html
+        // mode) — NOT esc('attr'). The 'attr' variant escapes "/" and ":" to
+        // HTML entities, which hides the SSG plugin's `https://jr-ssg-base-url`
+        // placeholder from its raw str_replace pass and causes broken URLs.
+      ?>
+      <div class="lib-gui" data-lib-tree="<?= esc($libraryJson) ?>" data-lib-path="">
         <div class="lib-bar">
           <button type="button" class="lib-up" data-lib-up disabled title="<?= t('media.up', 'Up') ?>"><span aria-hidden="true">↑</span></button>
           <span class="lib-cwd" data-lib-cwd>/</span>
+          <span class="usgc-sku lib-status" data-p2p-status></span>
         </div>
         <div class="lib-grid" data-lib-grid></div>
       </div>
@@ -118,7 +129,7 @@
                   <?php if ($isFolder): ?>
                     <span class="lib-flat-folder"><?= esc($r['name']) ?></span>
                   <?php else: ?>
-                    <a href="<?= esc($r['href']) ?>" data-link
+                    <a href="<?= esc($r['href']) ?>" data-link data-file
                        data-magnet="<?= esc($r['magnet'] ?? '', 'attr') ?>"
                        data-kind="<?= esc($r['kind'] ?? 'other', 'attr') ?>"
                        title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></a>
@@ -190,6 +201,7 @@
 </div>
 
 <div id="ctxmenu" class="ctxmenu" hidden>
+  <button type="button" data-ctx="open"><?= t('media.open', 'OPEN') ?></button>
   <button type="button" data-ctx="download"><?= t('media.download', 'DOWNLOAD') ?></button>
-  <button type="button" data-ctx="copy"><?= t('media.copylink', 'COPY LINK') ?></button>
+  <button type="button" data-ctx="copy"><?= t('media.copylink', 'COPY MAGNET') ?></button>
 </div>

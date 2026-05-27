@@ -57,8 +57,30 @@ jobs:
       - name: Rebuild CSS + minified JS
         run: ./build.sh
 
+      # Pick the deploy prefix so any forker gets the right base automatically:
+      #   - CNAME present              → custom domain, base "/"
+      #   - repo is <owner>.github.io  → user/org page, base "/"
+      #   - anything else              → project page, base "/<repo>/"
+      - name: Determine base URL
+        id: base
+        run: |
+          REPO="${GITHUB_REPOSITORY##*/}"
+          OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          REPO_LOWER=$(echo "${REPO}" | tr '[:upper:]' '[:lower:]')
+          if [ -f CNAME ]; then
+            BASE="/"
+          elif [ "$REPO_LOWER" = "${OWNER_LOWER}.github.io" ]; then
+            BASE="/"
+          else
+            BASE="/${REPO}/"
+          fi
+          echo "BASE_URL=${BASE}" >> "$GITHUB_ENV"
+          echo "Detected deploy base: ${BASE}"
+
       - name: Generate static site
         run: php bin/generate.php
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4

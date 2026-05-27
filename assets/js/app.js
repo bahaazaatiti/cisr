@@ -190,7 +190,11 @@
     (node.files || []).forEach(f => {
       const icon = '[' + kindLabel(f.kind) + ']';
       const meta = (f.size || '') + (f.date ? ' · ' + f.date : '');
-      html += '<a class="lib-cell lib-cell-file" href="' + escHtml(f.url) + '" data-link'
+      // GUI cells: left-click = p2p download (handled below); right-click =
+      // ctx menu (open / download / copy). The href is kept so Ctrl/Cmd+click
+      // and middle-click still open the file's detail page in a new tab —
+      // that's the only way to get to the page from GUI mode.
+      html += '<a class="lib-cell lib-cell-file" href="' + escHtml(f.url) + '" data-file'
            +    ' data-magnet="' + escHtml(f.magnet || '') + '"'
            +    ' data-kind="' + escHtml(f.kind || 'other') + '"'
            +    ' title="' + escHtml(f.name) + (meta ? ' · ' + escHtml(meta) : '') + '">'
@@ -246,9 +250,11 @@
     $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== name);
   }
 
-  let ctxTargetUrl = null;
-  function showCtx(x, y, url) {
-    ctxTargetUrl = url;
+  // Context menu remembers the file the menu was opened from. Magnet + kind
+  // drive the p2p actions (open / download / copy magnet).
+  let ctxTarget = null;
+  function showCtx(x, y, target) {
+    ctxTarget = target;
     const m = $('#ctxmenu'); if (!m) return;
     m.style.left = x + 'px';
     m.style.top = y + 'px';
@@ -256,7 +262,12 @@
     m.style.bottom = 'auto';
     m.hidden = false;
   }
-  function hideCtx() { const m = $('#ctxmenu'); if (m) m.hidden = true; ctxTargetUrl = null; }
+  function hideCtx() { const m = $('#ctxmenu'); if (m) m.hidden = true; ctxTarget = null; }
+  // Resolve the p2p status element nearest the click — prefer the lib-bar's
+  // own status so library downloads don't clobber the video status.
+  function p2pStatusFor(el) {
+    return el?.closest('[data-aside-right], .drawer-panel, #panel')?.querySelector('[data-p2p-status]') || null;
+  }
 
   document.addEventListener('click', (e) => {
     const sort = e.target.closest('[data-sort]');
@@ -313,18 +324,42 @@
     const tab = e.target.closest('[data-tab]');
     if (tab) { setDrawerTab(tab.dataset.tab); return; }
     const ctxBtn = e.target.closest('#ctxmenu button');
-    if (ctxBtn && ctxTargetUrl) {
-      if (ctxBtn.dataset.ctx === 'download') {
-        const a = document.createElement('a');
-        a.href = ctxTargetUrl; a.download = '';
-        document.body.appendChild(a); a.click(); a.remove();
-      } else if (ctxBtn.dataset.ctx === 'copy') {
-        try { navigator.clipboard?.writeText(ctxTargetUrl); } catch (_) {}
-      }
+    if (ctxBtn && ctxTarget) {
+      const t = ctxTarget;
+      const action = ctxBtn.dataset.ctx;
       hideCtx();
+      if (!t.magnet) return;
+      const status = p2pStatusFor(t.el);
+      if (action === 'download') {
+        window.cisrP2P?.download?.(t.magnet, status);
+      } else if (action === 'copy') {
+        window.cisrP2P?.copy?.(t.magnet, status);
+      } else if (action === 'open' && t.el?.href) {
+        // OPEN navigates to the file's detail page. The page itself decides
+        // whether to offer an "Open in viewer" button (only for kinds the
+        // browser can actually play).
+        swap(t.el.href, true);
+      }
       return;
     }
     if (!e.target.closest('#ctxmenu')) hideCtx();
+
+    // GUI-mode file cell: left-click triggers a p2p download (LIST mode files
+    // still navigate to the detail page via the data-link handler below).
+    // Modifier/middle clicks fall through to the browser so Ctrl+click opens
+    // the detail page in a new tab.
+    const guiFile = e.target.closest('.lib-cell-file');
+    if (guiFile) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      const mag = guiFile.dataset.magnet;
+      if (mag) {
+        window.cisrP2P?.download?.(mag, p2pStatusFor(guiFile));
+      } else if (guiFile.href) {
+        swap(guiFile.href, true);
+      }
+      return;
+    }
 
     const a = e.target.closest('a[data-link]');
     if (!a) return;
@@ -334,10 +369,13 @@
   });
 
   document.addEventListener('contextmenu', (e) => {
-    const f = e.target.closest('a[data-file]');
-    if (!f) return;
+    // Right-click on any library file (GUI cell or LIST anchor) shows the
+    // 3-option p2p menu. We require a magnet — files without one (legacy
+    // entries) fall through to the browser's native menu.
+    const f = e.target.closest('[data-file][data-magnet]');
+    if (!f || !f.dataset.magnet) return;
     e.preventDefault();
-    showCtx(e.clientX, e.clientY, f.href);
+    showCtx(e.clientX, e.clientY, { magnet: f.dataset.magnet, kind: f.dataset.kind || 'other', el: f });
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { hideCtx(); }

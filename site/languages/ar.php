@@ -109,7 +109,8 @@ return [
         'media.media'      => 'وسائط',
         'media.up'         => 'أعلى',
         'media.root'       => 'الجذر',
+        'media.open'       => 'فتح',
         'media.download'   => 'تنزيل',
-        'media.copylink'   => 'نسخ الرابط',
+        'media.copylink'   => 'نسخ الرابط المغناطيسي',
     ],
 ];
