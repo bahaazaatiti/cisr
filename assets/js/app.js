@@ -183,9 +183,10 @@
   function paintLibGrid(container, tree) {
     const path = (container.dataset.libPath || '').split('/').filter(Boolean);
     const node = libResolve(tree, path);
+    const scope = container.closest('.ar-library, .drawer-panel') || document;
     const grid = container.querySelector('[data-lib-grid]');
-    const cwd  = container.querySelector('[data-lib-cwd]');
-    const up   = container.querySelector('[data-lib-up]');
+    const cwd  = scope.querySelector('[data-lib-cwd]');
+    const up   = scope.querySelector('[data-lib-up]');
     if (cwd) cwd.textContent = '/' + path.join('/');
     if (up)  up.disabled = path.length === 0;
     if (!grid) return;
@@ -326,7 +327,7 @@
     if (sort) { sortTable(sort); return; }
     const lf = e.target.closest('[data-lib-folder]');
     if (lf) {
-      const container = lf.closest('.lib-gui[data-lib-tree]');
+      const container = lf.closest('.lib-gui[data-lib-tree-src]');
       if (container) libGo(container, lf.dataset.libFolder);
       return;
     }
@@ -361,7 +362,8 @@
     }
     const up = e.target.closest('[data-lib-up]');
     if (up) {
-      const container = up.closest('.lib-gui[data-lib-tree-src]');
+      const scope = up.closest('.ar-library, .drawer-panel');
+      const container = scope?.querySelector('.lib-gui[data-lib-tree-src]');
       if (container) libGo(container);
       return;
     }
@@ -405,6 +407,17 @@
       } else if (guiFile.href) {
         swap(guiFile.href, true);
       }
+      return;
+    }
+
+    // LIST mode lean item (<span data-file>) — no detail page, so left-click
+    // mirrors the GUI behavior and triggers a p2p download. Rich items keep
+    // the <a data-link> path below and navigate.
+    const listSpan = e.target.closest('.lib-list span[data-file]');
+    if (listSpan) {
+      e.preventDefault();
+      const mag = listSpan.dataset.magnet;
+      if (mag) window.siteP2P?.download?.(mag, p2pStatusFor(listSpan));
       return;
     }
 

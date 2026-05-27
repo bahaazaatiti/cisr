@@ -109,6 +109,10 @@
   .ui-badge[data-status="draft"]    { color: var(--destructive); }
   .ui-badge[data-status="unlisted"] { color: var(--muted-foreground); }
   .ui-badge[data-status="listed"]   { color: var(--accent); }
+  /* Theme toggle sits beside the language chooser; match its inherited size
+     and pick up accent on hover, like other interactive controls. */
+  [data-theme-toggle] { font-size: inherit; line-height: 1.4; padding: 0 0.4em; }
+  [data-theme-toggle]:hover { color: var(--accent); border-color: var(--accent); background: transparent; }
   .ui-sku {
     font-size: 0.75em;
     text-transform: uppercase;
@@ -248,7 +252,10 @@
   .sidebar-foot-meta { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.65rem; opacity: 0.85; }
   .sidebar-foot-meta a { color: inherit; text-decoration: none; }
   .sidebar-foot-meta a:hover { color: var(--accent); }
-  .nav-item.active { color: var(--foreground); }
+  /* Active section gets an accent stripe — secondary background alone reads
+     as just "hover" against another hover. */
+  .nav-item.active { color: var(--foreground); box-shadow: inset 2px 0 0 var(--accent); }
+  html[dir=rtl] .nav-item.active { box-shadow: inset -2px 0 0 var(--accent); }
 
   /* Skip-link (a11y) — visually hidden until focused */
   .skip { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 50%; transform: translateX(-50%) translateY(-200%); background: var(--background); color: var(--foreground); border: 1px solid var(--border); padding: 0.4rem 0.8rem; z-index: 100; text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; transition: transform 0.15s ease; }
@@ -269,11 +276,20 @@
 
   /* Library GUI grid + flat list */
   .lib-gui { display: flex; flex-direction: column; height: 100%; }
+  /* Sits above both modes; up/cwd hide in LIST so the status keeps the same
+     row position with no layout shift between mode toggles. */
   .lib-bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0 0.4rem; border-block-end: 1px dashed var(--border); margin-block-end: 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+  .lib-status { margin-inline-start: auto; color: var(--accent); text-align: end; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ar-library[data-mode="list"] .lib-up,
+  .ar-library[data-mode="list"] .lib-cwd { display: none; }
+  /* In LIST mode the status is the only visible item, so margin auto can't
+     push it — give it the full row width so text-align:end actually right-aligns. */
+  .ar-library[data-mode="list"] .lib-status { flex: 1; }
   .lib-cwd { flex: 1; word-break: break-all; }
   .lib-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; align-content: start; }
-  .lib-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; border: 1px solid var(--border); background: transparent; font: inherit; text-decoration: none; padding: 0.4rem 0.5rem; cursor: pointer; text-align: start; color: inherit; min-height: 3.2rem; line-height: 1.25; user-select: none; }
-  .lib-cell:hover { background: var(--secondary); }
+  .lib-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; border: 1px solid var(--border); background: transparent; font: inherit; text-decoration: none; padding: 0.4rem 0.5rem; cursor: pointer; text-align: start; color: inherit; min-height: 3.2rem; line-height: 1.25; user-select: none; transition: color 0.1s ease; }
+  .lib-cell:hover { background: var(--secondary); color: var(--accent); }
+  .lib-cell:hover .lib-cell-icon { color: var(--accent); }
   .lib-cell:focus-visible { outline: 1px solid var(--ring); outline-offset: 1px; }
   .lib-cell-folder { font-weight: 700; }
   .lib-cell-icon { font-family: var(--font-mono); color: var(--muted-foreground); }
@@ -284,8 +300,8 @@
   .lib-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
   .lib-table th, .lib-table td { border-block-end: 1px solid var(--border); padding: 0.2rem 0.3rem; text-align: start; vertical-align: top; }
   .lib-table th { text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
-  .lib-table a { text-decoration: none; }
-  .lib-table a:hover { background: var(--secondary); }
+  .lib-table a, .lib-table span[data-file] { text-decoration: none; cursor: pointer; }
+  .lib-table a:hover, .lib-table span[data-file]:hover { background: var(--secondary); color: var(--accent); }
   .lib-row-folder { cursor: pointer; }
   .lib-row-folder:hover td { background: var(--secondary); }
   .lib-toggle { color: var(--accent); user-select: none; }
@@ -302,7 +318,10 @@
   .vid-list { list-style: none; padding: 0; margin: 0; border-block-start: 1px solid var(--border); }
   .vid-list li { border-block-end: 1px solid var(--border); }
   .vid-pick { display: flex; gap: 0.4rem; width: 100%; min-height: 32px; text-align: start; font: inherit; background: transparent; border: 0; cursor: pointer; padding: 0.5rem 0.5rem; align-items: center; }
-  .vid-pick:hover, .vid-pick.active { background: var(--secondary); }
+  .vid-pick:hover, .vid-pick.active { background: var(--secondary); color: var(--accent); }
+  /* Match the library status — any p2p status row reads as accent. */
+  .ar-p2p-status { color: var(--accent); padding: 0 0.6rem 0.3rem; min-height: 1em; }
+  .ar-p2p-status:empty { display: none; }
   .vid-pick-icon { color: var(--accent); }
   .vid-pick-title { flex: 1; }
 
@@ -332,7 +351,7 @@
   .featured-list h3 { margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; }
   .sort-bar { display: flex; gap: 0.8rem; align-items: baseline; margin-block-end: 0.5rem; flex-wrap: wrap; }
   .sort-bar a, .sort-bar button { text-decoration: none; font: inherit; color: inherit; background: transparent; border: 0; padding: 0; cursor: pointer; letter-spacing: inherit; text-transform: inherit; }
-  .sort-bar a.active, .sort-bar button.active { font-weight: 700; text-decoration: underline; color: var(--foreground); }
+  .sort-bar a.active, .sort-bar button.active { font-weight: 700; text-decoration: underline; color: var(--accent); }
   .sort-bar button:hover { color: var(--accent); }
 
   /* Skeleton during SPA swap */

@@ -12,15 +12,15 @@
       </div>
     </header>
     <div class="ar-body">
+      <div class="lib-bar">
+        <button type="button" class="lib-up" data-lib-up disabled title="<?= t('media.up', 'Up') ?>"><span aria-hidden="true">↑</span></button>
+        <span class="lib-cwd" data-lib-cwd>/</span>
+        <span class="ui-sku lib-status" data-p2p-status></span>
+      </div>
       <div class="lib-gui"
            data-lib-tree-src="<?= url('library.json') ?>"
            data-lib-empty="<?= esc(t('msg.empty_folder', 'empty'), 'attr') ?>"
            data-lib-path="">
-        <div class="lib-bar">
-          <button type="button" class="lib-up" data-lib-up disabled title="<?= t('media.up', 'Up') ?>"><span aria-hidden="true">↑</span></button>
-          <span class="lib-cwd" data-lib-cwd>/</span>
-          <span class="ui-sku lib-status" data-p2p-status></span>
-        </div>
         <div class="lib-grid" data-lib-grid></div>
       </div>
       <div class="lib-list" hidden>
