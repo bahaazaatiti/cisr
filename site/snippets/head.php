@@ -33,8 +33,11 @@
   <meta name="build-sha" content="<?= esc(build_stamp()['sha'] ?? 'dev') ?>">
   <script>try{const m=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
   <style>
+  /* Wrapped in @layer base so the rest of app.css (@layer components) can
+     override individual rules — unlayered CSS would otherwise beat layered. */
   :root{--background:#FFFFFF;--foreground:#000000;--secondary:#F2F2F2;--muted-foreground:#666666;--accent:#0000FF;--accent-foreground:#FFFFFF;--border:#000000;--ring:#0000FF}
   .dark{--background:#000000;--foreground:#00A645;--secondary:#0a0a0a;--muted-foreground:#999999;--accent:#FFB000;--accent-foreground:#000000;--border:#00A645;--ring:#FFFFFF}
+  @layer base{
   *,*::before,*::after{box-sizing:border-box;border:0 solid var(--border);margin:0;padding:0}
   html,body{background:var(--background);color:var(--foreground);font-family:monospace;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
@@ -66,6 +69,7 @@
   .breadcrumb a{text-decoration:none}
   .breadcrumb a:hover{color:var(--accent)}
   .breadcrumb-sep{opacity:.6}
+  }
   </style>
   <link rel="preload" as="style" href="<?= url('assets/css/app.css') ?>">
   <link rel="stylesheet" href="<?= url('assets/css/app.css') ?>">
