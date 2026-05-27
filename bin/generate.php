@@ -69,6 +69,24 @@ $preserve = [
 $ssg->generate($outputFolder, $baseUrl, $preserve);
 fwrite(STDERR, "rendered: {$outputFolder}\n");
 
+// Library tree as a static asset, one per language. JS lazy-fetches this
+// instead of embedding the JSON into every HTML page (would scale linearly
+// with archive size). URL substitution mirrors what SSG does for HTML.
+$basePrefix = rtrim($baseUrl, '/');
+foreach ($kirby->languages() as $lang) {
+    $kirby->setCurrentLanguage($lang->code());
+    $libraryPage = $kirby->page('library');
+    if (!$libraryPage) continue;
+    $json = json_encode(tree_build($libraryPage), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $json = str_replace(['https://jr-ssg-base-url/', 'https://jr-ssg-base-url'], $basePrefix . '/', $json);
+    $path = $lang->isDefault()
+        ? $outputFolder . '/library.json'
+        : $outputFolder . '/' . $lang->code() . '/library.json';
+    if (!is_dir(dirname($path))) mkdir(dirname($path), 0o755, true);
+    file_put_contents($path, $json);
+    fwrite(STDERR, "wrote:    " . str_replace($outputFolder . '/', '', $path) . "\n");
+}
+
 // 4. Copy dissemination + runtime extras into the output root. Run after
 //    generate() so a fresh wipe doesn't drop them. Idempotent.
 $copies = [

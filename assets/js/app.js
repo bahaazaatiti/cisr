@@ -168,10 +168,28 @@
     }
     return node;
   }
-  function renderLibGrid(container) {
-    let tree;
-    try { tree = JSON.parse(container.dataset.libTree || 'null'); } catch (e) { return; }
-    if (!tree) return;
+  // Fetch /library.json once per session; cache key includes build-sha so a
+  // deploy bust invalidates without a manual reload.
+  const libTreeCache = new Map();
+  function buildSha() {
+    return document.querySelector('meta[name="build-sha"]')?.content || 'dev';
+  }
+  async function loadLibTree(src) {
+    if (!src) return null;
+    if (libTreeCache.has(src)) return libTreeCache.get(src);
+    const key = 'libtree:' + buildSha() + ':' + src;
+    try {
+      const cached = sessionStorage.getItem(key);
+      if (cached) { const t = JSON.parse(cached); libTreeCache.set(src, t); return t; }
+    } catch (_) {}
+    const r = await fetch(src, { credentials: 'same-origin' });
+    if (!r.ok) return null;
+    const tree = await r.json();
+    libTreeCache.set(src, tree);
+    try { sessionStorage.setItem(key, JSON.stringify(tree)); } catch (_) {}
+    return tree;
+  }
+  function paintLibGrid(container, tree) {
     const path = (container.dataset.libPath || '').split('/').filter(Boolean);
     const node = libResolve(tree, path);
     const grid = container.querySelector('[data-lib-grid]');
@@ -190,30 +208,73 @@
     (node.files || []).forEach(f => {
       const icon = '[' + kindLabel(f.kind) + ']';
       const meta = (f.size || '') + (f.date ? ' · ' + f.date : '');
-      // GUI cells: left-click = p2p download (handled below); right-click =
-      // ctx menu (open / download / copy). The href is kept so Ctrl/Cmd+click
-      // and middle-click still open the file's detail page in a new tab —
-      // that's the only way to get to the page from GUI mode.
-      html += '<a class="lib-cell lib-cell-file" href="' + escHtml(f.url) + '" data-file'
+      // Cell becomes <a> for rich items (have a detail page) and <span> for
+      // lean items; left-click always triggers p2p download via the global
+      // handler.
+      const tag = f.url ? 'a' : 'span';
+      const href = f.url ? ' href="' + escHtml(f.url) + '"' : '';
+      html += '<' + tag + ' class="lib-cell lib-cell-file"' + href + ' data-file'
            +    ' data-magnet="' + escHtml(f.magnet || '') + '"'
            +    ' data-kind="' + escHtml(f.kind || 'other') + '"'
            +    ' title="' + escHtml(f.name) + (meta ? ' · ' + escHtml(meta) : '') + '">'
            +    '<span class="lib-cell-icon" aria-hidden="true">' + escHtml(icon) + '</span>'
            +    '<span class="lib-cell-name">' + escHtml(f.name) + '</span>'
            +    '<span class="lib-cell-meta ui-sku">' + escHtml(f.size || '') + '</span>'
-           +  '</a>';
+           +  '</' + tag + '>';
     });
     if (!html) {
       html = '<div class="ui-sku lib-empty-grid">' + escHtml(container.dataset.libEmpty || 'empty') + '</div>';
     }
     grid.innerHTML = html;
   }
-  function renderAllLibGrids() { $$('.lib-gui[data-lib-tree]').forEach(renderLibGrid); }
-  function libGo(container, segment) {
+  function paintLibList(container, tree) {
+    const scope = container.closest('.ar-library, .drawer-panel') || document;
+    const body  = scope.querySelector('[data-lib-list-body]');
+    const empty = scope.querySelector('[data-lib-list-empty]');
+    if (!body) return;
+    const rows = [];
+    (function walk(node, prefix, parent) {
+      (node.folders || []).forEach(f => {
+        const path = parent === '' ? f.slug : parent + '/' + f.slug;
+        rows.push({ folder: path, parent, name: prefix + f.name + '/', size: '—', date: '—' });
+        walk(f, prefix + f.name + '/', path);
+      });
+      (node.files || []).forEach(f => {
+        rows.push({ parent, name: prefix + f.name, size: f.size || '—', date: f.date || '—',
+                    url: f.url || '', magnet: f.magnet || '', kind: f.kind || 'other' });
+      });
+    })(tree, '', '');
+    if (!rows.length) { body.innerHTML = ''; if (empty) empty.hidden = false; return; }
+    if (empty) empty.hidden = true;
+    let html = '';
+    for (const r of rows) {
+      const isFolder = !!r.folder;
+      const hidden = r.parent !== '' ? ' hidden' : '';
+      const attrs = ' data-parent="' + escHtml(r.parent) + '"' + (isFolder ? ' data-folder="' + escHtml(r.folder) + '"' : '');
+      const icon = isFolder ? '[+]' : '[' + kindLabel(r.kind) + ']';
+      html += '<tr' + (isFolder ? ' class="lib-row-folder"' : '') + attrs + hidden + '>'
+           +    '<td><span' + (isFolder ? ' class="lib-toggle"' : '') + '>' + icon + '</span></td>'
+           +    '<td>';
+      if (isFolder) html += '<span class="lib-flat-folder">' + escHtml(r.name) + '</span>';
+      else if (r.url) html += '<a href="' + escHtml(r.url) + '" data-link data-file data-magnet="' + escHtml(r.magnet) + '" data-kind="' + escHtml(r.kind) + '" title="' + escHtml(r.name) + '">' + escHtml(r.name) + '</a>';
+      else html += '<span data-file data-magnet="' + escHtml(r.magnet) + '" data-kind="' + escHtml(r.kind) + '" title="' + escHtml(r.name) + '">' + escHtml(r.name) + '</span>';
+      html += '</td><td class="ui-sku">' + escHtml(r.size) + '</td><td class="ui-sku">' + escHtml(r.date) + '</td></tr>';
+    }
+    body.innerHTML = html;
+  }
+  async function ensureLibContainer(container) {
+    const tree = await loadLibTree(container.dataset.libTreeSrc);
+    if (!tree) return;
+    paintLibGrid(container, tree);
+    paintLibList(container, tree);
+  }
+  function ensureAllLibContainers() { $$('.lib-gui[data-lib-tree-src]').forEach(ensureLibContainer); }
+  async function libGo(container, segment) {
     const cur = (container.dataset.libPath || '').split('/').filter(Boolean);
     segment ? cur.push(segment) : cur.pop();
     container.dataset.libPath = cur.join('/');
-    renderLibGrid(container);
+    const tree = await loadLibTree(container.dataset.libTreeSrc);
+    if (tree) paintLibGrid(container, tree);
   }
 
   let drawerCloned = false;
@@ -226,7 +287,7 @@
       if (src && dst) dst.appendChild(src.cloneNode(true));
     });
     drawerCloned = true;
-    renderAllLibGrids();
+    ensureAllLibContainers();
   }
   function openDrawer() {
     const d = $('[data-drawer]');
@@ -385,5 +446,5 @@
   addEventListener('popstate', () => { swap(location.href, false); });
 
   syncActive();
-  renderAllLibGrids();
+  ensureAllLibContainers();
 })();

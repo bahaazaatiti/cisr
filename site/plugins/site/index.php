@@ -71,6 +71,36 @@ if (!function_exists('mirrors_list')) {
     }
 }
 
+if (!function_exists('tree_build')) {
+    // Build the nested library tree the aside-right & client-side grid render.
+    // Folders = nested `library` pages; files = `library-item` leaves with magnets.
+    function tree_build(\Kirby\Cms\Page $node): array {
+        $folders = [];
+        $files   = [];
+        foreach ($node->children()->listed()->sortBy('title', 'asc', SORT_NATURAL | SORT_FLAG_CASE) as $c) {
+            $tpl = $c->intendedTemplate()->name();
+            if ($tpl === 'library') {
+                $folders[] = tree_build($c);
+            } elseif ($tpl === 'library-item') {
+                $files[] = [
+                    'name'   => (string) ($c->title()->value() ?: $c->slug()),
+                    'url'    => $c->isRich() ? (string) $c->url() : '',
+                    'size'   => (string) ($c->size_human()->or('')),
+                    'date'   => $c->added()->isNotEmpty() ? $c->added()->toDate('Y-m-d') : '',
+                    'kind'   => ((string) $c->kind()) ?: 'other',
+                    'magnet' => (string) $c->magnet(),
+                ];
+            }
+        }
+        return [
+            'name'    => (string) ($node->title()->value() ?: $node->slug()),
+            'slug'    => $node->slug(),
+            'folders' => $folders,
+            'files'   => $files,
+        ];
+    }
+}
+
 if (!function_exists('file_kind')) {
     function file_kind(\Kirby\Cms\File $file): string {
         static $map = [

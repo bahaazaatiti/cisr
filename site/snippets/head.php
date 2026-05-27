@@ -29,6 +29,7 @@
   <meta property="og:url" content="<?= esc($page->url()) ?>">
   <meta property="og:locale" content="<?= esc(str_replace('-', '_', $code)) ?>">
   <meta name="twitter:card" content="summary">
+  <meta name="build-sha" content="<?= esc(build_stamp()['sha'] ?? 'dev') ?>">
   <script>try{const m=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
   <style>
   :root{--background:#FFFFFF;--foreground:#000000;--secondary:#F2F2F2;--muted-foreground:#666666;--accent:#0000FF;--accent-foreground:#FFFFFF;--border:#000000;--ring:#0000FF}
