@@ -1,0 +1,240 @@
+@import "tailwindcss";
+
+@source "../../site/templates/**/*.php";
+@source "../../site/snippets/**/*.php";
+@source "../js/**/*.js";
+
+@theme {
+  --font-mono: monospace;
+  --font-sans: monospace;
+  --radius: 2px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --card: #FFFFFF;
+  --card-foreground: #000000;
+  --popover: #FFFFFF;
+  --popover-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F2F2F2;
+  --secondary-foreground: #000000;
+  --muted: #F2F2F2;
+  --muted-foreground: #666666;
+  --accent: #0000FF;
+  --accent-foreground: #FFFFFF;
+  --destructive: #FF0000;
+  --destructive-foreground: #FFFFFF;
+  --border: #000000;
+  --input: #000000;
+  --ring: #0000FF;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #00A645;
+  --card: #000000;
+  --card-foreground: #00A645;
+  --popover: #000000;
+  --popover-foreground: #00A645;
+  --primary: #00A645;
+  --primary-foreground: #000000;
+  --secondary: #0a0a0a;
+  --secondary-foreground: #00A645;
+  --muted: #0a0a0a;
+  --muted-foreground: #999999;
+  --accent: #FFB000;
+  --accent-foreground: #000000;
+  --destructive: #FF0000;
+  --destructive-foreground: #FFFFFF;
+  --border: #00A645;
+  --input: #00A645;
+  --ring: #FFFFFF;
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html, body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body { font-size: 14px; line-height: 1.5; }
+  a { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  a:hover { color: var(--accent); }
+  h1, h2, h3, h4, h5, h6 { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  ::selection { background: var(--accent); color: var(--accent-foreground); }
+}
+
+@layer components {
+  .usgc-rule {
+    border-top: 1px solid var(--border);
+    box-shadow: 0 3px 0 -2px var(--border);
+  }
+  .usgc-badge {
+    display: inline-block;
+    border: 1px solid currentColor;
+    padding: 0 0.4em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75em;
+    line-height: 1.6;
+  }
+  .usgc-badge[data-status="draft"]    { color: var(--destructive); }
+  .usgc-badge[data-status="unlisted"] { color: var(--muted-foreground); }
+  .usgc-badge[data-status="listed"]   { color: var(--accent); }
+  .usgc-sku {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+  }
+  .usgc-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+  }
+  .usgc-table th,
+  .usgc-table td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    text-align: start;
+    vertical-align: top;
+  }
+  .usgc-table th {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+  .usgc-table tr:last-child td { border-bottom: 0; }
+  .usgc-table td a { display: inline-block; min-height: 24px; line-height: 24px; vertical-align: middle; }
+
+  .prose-usgc h1, .prose-usgc h2, .prose-usgc h3 { margin-top: 2rem; margin-bottom: 0.5rem; }
+  .prose-usgc h1 { font-size: 1.25rem; }
+  .prose-usgc h2 { font-size: 1.125rem; }
+  .prose-usgc h3 { font-size: 1rem; }
+  .prose-usgc p { margin: 0.75rem 0; }
+  .prose-usgc ul, .prose-usgc ol { margin: 0.75rem 0; padding-inline-start: 1.5rem; }
+  .prose-usgc li { margin: 0.25rem 0; }
+  .prose-usgc blockquote {
+    border-inline-start: 1px solid var(--border);
+    padding-inline-start: 1rem;
+    margin: 1rem 0;
+    color: var(--muted-foreground);
+  }
+  .prose-usgc pre {
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    background: var(--secondary);
+    font-size: 0.8125rem;
+  }
+  .prose-usgc code {
+    border: 1px solid var(--border);
+    padding: 0 0.25em;
+    font-size: 0.9em;
+  }
+  .prose-usgc pre code { border: 0; padding: 0; }
+  .prose-usgc img { border: 1px solid var(--border); max-width: 100%; height: auto; }
+
+  /* Fraternal organizations — group section heading above table */
+  .frat-group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-block-end: 0.5rem;
+    padding-block-end: 0.25rem;
+    border-block-end: 1px solid var(--border);
+  }
+  /* Roomier listing table for fraternals — title + native + meta stacked in one wide name cell */
+  .frat-table th,
+  .frat-table td { padding-block: 0.85rem; padding-inline: 0.875rem; vertical-align: top; }
+  .frat-col-sku  { width: 8rem; }
+  .frat-col-link { width: 2.5rem; }
+  .frat-cell-sku  { white-space: nowrap; }
+  .frat-cell-link { text-align: end; }
+  .frat-cell-link a { color: var(--accent); text-decoration: none; font-size: 1rem; }
+  .frat-cell-link a:hover { text-decoration: underline; }
+  .frat-title {
+    display: inline-block;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+  .frat-native {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    margin-block-start: 0.2rem;
+    line-height: 1.3;
+  }
+  .frat-meta {
+    margin-block-start: 0.45rem;
+    line-height: 1.5;
+    word-spacing: 0.15em;
+  }
+  /* Stack each entry on narrow viewports — table semantics preserved, layout linearized */
+  @media (max-width: 640px) {
+    .frat-table thead { display: none; }
+    .frat-table,
+    .frat-table tbody,
+    .frat-table tr { display: block; width: 100%; }
+    .frat-table td  { display: block; width: 100%; padding-inline: 0.75rem; border-block-end: 0; }
+    .frat-table tbody tr {
+      border-block-end: 1px solid var(--border);
+      padding-block: 0.5rem;
+    }
+    .frat-table tbody tr:last-child { border-block-end: 0; }
+    .frat-cell-sku  { padding-block: 0.25rem 0; }
+    .frat-cell-name { padding-block: 0.25rem 0; }
+    .frat-cell-link { padding-block: 0.25rem 0.5rem; text-align: start; }
+  }
+
+  /* Fraternal detail page spec list */
+  .frat-spec {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.3rem 1rem;
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.75rem;
+    font-size: 0.82rem;
+  }
+  .frat-spec dt {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+    color: var(--muted-foreground);
+    align-self: baseline;
+  }
+  .frat-spec dd { margin: 0; }
+}
