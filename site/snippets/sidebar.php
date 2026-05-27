@@ -14,7 +14,7 @@
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
     <img class="sidebar-sign" src="<?= url('assets/img/sign.svg') ?>" alt="" aria-hidden="true" width="200" height="230">
-    <div class="usgc-sku">CISR / LB-001</div>
+    <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(option('brand.site_id', '')) ?></div>
     <div class="font-bold uppercase tracking-[0.08em]"><?= esc($site->title()) ?></div>
     <?php if ($site->tagline()->isNotEmpty()): ?>
       <div class="text-xs text-muted-foreground mt-1"><?= esc($site->tagline()) ?></div>
@@ -53,7 +53,7 @@
             <a class="nav-item<?= $current->is($a) ? ' active' : '' ?>" href="<?= $a->url() ?>" data-link title="<?= esc($a->title()) ?>">
               <span class="block truncate"><?= esc($a->title()) ?></span>
               <?php if ($a->sku()->isNotEmpty()): ?>
-                <span class="usgc-sku block"><?= esc($a->sku()) ?></span>
+                <span class="ui-sku block"><?= esc($a->sku()) ?></span>
               <?php endif ?>
             </a>
           </li>
@@ -63,8 +63,8 @@
   </nav>
 
   <?php
-    $stamp   = cisr_build_stamp();
-    $mirrors = cisr_mirrors(3);
+    $stamp   = build_stamp();
+    $mirrors = mirrors_list(3);
   ?>
   <div class="sidebar-foot">
     <div class="sidebar-foot-row">
@@ -76,10 +76,10 @@
           </a>
         <?php endforeach ?>
       </div>
-      <button data-theme-toggle class="usgc-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
+      <button data-theme-toggle class="ui-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
     </div>
     <?php if (!empty($stamp) || !empty($mirrors)): ?>
-      <div class="sidebar-foot-meta usgc-sku">
+      <div class="sidebar-foot-meta ui-sku">
         <?php if (!empty($stamp['sha'])): ?>
           <div title="<?= esc($stamp['sha_full'] ?? $stamp['sha']) ?>">
             <?= t('mirror.label', 'MIRROR') ?> · <?= esc($stamp['sha']) ?>

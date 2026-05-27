@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Static-site builder for CISR.
+ * Static-site builder.
  *
  * Boots Kirby, writes a build stamp, runs JR\StaticSiteGenerator over all
  * pages × languages, then copies dissemination-layer extras (MIRROR.md,
@@ -18,7 +18,7 @@ chdir($root);
 require $root . '/kirby/bootstrap.php';
 
 // 1. Build stamp — written BEFORE rendering so site/snippets/sidebar.php
-//    (via cisr_build_stamp()) embeds it in every emitted HTML page.
+//    (via build_stamp()) embeds it in every emitted HTML page.
 $gitSha  = trim((string) @shell_exec('git -C ' . escapeshellarg($root) . ' rev-parse --short HEAD 2>/dev/null')) ?: 'local';
 $gitFull = trim((string) @shell_exec('git -C ' . escapeshellarg($root) . ' rev-parse HEAD 2>/dev/null')) ?: '';
 $stamp = [

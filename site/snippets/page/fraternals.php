@@ -26,7 +26,7 @@
 ]]) ?>
 
 <header class="mb-6">
-  <div class="usgc-sku">CISR / FRATERNAL</div>
+  <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(strtoupper(t('nav.fraternals', 'FRATERNAL'))) ?></div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
   <?php if ($page->intro()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->intro()) ?></p>
@@ -39,17 +39,17 @@
   <?php foreach ($groups as $key => $label): ?>
     <?php $items = $byAffinity[$key] ?? []; if (!$items) continue; ?>
     <section class="mb-8">
-      <div class="frat-group-head">
-        <h2 class="usgc-badge"><?= esc($label) ?></h2>
-        <span class="usgc-sku"><?= count($items) ?> <?= t('label.entries', 'entries') ?></span>
+      <div class="org-group-head">
+        <h2 class="ui-badge"><?= esc($label) ?></h2>
+        <span class="ui-sku"><?= count($items) ?> <?= t('label.entries', 'entries') ?></span>
       </div>
 
-      <table class="usgc-table frat-table">
+      <table class="ui-table org-table">
         <thead>
           <tr>
-            <th class="frat-col-sku"><?= t('th.sku', 'SKU') ?></th>
+            <th class="org-col-sku"><?= t('th.sku', 'SKU') ?></th>
             <th><?= t('th.name', 'Name') ?></th>
-            <th class="frat-col-link" aria-hidden="true"></th>
+            <th class="org-col-link" aria-hidden="true"></th>
           </tr>
         </thead>
         <tbody>
@@ -70,19 +70,19 @@
             if ($founded)       { $meta[] = t('frat.est', 'EST.') . ' ' . $founded; }
           ?>
             <tr>
-              <td class="usgc-sku frat-cell-sku"><?= $sku ? esc($sku) : '—' ?></td>
-              <td class="frat-cell-name">
+              <td class="ui-sku org-cell-sku"><?= $sku ? esc($sku) : '—' ?></td>
+              <td class="org-cell-name">
                 <?php if ($hasMore): ?>
-                  <a href="<?= $o->url() ?>" data-link class="frat-title"><?= esc($o->title()) ?></a>
+                  <a href="<?= $o->url() ?>" data-link class="org-title"><?= esc($o->title()) ?></a>
                 <?php else: ?>
-                  <span class="frat-title"><?= esc($o->title()) ?></span>
+                  <span class="org-title"><?= esc($o->title()) ?></span>
                 <?php endif ?>
-                <?php if ($native): ?><div class="frat-native"><?= esc($native) ?></div><?php endif ?>
+                <?php if ($native): ?><div class="org-native"><?= esc($native) ?></div><?php endif ?>
                 <?php if ($meta): ?>
-                  <div class="frat-meta usgc-sku"><?= esc(implode(' · ', $meta)) ?></div>
+                  <div class="org-meta ui-sku"><?= esc(implode(' · ', $meta)) ?></div>
                 <?php endif ?>
               </td>
-              <td class="frat-cell-link">
+              <td class="org-cell-link">
                 <?php if ($hp): ?>
                   <a href="<?= esc($hp) ?>" rel="noopener" target="_blank" title="<?= esc($host) ?>" aria-label="<?= esc($host) ?>"><span aria-hidden="true">↗</span></a>
                 <?php endif ?>
@@ -95,4 +95,4 @@
   <?php endforeach ?>
 <?php endif ?>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>

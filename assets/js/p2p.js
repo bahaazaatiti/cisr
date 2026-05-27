@@ -1,5 +1,5 @@
 (() => {
-  if (window.cisrP2P) return;
+  if (window.siteP2P) return;
 
   let client = null;
   let torrent = null;
@@ -149,7 +149,7 @@
       el = document.createElement('a');
       el.download = fileName;
       el.textContent = '⤓ ' + fileName;
-      el.className = 'usgc-badge';
+      el.className = 'ui-badge';
     }
     el.src = src;
     return el;
@@ -264,6 +264,6 @@
     });
   }
 
-  window.cisrP2P = { teardown, init, open, download, copy };
+  window.siteP2P = { teardown, init, open, download, copy };
   init();
 })();

@@ -99,13 +99,13 @@
         <div class="lib-bar">
           <button type="button" class="lib-up" data-lib-up disabled title="<?= t('media.up', 'Up') ?>"><span aria-hidden="true">↑</span></button>
           <span class="lib-cwd" data-lib-cwd>/</span>
-          <span class="usgc-sku lib-status" data-p2p-status></span>
+          <span class="ui-sku lib-status" data-p2p-status></span>
         </div>
         <div class="lib-grid" data-lib-grid></div>
       </div>
       <div class="lib-list" hidden>
         <?php if (empty($flatRows)): ?>
-          <div class="usgc-sku"><?= t('msg.empty_folder', 'empty') ?></div>
+          <div class="ui-sku"><?= t('msg.empty_folder', 'empty') ?></div>
         <?php else: ?>
           <table class="lib-table">
             <thead><tr>
@@ -135,8 +135,8 @@
                        title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></a>
                   <?php endif ?>
                 </td>
-                <td class="usgc-sku"><?= esc($r['size']) ?></td>
-                <td class="usgc-sku"><?= esc($r['date']) ?></td>
+                <td class="ui-sku"><?= esc($r['size']) ?></td>
+                <td class="ui-sku"><?= esc($r['date']) ?></td>
               </tr>
             <?php endforeach ?>
             </tbody>
@@ -152,10 +152,10 @@
     </header>
     <div class="vid-stage">
       <div id="player" class="vid-frame vid-frame-empty">
-        <span class="usgc-sku" data-player-placeholder><?= t('msg.pick_video', 'PICK A VIDEO') ?></span>
+        <span class="ui-sku" data-player-placeholder><?= t('msg.pick_video', 'PICK A VIDEO') ?></span>
       </div>
     </div>
-    <div class="usgc-sku ar-p2p-status" data-ar-p2p-status></div>
+    <div class="ui-sku ar-p2p-status" data-ar-p2p-status></div>
     <ul class="vid-list">
       <?php if ($videos): foreach ($videos->children()->listed()->sortBy('date', 'desc') as $v):
         $isYT     = $v->hasYouTubeSource();
@@ -173,9 +173,9 @@
             data-vid-title="<?= esc($v->title()) ?>">
             <span class="vid-pick-icon" aria-hidden="true">▷</span>
             <span class="vid-pick-title"><?= esc($v->title()) ?></span>
-            <span class="usgc-sku vid-pick-badge"><?= $badge ?></span>
+            <span class="ui-sku vid-pick-badge"><?= $badge ?></span>
             <?php if ($v->duration()->isNotEmpty()): ?>
-              <span class="usgc-sku vid-pick-dur"><?= esc($v->duration()) ?></span>
+              <span class="ui-sku vid-pick-dur"><?= esc($v->duration()) ?></span>
             <?php endif ?>
           </button>
         </li>

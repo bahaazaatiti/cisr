@@ -24,6 +24,6 @@
       loading="lazy" decoding="async">
   <?php endif ?>
   <?php if ($caption->isNotEmpty()): ?>
-    <figcaption class="mt-2 usgc-sku"><?= $caption ?></figcaption>
+    <figcaption class="mt-2 ui-sku"><?= $caption ?></figcaption>
   <?php endif ?>
 </figure>

@@ -30,7 +30,7 @@ columns:
       sku:
         label: SKU
         type: text
-        placeholder: CISR-XXX
+        placeholder: SKU-XXX
         translate: false
       summary:
         label: Summary

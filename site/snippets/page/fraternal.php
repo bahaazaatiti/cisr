@@ -19,19 +19,19 @@
 ]]) ?>
 
 <header class="mb-6">
-  <div class="usgc-sku flex items-center gap-2 flex-wrap">
+  <div class="ui-sku flex items-center gap-2 flex-wrap">
     <?php if ($sku): ?><span><?= esc($sku) ?></span><?php endif ?>
     <span>· <?= esc(strtoupper(t('frat.aff.' . $aff, $aff))) ?></span>
     <?php if ($type): ?><span>· <?= esc(strtoupper(t('frat.type.' . $type, $type))) ?></span><?php endif ?>
   </div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
-  <?php if ($native): ?><div class="frat-native mt-1"><?= esc($native) ?></div><?php endif ?>
+  <?php if ($native): ?><div class="org-native mt-1"><?= esc($native) ?></div><?php endif ?>
   <?php if ($page->summary()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->summary()) ?></p>
   <?php endif ?>
 </header>
 
-<dl class="frat-spec">
+<dl class="org-spec">
   <?php if ($region): ?><dt><?= t('frat.field.region', 'Region') ?></dt><dd><?= esc($region) ?></dd><?php endif ?>
   <?php if (!empty($langs)): ?>
     <dt><?= t('frat.field.languages', 'Languages') ?></dt>
@@ -49,10 +49,10 @@
 </dl>
 
 <?php if ($page->notes()->isNotEmpty()): ?>
-  <div class="usgc-rule my-6" role="separator"></div>
-  <section class="prose-usgc">
+  <div class="ui-rule my-6" role="separator"></div>
+  <section class="ui-prose">
     <?= $page->notes()->kt() ?>
   </section>
 <?php endif ?>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>

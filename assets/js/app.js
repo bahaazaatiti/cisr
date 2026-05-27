@@ -13,7 +13,7 @@
     });
   }
 
-  const SKELETON = '<div class="usgc-skeleton" aria-hidden="true"><div class="sk sk-h"></div><div class="sk sk-line"></div><div class="sk sk-line"></div><div class="sk sk-line w-2/3"></div></div>';
+  const SKELETON = '<div class="ui-skeleton" aria-hidden="true"><div class="sk sk-h"></div><div class="sk sk-line"></div><div class="sk sk-line"></div><div class="sk sk-line w-2/3"></div></div>';
   function showSkeleton() { const p = panel(); if (p) p.innerHTML = SKELETON; }
 
   let currentAbort = null;
@@ -24,7 +24,7 @@
     if (currentAbort) currentAbort.abort();
     const abort = new AbortController();
     currentAbort = abort;
-    try { window.cisrP2P?.teardown?.(); } catch (_) {}
+    try { window.siteP2P?.teardown?.(); } catch (_) {}
 
     loadbar()?.classList.add('loading');
     const skTimer = setTimeout(() => { if (!abort.signal.aborted) showSkeleton(); }, 120);
@@ -120,7 +120,7 @@
   function renderPlayer(host, data) {
     if (!host) return;
     if (!data || !data.src) {
-      host.innerHTML = '<span class="usgc-sku" data-player-placeholder>NO SOURCE</span>';
+      host.innerHTML = '<span class="ui-sku" data-player-placeholder>NO SOURCE</span>';
       host.classList.add('vid-frame-empty');
       return;
     }
@@ -135,11 +135,11 @@
     const host = section.querySelector('#player') || $('#player');
     const status = section.querySelector('[data-ar-p2p-status]');
     $$('.vid-pick').forEach(b => b.classList.toggle('active', b === btn));
-    try { window.cisrP2P?.teardown?.(); } catch (_) {}
+    try { window.siteP2P?.teardown?.(); } catch (_) {}
     const magnet = btn.dataset.vidMagnet;
     if (magnet) {
       host.classList.remove('vid-frame-empty');
-      window.cisrP2P?.open?.(magnet, 'video', host, status);
+      window.siteP2P?.open?.(magnet, 'video', host, status);
       return;
     }
     if (status) status.textContent = '';
@@ -200,11 +200,11 @@
            +    ' title="' + escHtml(f.name) + (meta ? ' · ' + escHtml(meta) : '') + '">'
            +    '<span class="lib-cell-icon" aria-hidden="true">' + escHtml(icon) + '</span>'
            +    '<span class="lib-cell-name">' + escHtml(f.name) + '</span>'
-           +    '<span class="lib-cell-meta usgc-sku">' + escHtml(f.size || '') + '</span>'
+           +    '<span class="lib-cell-meta ui-sku">' + escHtml(f.size || '') + '</span>'
            +  '</a>';
     });
     if (!html) {
-      html = '<div class="usgc-sku lib-empty-grid">' + escHtml(container.dataset.libEmpty || 'empty') + '</div>';
+      html = '<div class="ui-sku lib-empty-grid">' + escHtml(container.dataset.libEmpty || 'empty') + '</div>';
     }
     grid.innerHTML = html;
   }
@@ -331,9 +331,9 @@
       if (!t.magnet) return;
       const status = p2pStatusFor(t.el);
       if (action === 'download') {
-        window.cisrP2P?.download?.(t.magnet, status);
+        window.siteP2P?.download?.(t.magnet, status);
       } else if (action === 'copy') {
-        window.cisrP2P?.copy?.(t.magnet, status);
+        window.siteP2P?.copy?.(t.magnet, status);
       } else if (action === 'open' && t.el?.href) {
         // OPEN navigates to the file's detail page. The page itself decides
         // whether to offer an "Open in viewer" button (only for kinds the
@@ -354,7 +354,7 @@
       e.preventDefault();
       const mag = guiFile.dataset.magnet;
       if (mag) {
-        window.cisrP2P?.download?.(mag, p2pStatusFor(guiFile));
+        window.siteP2P?.download?.(mag, p2pStatusFor(guiFile));
       } else if (guiFile.href) {
         swap(guiFile.href, true);
       }

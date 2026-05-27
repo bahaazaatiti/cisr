@@ -9,7 +9,7 @@
 ])]) ?>
 
 <header class="mb-6">
-  <div class="usgc-sku">CISR / LIBRARY</div>
+  <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(strtoupper(t('nav.library', 'LIBRARY'))) ?></div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
   <?php if ($page->description()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->description()) ?></p>
@@ -25,7 +25,7 @@
 <?php if (count($folders) === 0 && count($items) === 0): ?>
   <p class="text-muted-foreground"><?= t('msg.empty_library', 'This folder is empty.') ?></p>
 <?php else: ?>
-  <table class="usgc-table">
+  <table class="ui-table">
     <thead>
       <tr>
         <th class="w-12"><?= t('th.kind', 'Kind') ?></th>
@@ -65,4 +65,4 @@
   </table>
 <?php endif ?>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>

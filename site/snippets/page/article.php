@@ -8,7 +8,7 @@
   [$page->title()->value(), null],
 ]]) ?>
 <header class="mb-6">
-  <div class="usgc-sku flex items-center gap-2">
+  <div class="ui-sku flex items-center gap-2">
     <?php if ($page->sku()->isNotEmpty()): ?><span><?= esc($page->sku()) ?></span><?php endif ?>
     <?php if ($page->date()->isNotEmpty()): ?><span>· <?= $page->date()->toDate('Y-m-d') ?></span><?php endif ?>
     <?php snippet('ui/status-badge', ['page' => $page]) ?>
@@ -19,8 +19,8 @@
   <?php endif ?>
 </header>
 
-<div class="prose-usgc">
+<div class="ui-prose">
   <?= $page->body()->toBlocks() ?>
 </div>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>

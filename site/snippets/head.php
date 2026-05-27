@@ -65,16 +65,16 @@
   @media (max-width:767px){.main{margin-inline-start:0;padding:3rem 1rem 4rem}}
   .sidebar-toggle{position:fixed;inset-block-start:.5rem;inset-inline-start:.5rem;z-index:40;border:1px solid var(--border);background:var(--background);padding:.25rem .5rem;font:inherit;cursor:pointer;display:none}
   @media (max-width:767px){.sidebar-toggle{display:block}}
-  .usgc-sku{font-size:.75em;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground)}
-  .usgc-badge{display:inline-block;border:1px solid currentColor;padding:0 .4em;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;line-height:1.6;background:transparent;cursor:pointer;font:inherit;text-decoration:none}
-  .usgc-badge:hover{background:var(--secondary)}
+  .ui-sku{font-size:.75em;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground)}
+  .ui-badge{display:inline-block;border:1px solid currentColor;padding:0 .4em;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;line-height:1.6;background:transparent;cursor:pointer;font:inherit;text-decoration:none}
+  .ui-badge:hover{background:var(--secondary)}
   #loadbar{position:fixed;inset-block-start:0;inset-inline-start:0;height:2px;width:0;background:var(--accent);z-index:50;transition:width .15s ease,opacity .2s ease;opacity:0}
   #loadbar.loading{width:80%;opacity:1;transition:width 1.6s cubic-bezier(.1,.7,.1,1)}
-  .usgc-skeleton{padding:0}
-  .usgc-skeleton .sk{background:var(--secondary);height:.85rem;margin:.6rem 0;animation:sk 1.2s linear infinite alternate}
-  .usgc-skeleton .sk-h{height:1.4rem;width:60%;margin-block-end:1.2rem}
-  .usgc-skeleton .sk-line{width:100%}
-  .usgc-skeleton .w-2\/3{width:66%}
+  .ui-skeleton{padding:0}
+  .ui-skeleton .sk{background:var(--secondary);height:.85rem;margin:.6rem 0;animation:sk 1.2s linear infinite alternate}
+  .ui-skeleton .sk-h{height:1.4rem;width:60%;margin-block-end:1.2rem}
+  .ui-skeleton .sk-line{width:100%}
+  .ui-skeleton .w-2\/3{width:66%}
   @keyframes sk{from{opacity:.5}to{opacity:1}}
   .breadcrumb{display:flex;gap:.5rem;align-items:baseline;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);margin-block-end:.5rem}
   .breadcrumb a{text-decoration:none}

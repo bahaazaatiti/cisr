@@ -8,14 +8,14 @@
 ]]) ?>
 
 <header class="mb-6">
-  <div class="usgc-sku">CISR / VIDEOS</div>
+  <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(strtoupper(t('nav.videos', 'VIDEOS'))) ?></div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
 <?php if (count($list) === 0): ?>
   <p class="text-muted-foreground"><?= t('msg.no_videos', 'No videos yet.') ?></p>
 <?php else: ?>
-  <table class="usgc-table">
+  <table class="ui-table">
     <thead>
       <tr>
         <th class="w-24"><?= t('th.date', 'Date') ?></th>
@@ -39,4 +39,4 @@
   </table>
 <?php endif ?>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>

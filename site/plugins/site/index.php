@@ -1,46 +1,33 @@
 <?php
 
-if (!function_exists('cisr_youtube_id')) {
-    function cisr_youtube_id(?string $url): ?string {
+if (!function_exists('yt_id')) {
+    function yt_id(?string $url): ?string {
         if (!$url) return null;
-        if (preg_match('~(?:v=|/embed/|/shorts/|youtu\.be/)([A-Za-z0-9_-]{11})~', $url, $m)) {
-            return $m[1];
-        }
-        return null;
+        return preg_match('~(?:v=|/embed/|/shorts/|youtu\.be/)([A-Za-z0-9_-]{11})~', $url, $m) ? $m[1] : null;
     }
 }
 
-if (!function_exists('cisr_magnet_parse')) {
-    /**
-     * Parse a magnet URI. Returns null if it doesn't look like one.
-     * Shape: ['infohash' => '...', 'dn' => '...', 'trackers' => [...]]
-     */
-    function cisr_magnet_parse(?string $magnet): ?array {
+if (!function_exists('magnet_parse')) {
+    // Returns ['infohash' => '...', 'dn' => '...', 'trackers' => [...]] or null.
+    function magnet_parse(?string $magnet): ?array {
         if (!$magnet || strncmp($magnet, 'magnet:?', 8) !== 0) return null;
-        $query = substr($magnet, 8);
-        $parts = explode('&', $query);
         $hash = null; $dn = null; $trackers = [];
-        foreach ($parts as $p) {
+        foreach (explode('&', substr($magnet, 8)) as $p) {
             $eq = strpos($p, '=');
             if ($eq === false) continue;
             $k = substr($p, 0, $eq);
             $v = urldecode(substr($p, $eq + 1));
-            if ($k === 'xt' && strncmp($v, 'urn:btih:', 9) === 0) {
-                $hash = strtolower(substr($v, 9));
-            } elseif ($k === 'dn') {
-                $dn = $v;
-            } elseif ($k === 'tr') {
-                $trackers[] = $v;
-            }
+            if ($k === 'xt' && strncmp($v, 'urn:btih:', 9) === 0) $hash = strtolower(substr($v, 9));
+            elseif ($k === 'dn') $dn = $v;
+            elseif ($k === 'tr') $trackers[] = $v;
         }
-        if (!$hash) return null;
-        return ['infohash' => $hash, 'dn' => $dn, 'trackers' => $trackers];
+        return $hash ? ['infohash' => $hash, 'dn' => $dn, 'trackers' => $trackers] : null;
     }
 }
 
-if (!function_exists('cisr_magnet_has_wss')) {
-    function cisr_magnet_has_wss(?string $magnet): bool {
-        $p = cisr_magnet_parse($magnet);
+if (!function_exists('magnet_has_wss')) {
+    function magnet_has_wss(?string $magnet): bool {
+        $p = magnet_parse($magnet);
         if (!$p) return false;
         foreach ($p['trackers'] as $t) {
             if (stripos($t, 'wss://') === 0) return true;
@@ -49,39 +36,31 @@ if (!function_exists('cisr_magnet_has_wss')) {
     }
 }
 
-if (!function_exists('cisr_repo_root')) {
-    function cisr_repo_root(): string {
-        // site/plugins/cisr/ → site/plugins/ → site/ → repo root
+if (!function_exists('repo_root')) {
+    function repo_root(): string {
         return realpath(__DIR__ . '/../../..') ?: dirname(__DIR__, 3);
     }
 }
 
-if (!function_exists('cisr_build_stamp')) {
-    /**
-     * Build stamp written by bin/generate.php before SSG rendering. Returns
-     * null when running locally without a prior build (sidebar then skips
-     * rendering the stamp row entirely).
-     */
-    function cisr_build_stamp(): ?array {
+if (!function_exists('build_stamp')) {
+    // Written by bin/generate.php before SSG renders; returns [] locally.
+    function build_stamp(): array {
         static $cache = null;
-        if ($cache !== null) return $cache ?: null;
-        $f = cisr_repo_root() . '/_build.json';
+        if ($cache !== null) return $cache;
+        $f = repo_root() . '/_build.json';
         if (!file_exists($f)) return $cache = [];
         $j = json_decode((string) @file_get_contents($f), true);
         return $cache = (is_array($j) ? $j : []);
     }
 }
 
-if (!function_exists('cisr_mirrors')) {
-    /**
-     * Parse the first `$limit` markdown link entries from MIRRORS.md.
-     * Format expected per line: `- [name](https://url) — optional notes`.
-     */
-    function cisr_mirrors(int $limit = 3): array {
+if (!function_exists('mirrors_list')) {
+    // First $limit `- [name](url) — note` entries from MIRRORS.md.
+    function mirrors_list(int $limit = 3): array {
         static $cache = null;
         if ($cache !== null) return array_slice($cache, 0, $limit);
         $cache = [];
-        $f = cisr_repo_root() . '/MIRRORS.md';
+        $f = repo_root() . '/MIRRORS.md';
         if (!file_exists($f)) return [];
         foreach (file($f, FILE_IGNORE_NEW_LINES) as $line) {
             if (preg_match('/^\s*-\s*\[([^\]]+)\]\(([^)\s]+)\)/', $line, $m)) {
@@ -92,10 +71,9 @@ if (!function_exists('cisr_mirrors')) {
     }
 }
 
-if (!function_exists('cisr_file_kind')) {
-    function cisr_file_kind(\Kirby\Cms\File $file): string {
-        $ext = strtolower($file->extension());
-        $map = [
+if (!function_exists('file_kind')) {
+    function file_kind(\Kirby\Cms\File $file): string {
+        static $map = [
             'pdf'  => 'pdf',
             'jpg'  => 'img', 'jpeg' => 'img', 'png' => 'img', 'gif' => 'img', 'webp' => 'img', 'svg' => 'img',
             'mp4'  => 'mp4', 'webm' => 'mp4', 'mov' => 'mp4', 'ogg' => 'mp4',
@@ -107,43 +85,35 @@ if (!function_exists('cisr_file_kind')) {
             'txt'  => 'txt', 'md' => 'txt', 'log' => 'txt',
             'json' => 'dat', 'xml' => 'dat', 'yaml' => 'dat', 'yml' => 'dat',
         ];
-        return $map[$ext] ?? '...';
+        return $map[strtolower($file->extension())] ?? '...';
     }
 }
 
-Kirby::plugin('cisr/helpers', [
+Kirby::plugin('site/helpers', [
     'pageMethods' => [
         'videoEmbedUrl' => function () {
-            /** @var \Kirby\Cms\Page $this */
-            $id = cisr_youtube_id((string) $this->youtube_url());
+            $id = yt_id((string) $this->youtube_url());
             return $id ? 'https://www.youtube-nocookie.com/embed/' . $id . '?rel=0' : null;
         },
         'youtubeThumbUrl' => function () {
-            /** @var \Kirby\Cms\Page $this */
-            $id = cisr_youtube_id((string) $this->youtube_url());
+            $id = yt_id((string) $this->youtube_url());
             return $id ? 'https://i.ytimg.com/vi/' . $id . '/hqdefault.jpg' : null;
         },
         'fullTitle' => function () {
-            /** @var \Kirby\Cms\Page $this */
             return $this->isHomePage()
                 ? (string) $this->site()->title()
                 : $this->title() . ' · ' . $this->site()->title();
         },
         'metaDescription' => function () {
-            /** @var \Kirby\Cms\Page $this */
             $s = $this->summary();
-            $v = ($s && $s->isNotEmpty()) ? (string) $s : (string) $this->site()->tagline();
-            return $v;
+            return ($s && $s->isNotEmpty()) ? (string) $s : (string) $this->site()->tagline();
         },
         'hasYouTubeSource' => function () {
-            /** @var \Kirby\Cms\Page $this */
             if ($this->intendedTemplate()->name() !== 'video') return false;
-            $type = (string) $this->source_type();
-            if ($type === 'magnet') return false;
+            if ((string) $this->source_type() === 'magnet') return false;
             return $this->youtube_url()->isNotEmpty();
         },
         'hasMagnetSource' => function () {
-            /** @var \Kirby\Cms\Page $this */
             $tpl = $this->intendedTemplate()->name();
             if ($tpl === 'video') {
                 if ((string) $this->source_type() !== 'magnet') return false;
@@ -153,29 +123,21 @@ Kirby::plugin('cisr/helpers', [
             return $this->magnet()->isNotEmpty();
         },
         'magnetUrl' => function () {
-            /** @var \Kirby\Cms\Page $this */
             $m = trim((string) $this->magnet());
             return $m !== '' ? $m : null;
         },
         'magnetParsed' => function () {
-            /** @var \Kirby\Cms\Page $this */
-            return cisr_magnet_parse((string) $this->magnet());
+            return magnet_parse((string) $this->magnet());
         },
         'magnetKind' => function () {
-            /** @var \Kirby\Cms\Page $this */
             $tpl = $this->intendedTemplate()->name();
-            if ($tpl === 'library-item') {
-                $k = (string) $this->kind();
-                return $k !== '' ? $k : 'other';
-            }
-            if ($tpl === 'video') return 'video';
+            if ($tpl === 'library-item') return ((string) $this->kind()) ?: 'other';
+            if ($tpl === 'video')        return 'video';
             return 'other';
         },
         'magnetDisplayName' => function () {
-            /** @var \Kirby\Cms\Page $this */
-            $p = cisr_magnet_parse((string) $this->magnet());
-            if ($p && $p['dn']) return $p['dn'];
-            return (string) $this->title();
+            $p = magnet_parse((string) $this->magnet());
+            return ($p && $p['dn']) ? $p['dn'] : (string) $this->title();
         },
     ],
 ]);
