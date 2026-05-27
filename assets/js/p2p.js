@@ -16,9 +16,14 @@
   }
 
   function swUrl() {
-    // SW must live at site root so scope:'/' works without a custom
-    // Service-Worker-Allowed header (GitHub Pages can't set one).
-    // router.php special-cases /sw.min.js in local dev to add the header.
+    // Read from the script tag's data-sw attr — populated server-side by
+    // Kirby's url() helper, which respects the deploy base (so it returns
+    // /sw.min.js under root deployments and /<repo>/sw.min.js under a
+    // GitHub Pages project page). Default scope = SW's directory, which
+    // matches the deploy base in both cases — no Service-Worker-Allowed
+    // header needed.
+    const s = document.querySelector('script[data-sw]');
+    if (s && s.dataset.sw) return s.dataset.sw;
     return '/sw.min.js';
   }
 
@@ -39,7 +44,9 @@
       swPromise = Promise.resolve(null);
       return swPromise;
     }
-    swPromise = navigator.serviceWorker.register(swUrl(), { scope: '/' })
+    // No explicit scope: use the SW's own directory as the max scope.
+    // That equals the deploy root for both root and subpath deployments.
+    swPromise = navigator.serviceWorker.register(swUrl())
       .then(reg => {
         const worker = reg.active || reg.waiting || reg.installing;
         if (!worker) return reg;
