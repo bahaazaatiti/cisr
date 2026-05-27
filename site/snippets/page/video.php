@@ -6,7 +6,7 @@
   $magnet    = $hasMagnet ? $page->magnetUrl() : null;
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [t('nav.videos', 'Videos'), page('videos')?->url()],
   [$page->title()->value(), null],
 ]]) ?>

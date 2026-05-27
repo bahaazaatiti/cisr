@@ -4,7 +4,7 @@
 ?>
 <?php snippet('ui/jsonld', ['type' => 'Article', 'page' => $page]) ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [t('nav.articles', 'Articles'), $articles ? $articles->url() : null],
   [$page->title()->value(), null],
 ]]) ?>

@@ -3,12 +3,11 @@
   $list = $page->children()->listed()->sortBy('date', 'desc');
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [t('nav.videos', 'Videos'), null],
 ]]) ?>
 
 <header class="mb-6">
-  <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(strtoupper(t('nav.videos', 'VIDEOS'))) ?></div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 

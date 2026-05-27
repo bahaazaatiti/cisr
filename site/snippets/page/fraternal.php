@@ -14,7 +14,7 @@
 ?>
 <?php snippet('ui/jsonld', ['type' => 'Organization', 'page' => $page]) ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [t('nav.fraternals', 'Fraternal'), $parent ? $parent->url() : null],
   [$page->title()->value(), null],
 ]]) ?>

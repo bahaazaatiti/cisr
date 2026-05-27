@@ -7,7 +7,7 @@
   $langs   = $page->language()->split(',');
   $added   = $page->added()->isNotEmpty() ? $page->added()->toDate('Y-m-d') : null;
   $infohash = $parsed['infohash'] ?? null;
-  $crumbs = [[t('nav.home', 'Home'), site()->homePage()->url()],
+  $crumbs = [[option('brand.sku', site()->title()), site()->homePage()->url()],
              [t('nav.library', 'Library'), page('library')?->url()]];
   foreach ($page->parents()->flip() as $p) {
     if ($p->slug() === 'library' || $p->intendedTemplate()->name() !== 'library') continue;
@@ -18,7 +18,6 @@
 <?php snippet('ui/breadcrumb', ['crumbs' => $crumbs]) ?>
 
 <header class="mb-6">
-  <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(strtoupper(t('nav.library', 'LIBRARY'))) ?> / [<?= esc(strtoupper($kind)) ?>]</div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
   <?php if ($page->summary()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->summary()) ?></p>

@@ -127,18 +127,30 @@
   }
   .ui-table th,
   .ui-table td {
-    border-bottom: 1px solid var(--border);
-    padding: 0.5rem 0.75rem;
+    padding: 0.65rem 0.75rem;
     text-align: start;
     vertical-align: top;
   }
-  .ui-table th {
+  /* Column labels read as semantic axes — the same way `a:hover` and active
+     indicators use accent. Header keeps a solid bottom line as an anchor. */
+  .ui-table thead th {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 700;
     font-size: 0.75rem;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
   }
+  /* Dashed inter-row separators read more "form/paper" than the solid armor-
+     plate version, without abandoning the ledger feel. */
+  .ui-table tbody td { border-bottom: 1px dashed var(--border); }
   .ui-table tr:last-child td { border-bottom: 0; }
+  /* Tactile hover — same accent-stripe vocabulary as the active nav-item, so
+     interactive surfaces echo each other rather than each inventing one. */
+  .ui-table tbody tr { transition: background 0.12s ease; }
+  .ui-table tbody tr:hover { background: var(--secondary); }
+  .ui-table tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+  html[dir=rtl] .ui-table tbody tr:hover td:first-child { box-shadow: inset -2px 0 0 var(--accent); }
   .ui-table td a { display: inline-block; min-height: 24px; line-height: 24px; vertical-align: middle; }
 
   .ui-prose h1, .ui-prose h2, .ui-prose h3 { margin-top: 2rem; margin-bottom: 0.5rem; }
@@ -346,9 +358,11 @@
   .nav-featured { font-weight: 700; }
   .featured-list { list-style: none; padding: 0; margin: 0; border-block-start: 1px solid var(--border); }
   .featured-list li { border-block-end: 1px solid var(--border); }
-  .featured-list a { display: block; padding: 0.6rem 0; text-decoration: none; }
-  .featured-list a:hover { background: var(--secondary); }
-  .featured-list h3 { margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .featured-list a { display: block; padding: 0.6rem 0.75rem; text-decoration: none; transition: background 0.12s ease; }
+  .featured-list a:hover { background: var(--secondary); box-shadow: inset 2px 0 0 var(--accent); }
+  html[dir=rtl] .featured-list a:hover { box-shadow: inset -2px 0 0 var(--accent); }
+  .featured-list a:hover h3 { color: var(--accent); }
+  .featured-list h3 { margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; transition: color 0.12s ease; }
   .sort-bar { display: flex; gap: 0.8rem; align-items: baseline; margin-block-end: 0.5rem; flex-wrap: wrap; }
   .sort-bar a, .sort-bar button { text-decoration: none; font: inherit; color: inherit; background: transparent; border: 0; padding: 0; cursor: pointer; letter-spacing: inherit; text-transform: inherit; }
   .sort-bar a.active, .sort-bar button.active { font-weight: 700; text-decoration: underline; color: var(--accent); }

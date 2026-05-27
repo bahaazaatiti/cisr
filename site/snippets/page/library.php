@@ -3,13 +3,12 @@
   $isRoot = $page->slug() === 'library';
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => array_filter([
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [t('nav.library', 'Library'), $isRoot ? null : page('library')?->url()],
   $isRoot ? null : [$page->title()->value(), null],
 ])]) ?>
 
 <header class="mb-6">
-  <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(strtoupper(t('nav.library', 'LIBRARY'))) ?></div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
   <?php if ($page->description()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->description()) ?></p>
