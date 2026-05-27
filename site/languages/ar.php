@@ -81,6 +81,10 @@ return [
         'label.more'           => 'المزيد',
 
         // UI / aria
+        'a11y.skip'         => 'تخطّي إلى المحتوى',
+        'ui.language'       => 'اللغة',
+        'media.tabs'        => 'علامات تبويب الوسائط',
+        'media.region'      => 'وسائط',
         'ui.toggle_theme'   => 'تبديل السمة',
         'ui.toggle_sidebar' => 'تبديل الشريط الجانبي',
         'ui.close'          => 'إغلاق',

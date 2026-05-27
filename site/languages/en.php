@@ -82,6 +82,10 @@ return [
         'label.more'           => 'more',
 
         // UI / aria
+        'a11y.skip'         => 'Skip to content',
+        'ui.language'       => 'Language',
+        'media.tabs'        => 'Media tabs',
+        'media.region'      => 'Media',
         'ui.toggle_theme'   => 'Toggle theme',
         'ui.toggle_sidebar' => 'Toggle sidebar',
         'ui.close'          => 'Close',

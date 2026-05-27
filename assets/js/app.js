@@ -295,12 +295,14 @@
     cloneIntoDrawer();
     d.hidden = false;
     requestAnimationFrame(() => d.classList.add('open'));
+    $('[data-drawer-toggle]')?.setAttribute('aria-expanded', 'true');
   }
   function closeDrawer() {
     const d = $('[data-drawer]');
     if (!d) return;
     d.classList.remove('open');
     setTimeout(() => { d.hidden = true; }, 160);
+    $('[data-drawer-toggle]')?.setAttribute('aria-expanded', 'false');
   }
   function setDrawerTab(name) {
     $$('[data-tab]').forEach(b => {

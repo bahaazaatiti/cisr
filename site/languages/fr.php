@@ -81,6 +81,10 @@ return [
         'label.more'           => 'plus',
 
         // UI / aria
+        'a11y.skip'         => 'Aller au contenu',
+        'ui.language'       => 'Langue',
+        'media.tabs'        => 'Onglets média',
+        'media.region'      => 'Média',
         'ui.toggle_theme'   => 'Changer de thème',
         'ui.toggle_sidebar' => 'Afficher/masquer la barre latérale',
         'ui.close'          => 'Fermer',

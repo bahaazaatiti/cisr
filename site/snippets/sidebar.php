@@ -21,12 +21,17 @@
     <?php endif ?>
   </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" aria-label="<?= t('nav.sections', 'Sections') ?>">
     <div class="group-label"><?= t('nav.sections', 'Sections') ?></div>
     <ul>
-      <li><a class="nav-item<?= $current->isHomePage() ? ' active' : '' ?>" href="<?= $homeUrl ?>" data-link><?= t('nav.home', 'Home') ?></a></li>
-      <li><a class="nav-item<?= $current->is($articles) ? ' active' : '' ?>" href="<?= $articlesUrl ?>" data-link><?= t('nav.articles', 'Articles') ?></a></li>
-      <li><a class="nav-item<?= ($fraternals && ($current->is($fraternals) || $current->parents()->find($fraternals->id()))) ? ' active' : '' ?>" href="<?= $fraternalsUrl ?>" data-link><?= t('nav.fraternals', 'Fraternal') ?></a></li>
+      <?php
+        $isHome      = $current->isHomePage();
+        $isArticles  = $current->is($articles);
+        $isFrats     = $fraternals && ($current->is($fraternals) || $current->parents()->find($fraternals->id()));
+      ?>
+      <li><a class="nav-item<?= $isHome ? ' active' : '' ?>"<?= $isHome ? ' aria-current="page"' : '' ?> href="<?= $homeUrl ?>" data-link><?= t('nav.home', 'Home') ?></a></li>
+      <li><a class="nav-item<?= $isArticles ? ' active' : '' ?>"<?= $isArticles ? ' aria-current="page"' : '' ?> href="<?= $articlesUrl ?>" data-link><?= t('nav.articles', 'Articles') ?></a></li>
+      <li><a class="nav-item<?= $isFrats ? ' active' : '' ?>"<?= $isFrats ? ' aria-current="page"' : '' ?> href="<?= $fraternalsUrl ?>" data-link><?= t('nav.fraternals', 'Fraternal') ?></a></li>
     </ul>
 
     <?php
@@ -68,10 +73,12 @@
   ?>
   <div class="sidebar-foot">
     <div class="sidebar-foot-row">
-      <div class="flex gap-2 items-baseline flex-1">
-        <?php foreach ($langs as $i => $l): ?>
+      <div class="flex gap-2 items-baseline flex-1" role="group" aria-label="<?= t('ui.language', 'Language') ?>">
+        <?php foreach ($langs as $i => $l):
+          $isCurrent = $l->code() === $kirby->language()->code();
+        ?>
           <?php if ($i): ?><span aria-hidden="true">·</span><?php endif ?>
-          <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $l->code() === $kirby->language()->code() ? ' class="font-bold"' : '' ?>>
+          <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $isCurrent ? ' class="font-bold" aria-current="page"' : '' ?>>
             <?= esc(strtoupper($l->code())) ?>
           </a>
         <?php endforeach ?>
