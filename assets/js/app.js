@@ -30,10 +30,7 @@
     const skTimer = setTimeout(() => { if (!abort.signal.aborted) showSkeleton(); }, 120);
 
     try {
-      // Fetch the full HTML page and extract #panel from it. No ?partial=1
-      // endpoint — the pre-rendered HTML serves both as the full-page entry
-      // and as the swap source. Works identically against a live Kirby site
-      // and a static export.
+      // Same HTML serves full-page entry AND swap source; no partial endpoint.
       const r = await fetch(u.pathname + u.search, {
         credentials: 'same-origin',
         signal: abort.signal,
@@ -47,14 +44,12 @@
       const p = panel();
       if (!p || !newPanel) { location.href = url; return; }
       p.innerHTML = newPanel.innerHTML;
-      // Also refresh the sidebar — its labels, tagline, and language indicator
-      // change between language variants. The right aside (data-aside-right)
-      // is intentionally preserved so an in-flight video / torrent keeps playing.
+      // Refresh sidebar (labels change per language). Right aside is preserved
+      // so an in-flight torrent/video keeps playing.
       const newSidebar = doc.querySelector('[data-sidebar]');
       const oldSidebar = sidebar();
       if (newSidebar && oldSidebar) oldSidebar.innerHTML = newSidebar.innerHTML;
-      // innerHTML doesn't execute <script> tags — re-create them so per-page
-      // scripts (e.g. p2p.min.js on library-item / magnet-video pages) run.
+      // innerHTML drops <script> elements; clone+replace to re-execute them.
       p.querySelectorAll('script').forEach(old => {
         const fresh = document.createElement('script');
         for (const a of old.attributes) fresh.setAttribute(a.name, a.value);
@@ -62,8 +57,7 @@
         old.replaceWith(fresh);
       });
       if (push) history.pushState({ swap: 1 }, '', u.pathname + u.search);
-      // Sync <html lang>/dir from the new document so RTL flips immediately
-      // when navigating to an Arabic page (today's bug under the old SPA).
+      // Mirror <html lang>/dir so RTL flips instantly on lang nav.
       const newHtml = doc.documentElement;
       if (newHtml.lang) document.documentElement.lang = newHtml.lang;
       if (newHtml.dir) document.documentElement.dir = newHtml.dir;
@@ -91,10 +85,7 @@
     }
   }
 
-  // --- Client-side table sort ---
-  // Rows carry `data-sort-<key>` attrs; buttons carry `data-sort="<key>"` and
-  // optional `data-sort-dir="desc"`. Replaces the old server-side ?sort= flow
-  // so the URL stays a single canonical path under static hosting.
+  // Client-side table sort — URL stays canonical for static hosting.
   function sortTable(btn) {
     const key = btn.dataset.sort;
     const dir = btn.dataset.sortDir === 'desc' ? -1 : 1;
@@ -208,9 +199,7 @@
     (node.files || []).forEach(f => {
       const icon = '[' + kindLabel(f.kind) + ']';
       const meta = (f.size || '') + (f.date ? ' · ' + f.date : '');
-      // Cell becomes <a> for rich items (have a detail page) and <span> for
-      // lean items; left-click always triggers p2p download via the global
-      // handler.
+      // <a> for rich items (have a detail page), <span> for lean.
       const tag = f.url ? 'a' : 'span';
       const href = f.url ? ' href="' + escHtml(f.url) + '"' : '';
       html += '<' + tag + ' class="lib-cell lib-cell-file"' + href + ' data-file'
@@ -372,7 +361,7 @@
     }
     const up = e.target.closest('[data-lib-up]');
     if (up) {
-      const container = up.closest('.lib-gui[data-lib-tree]');
+      const container = up.closest('.lib-gui[data-lib-tree-src]');
       if (container) libGo(container);
       return;
     }
@@ -398,19 +387,14 @@
       } else if (action === 'copy') {
         window.siteP2P?.copy?.(t.magnet, status);
       } else if (action === 'open' && t.el?.href) {
-        // OPEN navigates to the file's detail page. The page itself decides
-        // whether to offer an "Open in viewer" button (only for kinds the
-        // browser can actually play).
+        // OPEN navigates to the detail page; that page decides what to offer.
         swap(t.el.href, true);
       }
       return;
     }
     if (!e.target.closest('#ctxmenu')) hideCtx();
 
-    // GUI-mode file cell: left-click triggers a p2p download (LIST mode files
-    // still navigate to the detail page via the data-link handler below).
-    // Modifier/middle clicks fall through to the browser so Ctrl+click opens
-    // the detail page in a new tab.
+    // GUI cell: left-click downloads; modifier/middle falls through.
     const guiFile = e.target.closest('.lib-cell-file');
     if (guiFile) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
@@ -432,9 +416,7 @@
   });
 
   document.addEventListener('contextmenu', (e) => {
-    // Right-click on any library file (GUI cell or LIST anchor) shows the
-    // 3-option p2p menu. We require a magnet — files without one (legacy
-    // entries) fall through to the browser's native menu.
+    // Magnet-bearing files get our 3-option menu; others fall through.
     const f = e.target.closest('[data-file][data-magnet]');
     if (!f || !f.dataset.magnet) return;
     e.preventDefault();

@@ -16,12 +16,7 @@
   }
 
   function swUrl() {
-    // Read from the script tag's data-sw attr — populated server-side by
-    // Kirby's url() helper, which respects the deploy base (so it returns
-    // /sw.min.js under root deployments and /<repo>/sw.min.js under a
-    // GitHub Pages project page). Default scope = SW's directory, which
-    // matches the deploy base in both cases — no Service-Worker-Allowed
-    // header needed.
+    // data-sw is rendered with Kirby's url() so it respects the deploy base.
     const s = document.querySelector('script[data-sw]');
     if (s && s.dataset.sw) return s.dataset.sw;
     return '/sw.min.js';
@@ -36,16 +31,13 @@
     return wtPromise;
   }
 
-  // Register the WebTorrent service worker so file.streamURL can be used for
-  // progressive playback (no need to wait for the whole file to download).
+  // SW unlocks file.streamURL for progressive playback (vs blob fallback).
   function registerSW() {
     if (swPromise) return swPromise;
     if (!('serviceWorker' in navigator)) {
       swPromise = Promise.resolve(null);
       return swPromise;
     }
-    // No explicit scope: use the SW's own directory as the max scope.
-    // That equals the deploy root for both root and subpath deployments.
     swPromise = navigator.serviceWorker.register(swUrl())
       .then(reg => {
         const worker = reg.active || reg.waiting || reg.installing;
@@ -61,8 +53,7 @@
     return swPromise;
   }
 
-  // Prefer status/stage elements inside the main panel — keeps action buttons on
-  // a library-item detail page from accidentally writing into the aside-right.
+  // Prefer #panel-local status/stage so detail-page actions don't write into the aside.
   function defaultStatus() {
     return document.querySelector('#panel [data-p2p-status]')
         || document.querySelector('[data-p2p-status]');
@@ -169,9 +160,8 @@
   }
 
   /**
-   * Start a magnet torrent and render the largest file into `stage`.
-   * Uses file.streamURL when the service worker is active (progressive
-   * playback) and falls back to a Blob URL otherwise.
+   * Start a magnet and render its largest file into `stage`. SW path uses
+   * streamURL for progressive playback; blob fallback waits for full download.
    */
   async function open(magnet, kind, stage, statusEl) {
     activeStatusEl = statusEl || null;

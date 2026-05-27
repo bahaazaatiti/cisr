@@ -47,9 +47,7 @@
 </dl>
 
 <?php
-  // Only kinds the browser can actually render get an "Open in viewer" button
-  // and a p2p-stage. For epub/archive/other the in-browser viewer would just
-  // show a download fallback, which the dedicated Download button already does.
+  // Browser-viewable kinds only get the in-page player.
   $isViewable = in_array($kind, ['video', 'audio', 'image', 'pdf'], true);
 ?>
 <?php if ($magnet): ?>
