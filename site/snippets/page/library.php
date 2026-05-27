@@ -53,10 +53,18 @@
         $k = (string) $i->kind();
         $size = (string) $i->size_human();
         $added = $i->added()->isNotEmpty() ? $i->added()->toDate('Y-m-d') : '—';
+        $magnet = (string) $i->magnet();
+        $rich = $i->isRich();
       ?>
         <tr>
           <td>[<?= esc(strtoupper($k ?: '...')) ?>]</td>
-          <td><a href="<?= $i->url() ?>" data-link><?= esc($i->title()) ?></a></td>
+          <td>
+            <?php if ($rich): ?>
+              <a href="<?= $i->url() ?>" data-link data-file data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($k ?: 'other') ?>"><?= esc($i->title()) ?></a>
+            <?php else: ?>
+              <span data-file data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($k ?: 'other') ?>"><?= esc($i->title()) ?></span>
+            <?php endif ?>
+          </td>
           <td><?= $size !== '' ? esc($size) : '—' ?></td>
           <td><?= esc($added) ?></td>
         </tr>

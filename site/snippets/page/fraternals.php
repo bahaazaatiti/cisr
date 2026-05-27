@@ -62,7 +62,7 @@
             $founded = (string) $o->founded();
             $sku     = (string) $o->sku();
             $langs   = $o->languages()->split(',');
-            $hasMore = $o->notes()->isNotEmpty();
+            $hasMore = $o->isRich();
             $meta = [];
             if ($type)          { $meta[] = strtoupper(t('frat.type.' . $type, $type)); }
             if (!empty($langs)) { $meta[] = strtoupper(implode('/', array_map('trim', $langs))); }

@@ -27,11 +27,18 @@
     <tbody>
       <?php foreach ($list as $v):
         $src = $v->hasMagnetSource() ? 'WT' : ($v->hasYouTubeSource() ? 'YT' : '—');
+        $rich = $v->isRich();
       ?>
         <tr>
           <td><?= $v->date()->toDate('Y-m-d') ?: '—' ?></td>
           <td><?= esc($src) ?></td>
-          <td><a href="<?= $v->url() ?>" data-link><?= esc($v->title()) ?></a></td>
+          <td>
+            <?php if ($rich): ?>
+              <a href="<?= $v->url() ?>" data-link><?= esc($v->title()) ?></a>
+            <?php else: ?>
+              <span><?= esc($v->title()) ?></span>
+            <?php endif ?>
+          </td>
           <td><?= esc($v->duration()->or('—')) ?></td>
         </tr>
       <?php endforeach ?>

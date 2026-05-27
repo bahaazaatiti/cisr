@@ -61,7 +61,7 @@
           'name'   => $prefix . $title,
           'size'   => (string) ($c->size_human()->or('—')),
           'date'   => $c->added()->isNotEmpty() ? $c->added()->toDate('Y-m-d') : '—',
-          'href'   => (string) $c->url(),
+          'href'   => $c->isRich() ? (string) $c->url() : '',
           'kind'   => $kind,
           'magnet' => (string) $c->magnet(),
         ];
@@ -128,11 +128,16 @@
                 <td>
                   <?php if ($isFolder): ?>
                     <span class="lib-flat-folder"><?= esc($r['name']) ?></span>
-                  <?php else: ?>
+                  <?php elseif (!empty($r['href'])): ?>
                     <a href="<?= esc($r['href']) ?>" data-link data-file
                        data-magnet="<?= esc($r['magnet'] ?? '', 'attr') ?>"
                        data-kind="<?= esc($r['kind'] ?? 'other', 'attr') ?>"
                        title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></a>
+                  <?php else: ?>
+                    <span data-file
+                          data-magnet="<?= esc($r['magnet'] ?? '', 'attr') ?>"
+                          data-kind="<?= esc($r['kind'] ?? 'other', 'attr') ?>"
+                          title="<?= esc($r['name']) ?>"><?= esc($r['name']) ?></span>
                   <?php endif ?>
                 </td>
                 <td class="ui-sku"><?= esc($r['size']) ?></td>

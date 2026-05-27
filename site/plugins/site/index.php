@@ -139,5 +139,14 @@ Kirby::plugin('site/helpers', [
             $p = magnet_parse((string) $this->magnet());
             return ($p && $p['dn']) ? $p['dn'] : (string) $this->title();
         },
+        // True when a leaf earns its own static page. Lean leaves render as
+        // plain rows in the parent listing and skip per-item generation.
+        'isRich' => function () {
+            $tpl = $this->intendedTemplate()->name();
+            if ($tpl === 'library-item') return $this->notes()->isNotEmpty();
+            if ($tpl === 'video')        return $this->summary()->isNotEmpty();
+            if ($tpl === 'fraternal')    return $this->notes()->isNotEmpty();
+            return true;
+        },
     ],
 ]);

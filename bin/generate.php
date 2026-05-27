@@ -47,9 +47,20 @@ if ($baseUrl !== '' && substr($baseUrl, -1) !== '/') $baseUrl .= '/';
 fwrite(STDERR, "baseUrl:  {$baseUrl}\n");
 
 $kirby = new Kirby\Cms\App();
-$ssg   = new JR\StaticSiteGenerator($kirby);
+
+// Page-only-when-rich: library-item / video / fraternal leaves earn a static
+// page only if they have notes/summary. Otherwise the parent listing handles
+// them as a row. Home is rendered separately by the SSG regardless.
+$pages = $kirby->site()->index()->filter(function ($p) {
+    $tpl = $p->intendedTemplate()->name();
+    if (in_array($tpl, ['library-item', 'video', 'fraternal'], true)) {
+        return $p->isRich();
+    }
+    return true;
+});
+
+$ssg = new JR\StaticSiteGenerator($kirby, null, $pages);
 $preserve = [
-    '.nojekyll', '.kirbystatic', // dotfiles are auto-preserved; listed for clarity
     'CNAME',
     'README.md', 'MIRROR.md', 'MIRRORS.md',
     'sw.min.js',
