@@ -301,7 +301,7 @@
   html[dir=rtl] .ar-video #player > iframe.vid-frame { transform-origin: top right; }
   .vid-list { list-style: none; padding: 0; margin: 0; border-block-start: 1px solid var(--border); }
   .vid-list li { border-block-end: 1px solid var(--border); }
-  .vid-pick { display: flex; gap: 0.4rem; width: 100%; text-align: start; font: inherit; background: transparent; border: 0; cursor: pointer; padding: 0.35rem 0.5rem; align-items: baseline; }
+  .vid-pick { display: flex; gap: 0.4rem; width: 100%; min-height: 32px; text-align: start; font: inherit; background: transparent; border: 0; cursor: pointer; padding: 0.5rem 0.5rem; align-items: center; }
   .vid-pick:hover, .vid-pick.active { background: var(--secondary); }
   .vid-pick-icon { color: var(--accent); }
   .vid-pick-title { flex: 1; }
