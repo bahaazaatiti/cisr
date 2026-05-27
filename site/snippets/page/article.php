@@ -2,6 +2,7 @@
   /** @var \Kirby\Cms\Page $page */
   $articles = page('articles');
 ?>
+<?php snippet('ui/jsonld', ['type' => 'Article', 'page' => $page]) ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
   [t('nav.home', 'Home'), site()->homePage()->url()],
   [t('nav.articles', 'Articles'), $articles ? $articles->url() : null],

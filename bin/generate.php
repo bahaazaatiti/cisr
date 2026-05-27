@@ -66,6 +66,7 @@ $preserve = [
     'sw.min.js',
     '_build.json',
     '_headers',
+    'robots.txt',
 ];
 $ssg->generate($outputFolder, $baseUrl, $preserve);
 fwrite(STDERR, "rendered: {$outputFolder}\n");
@@ -88,6 +89,31 @@ foreach ($kirby->languages() as $lang) {
     fwrite(STDERR, "wrote:    " . str_replace($outputFolder . '/', '', $path) . "\n");
 }
 
+// sitemap.xml — one entry per emitted page × language, with hreflang alternates.
+// Uses the same isRich-filtered $pages collection so the sitemap matches the deploy.
+$kirby->setCurrentLanguage($kirby->defaultLanguage()->code());
+$sitemap = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+$emitPage = function ($page) use (&$sitemap, $kirby, $basePrefix) {
+    foreach ($kirby->languages() as $lang) {
+        $kirby->setCurrentLanguage($lang->code());
+        if (!$page->translation($lang->code())->exists()) continue;
+        $loc = str_replace(['https://jr-ssg-base-url/', 'https://jr-ssg-base-url'], $basePrefix . '/', $page->url($lang->code()));
+        $sitemap .= "  <url>\n    <loc>" . htmlspecialchars($loc) . "</loc>\n";
+        foreach ($kirby->languages() as $alt) {
+            if (!$page->translation($alt->code())->exists()) continue;
+            $altLoc = str_replace(['https://jr-ssg-base-url/', 'https://jr-ssg-base-url'], $basePrefix . '/', $page->url($alt->code()));
+            $sitemap .= '    <xhtml:link rel="alternate" hreflang="' . $alt->code() . '" href="' . htmlspecialchars($altLoc) . '"/>' . "\n";
+        }
+        $sitemap .= "  </url>\n";
+    }
+};
+$emitPage($kirby->site()->homePage());
+foreach ($pages->listed() as $p) $emitPage($p);
+$sitemap .= '</urlset>' . "\n";
+file_put_contents($outputFolder . '/sitemap.xml', $sitemap);
+fwrite(STDERR, "wrote:    sitemap.xml\n");
+
 // 4. Copy dissemination + runtime extras into the output root. Run after
 //    generate() so a fresh wipe doesn't drop them. Idempotent.
 $copies = [
@@ -98,6 +124,7 @@ $copies = [
     '_build.json',
     'CNAME',     // optional — present only when a custom domain is set
     '_headers',  // Netlify / CF Pages — ignored on gh-pages (meta CSP covers that)
+    'robots.txt',
 ];
 foreach ($copies as $name) {
     $src = $root . '/' . $name;

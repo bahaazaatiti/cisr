@@ -12,6 +12,7 @@
   $verified = $page->verified()->isNotEmpty() ? $page->verified()->toDate('Y-m-d') : null;
   $host = $hp ? preg_replace('~^www\.~i', '', parse_url($hp, PHP_URL_HOST) ?: $hp) : '';
 ?>
+<?php snippet('ui/jsonld', ['type' => 'Organization', 'page' => $page]) ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
   [t('nav.home', 'Home'), site()->homePage()->url()],
   [t('nav.fraternals', 'Fraternal'), $parent ? $parent->url() : null],
