@@ -13,7 +13,7 @@
     });
   }
 
-  const SKELETON = '<div class="usgc-skeleton" aria-hidden="true"><div class="sk sk-h"></div><div class="sk sk-line"></div><div class="sk sk-line"></div><div class="sk sk-line w-2/3"></div></div>';
+  const SKELETON = '<div class="ui-skeleton" aria-hidden="true"><div class="sk sk-h"></div><div class="sk sk-line"></div><div class="sk sk-line"></div><div class="sk sk-line w-2/3"></div></div>';
   function showSkeleton() { const p = panel(); if (p) p.innerHTML = SKELETON; }
 
   let currentAbort = null;
@@ -24,16 +24,15 @@
     if (currentAbort) currentAbort.abort();
     const abort = new AbortController();
     currentAbort = abort;
-    try { window.cisrP2P?.teardown?.(); } catch (_) {}
+    try { window.siteP2P?.teardown?.(); } catch (_) {}
+    // siteComm intentionally persists across SPA nav (same as aside-right).
+    // It tears down on beforeunload (see comm.js).
 
     loadbar()?.classList.add('loading');
     const skTimer = setTimeout(() => { if (!abort.signal.aborted) showSkeleton(); }, 120);
 
     try {
-      // Fetch the full HTML page and extract #panel from it. No ?partial=1
-      // endpoint — the pre-rendered HTML serves both as the full-page entry
-      // and as the swap source. Works identically against a live Kirby site
-      // and a static export.
+      // Same HTML serves full-page entry AND swap source; no partial endpoint.
       const r = await fetch(u.pathname + u.search, {
         credentials: 'same-origin',
         signal: abort.signal,
@@ -47,14 +46,12 @@
       const p = panel();
       if (!p || !newPanel) { location.href = url; return; }
       p.innerHTML = newPanel.innerHTML;
-      // Also refresh the sidebar — its labels, tagline, and language indicator
-      // change between language variants. The right aside (data-aside-right)
-      // is intentionally preserved so an in-flight video / torrent keeps playing.
+      // Refresh sidebar (labels change per language). Right aside is preserved
+      // so an in-flight torrent/video keeps playing.
       const newSidebar = doc.querySelector('[data-sidebar]');
       const oldSidebar = sidebar();
       if (newSidebar && oldSidebar) oldSidebar.innerHTML = newSidebar.innerHTML;
-      // innerHTML doesn't execute <script> tags — re-create them so per-page
-      // scripts (e.g. p2p.min.js on library-item / magnet-video pages) run.
+      // innerHTML drops <script> elements; clone+replace to re-execute them.
       p.querySelectorAll('script').forEach(old => {
         const fresh = document.createElement('script');
         for (const a of old.attributes) fresh.setAttribute(a.name, a.value);
@@ -62,8 +59,7 @@
         old.replaceWith(fresh);
       });
       if (push) history.pushState({ swap: 1 }, '', u.pathname + u.search);
-      // Sync <html lang>/dir from the new document so RTL flips immediately
-      // when navigating to an Arabic page (today's bug under the old SPA).
+      // Mirror <html lang>/dir so RTL flips instantly on lang nav.
       const newHtml = doc.documentElement;
       if (newHtml.lang) document.documentElement.lang = newHtml.lang;
       if (newHtml.dir) document.documentElement.dir = newHtml.dir;
@@ -91,10 +87,7 @@
     }
   }
 
-  // --- Client-side table sort ---
-  // Rows carry `data-sort-<key>` attrs; buttons carry `data-sort="<key>"` and
-  // optional `data-sort-dir="desc"`. Replaces the old server-side ?sort= flow
-  // so the URL stays a single canonical path under static hosting.
+  // Client-side table sort — URL stays canonical for static hosting.
   function sortTable(btn) {
     const key = btn.dataset.sort;
     const dir = btn.dataset.sortDir === 'desc' ? -1 : 1;
@@ -120,7 +113,7 @@
   function renderPlayer(host, data) {
     if (!host) return;
     if (!data || !data.src) {
-      host.innerHTML = '<span class="usgc-sku" data-player-placeholder>NO SOURCE</span>';
+      host.innerHTML = '<span class="ui-sku" data-player-placeholder>NO SOURCE</span>';
       host.classList.add('vid-frame-empty');
       return;
     }
@@ -135,11 +128,11 @@
     const host = section.querySelector('#player') || $('#player');
     const status = section.querySelector('[data-ar-p2p-status]');
     $$('.vid-pick').forEach(b => b.classList.toggle('active', b === btn));
-    try { window.cisrP2P?.teardown?.(); } catch (_) {}
+    try { window.siteP2P?.teardown?.(); } catch (_) {}
     const magnet = btn.dataset.vidMagnet;
     if (magnet) {
       host.classList.remove('vid-frame-empty');
-      window.cisrP2P?.open?.(magnet, 'video', host, status);
+      window.siteP2P?.open?.(magnet, 'video', host, status);
       return;
     }
     if (status) status.textContent = '';
@@ -168,15 +161,34 @@
     }
     return node;
   }
-  function renderLibGrid(container) {
-    let tree;
-    try { tree = JSON.parse(container.dataset.libTree || 'null'); } catch (e) { return; }
-    if (!tree) return;
+  // Fetch /library.json once per session; cache key includes build-sha so a
+  // deploy bust invalidates without a manual reload.
+  const libTreeCache = new Map();
+  function buildSha() {
+    return document.querySelector('meta[name="build-sha"]')?.content || 'dev';
+  }
+  async function loadLibTree(src) {
+    if (!src) return null;
+    if (libTreeCache.has(src)) return libTreeCache.get(src);
+    const key = 'libtree:' + buildSha() + ':' + src;
+    try {
+      const cached = sessionStorage.getItem(key);
+      if (cached) { const t = JSON.parse(cached); libTreeCache.set(src, t); return t; }
+    } catch (_) {}
+    const r = await fetch(src, { credentials: 'same-origin' });
+    if (!r.ok) return null;
+    const tree = await r.json();
+    libTreeCache.set(src, tree);
+    try { sessionStorage.setItem(key, JSON.stringify(tree)); } catch (_) {}
+    return tree;
+  }
+  function paintLibGrid(container, tree) {
     const path = (container.dataset.libPath || '').split('/').filter(Boolean);
     const node = libResolve(tree, path);
+    const scope = container.closest('.ar-library, .drawer-panel') || document;
     const grid = container.querySelector('[data-lib-grid]');
-    const cwd  = container.querySelector('[data-lib-cwd]');
-    const up   = container.querySelector('[data-lib-up]');
+    const cwd  = scope.querySelector('[data-lib-cwd]');
+    const up   = scope.querySelector('[data-lib-up]');
     if (cwd) cwd.textContent = '/' + path.join('/');
     if (up)  up.disabled = path.length === 0;
     if (!grid) return;
@@ -190,64 +202,207 @@
     (node.files || []).forEach(f => {
       const icon = '[' + kindLabel(f.kind) + ']';
       const meta = (f.size || '') + (f.date ? ' · ' + f.date : '');
-      // GUI cells: left-click = p2p download (handled below); right-click =
-      // ctx menu (open / download / copy). The href is kept so Ctrl/Cmd+click
-      // and middle-click still open the file's detail page in a new tab —
-      // that's the only way to get to the page from GUI mode.
-      html += '<a class="lib-cell lib-cell-file" href="' + escHtml(f.url) + '" data-file'
+      // <a> for rich items (have a detail page), <span> for lean.
+      const tag = f.url ? 'a' : 'span';
+      const href = f.url ? ' href="' + escHtml(f.url) + '"' : '';
+      html += '<' + tag + ' class="lib-cell lib-cell-file"' + href + ' data-file'
            +    ' data-magnet="' + escHtml(f.magnet || '') + '"'
            +    ' data-kind="' + escHtml(f.kind || 'other') + '"'
            +    ' title="' + escHtml(f.name) + (meta ? ' · ' + escHtml(meta) : '') + '">'
            +    '<span class="lib-cell-icon" aria-hidden="true">' + escHtml(icon) + '</span>'
            +    '<span class="lib-cell-name">' + escHtml(f.name) + '</span>'
-           +    '<span class="lib-cell-meta usgc-sku">' + escHtml(f.size || '') + '</span>'
-           +  '</a>';
+           +    '<span class="lib-cell-meta ui-sku">' + escHtml(f.size || '') + '</span>'
+           +  '</' + tag + '>';
     });
     if (!html) {
-      html = '<div class="usgc-sku lib-empty-grid">' + escHtml(container.dataset.libEmpty || 'empty') + '</div>';
+      html = '<div class="ui-sku lib-empty-grid">' + escHtml(container.dataset.libEmpty || 'empty') + '</div>';
     }
     grid.innerHTML = html;
   }
-  function renderAllLibGrids() { $$('.lib-gui[data-lib-tree]').forEach(renderLibGrid); }
-  function libGo(container, segment) {
+  function paintLibList(container, tree) {
+    const scope = container.closest('.ar-library, .drawer-panel') || document;
+    const body  = scope.querySelector('[data-lib-list-body]');
+    const empty = scope.querySelector('[data-lib-list-empty]');
+    if (!body) return;
+    const rows = [];
+    (function walk(node, prefix, parent) {
+      (node.folders || []).forEach(f => {
+        const path = parent === '' ? f.slug : parent + '/' + f.slug;
+        rows.push({ folder: path, parent, name: prefix + f.name + '/', size: '—', date: '—' });
+        walk(f, prefix + f.name + '/', path);
+      });
+      (node.files || []).forEach(f => {
+        rows.push({ parent, name: prefix + f.name, size: f.size || '—', date: f.date || '—',
+                    url: f.url || '', magnet: f.magnet || '', kind: f.kind || 'other' });
+      });
+    })(tree, '', '');
+    if (!rows.length) { body.innerHTML = ''; if (empty) empty.hidden = false; return; }
+    if (empty) empty.hidden = true;
+    let html = '';
+    for (const r of rows) {
+      const isFolder = !!r.folder;
+      const hidden = r.parent !== '' ? ' hidden' : '';
+      const attrs = ' data-parent="' + escHtml(r.parent) + '"' + (isFolder ? ' data-folder="' + escHtml(r.folder) + '"' : '');
+      const icon = isFolder ? '[+]' : '[' + kindLabel(r.kind) + ']';
+      html += '<tr' + (isFolder ? ' class="lib-row-folder"' : '') + attrs + hidden + '>'
+           +    '<td><span' + (isFolder ? ' class="lib-toggle"' : '') + '>' + icon + '</span></td>'
+           +    '<td>';
+      if (isFolder) html += '<span class="lib-flat-folder">' + escHtml(r.name) + '</span>';
+      else if (r.url) html += '<a href="' + escHtml(r.url) + '" data-link data-file data-magnet="' + escHtml(r.magnet) + '" data-kind="' + escHtml(r.kind) + '" title="' + escHtml(r.name) + '">' + escHtml(r.name) + '</a>';
+      else html += '<span data-file data-magnet="' + escHtml(r.magnet) + '" data-kind="' + escHtml(r.kind) + '" title="' + escHtml(r.name) + '">' + escHtml(r.name) + '</span>';
+      html += '</td><td class="ui-sku">' + escHtml(r.size) + '</td><td class="ui-sku">' + escHtml(r.date) + '</td></tr>';
+    }
+    body.innerHTML = html;
+  }
+  async function ensureLibContainer(container) {
+    const tree = await loadLibTree(container.dataset.libTreeSrc);
+    if (!tree) return;
+    paintLibGrid(container, tree);
+    paintLibList(container, tree);
+  }
+  function ensureAllLibContainers() { $$('.lib-gui[data-lib-tree-src]').forEach(ensureLibContainer); }
+  async function libGo(container, segment) {
     const cur = (container.dataset.libPath || '').split('/').filter(Boolean);
     segment ? cur.push(segment) : cur.pop();
     container.dataset.libPath = cur.join('/');
-    renderLibGrid(container);
+    const tree = await loadLibTree(container.dataset.libTreeSrc);
+    if (tree) paintLibGrid(container, tree);
   }
 
-  let drawerCloned = false;
-  function cloneIntoDrawer() {
-    if (drawerCloned) return;
-    const aside = $('[data-aside-right]');
-    [['library', '.ar-library'], ['video', '.ar-video']].forEach(([panel, sel]) => {
-      const src = aside && aside.querySelector(sel);
-      const dst = $(`[data-panel="${panel}"]`);
-      if (src && dst) dst.appendChild(src.cloneNode(true));
-    });
-    drawerCloned = true;
-    renderAllLibGrids();
+  // Mirror buttons — two-phase click (scan → confirm), per-section state.
+  // First click runs a tracker scan (~2.5 s) to find magnets with peers waiting,
+  // shows count + size, second click starts mirroring those, third click stops.
+  function fmtSize(n) {
+    if (!n || n < 0) return '0 B';
+    const u = ['B','KB','MB','GB','TB'];
+    let i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return n.toFixed(n < 10 ? 1 : 0) + ' ' + u[i];
   }
-  function openDrawer() {
-    const d = $('[data-drawer]');
+  async function collectMirrorMagnets(section) {
+    if (section === 'library') {
+      const container = document.querySelector('.ar-library .lib-gui[data-lib-tree-src]');
+      if (!container) return [];
+      const tree = await loadLibTree(container.dataset.libTreeSrc);
+      if (!tree) return [];
+      const out = [];
+      (function walk(node) {
+        (node.folders || []).forEach(walk);
+        (node.files || []).forEach(f => { if (f.magnet) out.push(f.magnet); });
+      })(tree);
+      return out;
+    }
+    if (section === 'videos') {
+      const seen = new Set();
+      return $$('[data-vid-magnet]')
+        .map(el => el.dataset.vidMagnet)
+        .filter(m => m && !seen.has(m) && seen.add(m));
+    }
+    return [];
+  }
+  function mirrorStatusElFor(section) {
+    if (section === 'library') return document.querySelector('.ar-library [data-p2p-status]');
+    if (section === 'videos')  return document.querySelector('.ar-video [data-ar-p2p-status]');
+    return null;
+  }
+  function syncMirrorButtonsFor(section) {
+    const active = window.siteP2P?.mirrorIsActive?.(section);
+    $$(`[data-mirror-toggle="${section}"]`).forEach(b => {
+      b.classList.toggle('active', !!active);
+      if (active) { b.classList.remove('pending'); delete b.dataset.mirrorPending; }
+    });
+  }
+  async function handleMirrorClick(btn) {
+    if (!window.siteP2P) return;
+    const section = btn.dataset.mirrorToggle;
+    const statusEl = mirrorStatusElFor(section);
+    // Already mirroring this section → stop.
+    if (window.siteP2P.mirrorIsActive(section)) {
+      window.siteP2P.mirrorStop(section);
+      syncMirrorButtonsFor(section);
+      return;
+    }
+    // Second click after a scan → confirm + start.
+    if (btn.dataset.mirrorPending) {
+      let survivors = [];
+      try { survivors = JSON.parse(btn.dataset.mirrorPending); } catch (_) {}
+      delete btn.dataset.mirrorPending;
+      btn.classList.remove('pending');
+      if (!survivors.length) return;
+      await window.siteP2P.mirrorStart(survivors, statusEl, section);
+      syncMirrorButtonsFor(section);
+      return;
+    }
+    // First click → scan.
+    btn.classList.add('pending');
+    const magnets = await collectMirrorMagnets(section);
+    if (!magnets.length) {
+      btn.classList.remove('pending');
+      if (statusEl) statusEl.textContent = 'nothing to mirror.';
+      return;
+    }
+    const scan = await window.siteP2P.mirrorScan(magnets, statusEl);
+    const inDemand = scan.filter(r => r.numPeers > 0);
+    // Default path: mirror what's actually needed. Fallback when no one is
+    // leeching: mirror everything so the swarm always has a seed available.
+    const targets = inDemand.length ? inDemand : scan;
+    if (!targets.length) {
+      btn.classList.remove('pending');
+      if (statusEl) statusEl.textContent = 'nothing to mirror.';
+      return;
+    }
+    btn.dataset.mirrorPending = JSON.stringify(targets);
+    const totalSize = targets.reduce((a, r) => a + (r.size || 0), 0);
+    if (statusEl) {
+      const noun = targets.length === 1 ? 'item' : 'items';
+      const lead = inDemand.length
+        ? (targets.length + ' ' + (targets.length === 1 ? 'item needs' : 'items need') + ' help')
+        : ('no one needs help right now — mirror all ' + targets.length + ' ' + noun);
+      statusEl.textContent = lead + ' (~' + fmtSize(totalSize) + ') · click again to mirror';
+    }
+  }
+
+  // Drawer plumbing — name-scoped via data-drawer="<name>" so multiple drawers
+  // can coexist (e.g. media + comm). Only the media drawer needs cloning; the
+  // others ship their content directly.
+  const drawerCloned = new Set();
+  function cloneIntoDrawer(name) {
+    if (drawerCloned.has(name)) return;
+    if (name === 'media') {
+      const aside = $('[data-aside-right]');
+      const drawer = $('[data-drawer="media"]');
+      [['library', '.ar-library'], ['video', '.ar-video']].forEach(([panelName, sel]) => {
+        const src = aside && aside.querySelector(sel);
+        const dst = drawer && drawer.querySelector(`[data-panel="${panelName}"]`);
+        if (src && dst) dst.appendChild(src.cloneNode(true));
+      });
+      ensureAllLibContainers();
+    }
+    drawerCloned.add(name);
+  }
+  function openDrawer(name) {
+    const d = $(`[data-drawer="${name}"]`);
     if (!d) return;
-    cloneIntoDrawer();
+    cloneIntoDrawer(name);
     d.hidden = false;
     requestAnimationFrame(() => d.classList.add('open'));
+    $(`[data-drawer-toggle="${name}"]`)?.setAttribute('aria-expanded', 'true');
   }
-  function closeDrawer() {
-    const d = $('[data-drawer]');
+  function closeDrawer(name) {
+    const d = $(`[data-drawer="${name}"]`);
     if (!d) return;
     d.classList.remove('open');
     setTimeout(() => { d.hidden = true; }, 160);
+    $(`[data-drawer-toggle="${name}"]`)?.setAttribute('aria-expanded', 'false');
   }
-  function setDrawerTab(name) {
-    $$('[data-tab]').forEach(b => {
+  function setDrawerTab(name, drawerEl) {
+    const scope = drawerEl || document;
+    Array.from(scope.querySelectorAll('[data-tab]')).forEach(b => {
       const on = b.dataset.tab === name;
       b.classList.toggle('active', on);
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== name);
+    Array.from(scope.querySelectorAll('[data-panel]')).forEach(p => p.hidden = p.dataset.panel !== name);
   }
 
   // Context menu remembers the file the menu was opened from. Magnet + kind
@@ -274,7 +429,7 @@
     if (sort) { sortTable(sort); return; }
     const lf = e.target.closest('[data-lib-folder]');
     if (lf) {
-      const container = lf.closest('.lib-gui[data-lib-tree]');
+      const container = lf.closest('.lib-gui[data-lib-tree-src]');
       if (container) libGo(container, lf.dataset.libFolder);
       return;
     }
@@ -284,6 +439,8 @@
       try { localStorage.theme = dark ? 'dark' : 'light'; } catch (_) {}
       return;
     }
+    const mirror = e.target.closest('[data-mirror-toggle]');
+    if (mirror) { e.preventDefault(); handleMirrorClick(mirror); return; }
     const mode = e.target.closest('[data-mode-set]');
     if (mode) { setLibMode(mode.dataset.modeSet); return; }
     const fold = e.target.closest('tr.lib-row-folder');
@@ -309,20 +466,28 @@
     }
     const up = e.target.closest('[data-lib-up]');
     if (up) {
-      const container = up.closest('.lib-gui[data-lib-tree]');
+      const scope = up.closest('.ar-library, .drawer-panel');
+      const container = scope?.querySelector('.lib-gui[data-lib-tree-src]');
       if (container) libGo(container);
       return;
     }
     const vid = e.target.closest('[data-video]');
     if (vid) { pickVideo(vid); return; }
-    if (e.target.closest('[data-drawer-toggle]')) {
-      const d = $('[data-drawer]');
-      (d && !d.hidden) ? closeDrawer() : openDrawer();
+    const tog = e.target.closest('[data-drawer-toggle]');
+    if (tog) {
+      const name = tog.dataset.drawerToggle;
+      const d = $(`[data-drawer="${name}"]`);
+      (d && !d.hidden) ? closeDrawer(name) : openDrawer(name);
       return;
     }
-    if (e.target.closest('[data-drawer-close]')) { closeDrawer(); return; }
+    const closeBtn = e.target.closest('[data-drawer-close]');
+    if (closeBtn) {
+      const name = closeBtn.closest('[data-drawer]')?.dataset.drawer;
+      if (name) closeDrawer(name);
+      return;
+    }
     const tab = e.target.closest('[data-tab]');
-    if (tab) { setDrawerTab(tab.dataset.tab); return; }
+    if (tab) { setDrawerTab(tab.dataset.tab, tab.closest('[data-drawer]')); return; }
     const ctxBtn = e.target.closest('#ctxmenu button');
     if (ctxBtn && ctxTarget) {
       const t = ctxTarget;
@@ -331,33 +496,39 @@
       if (!t.magnet) return;
       const status = p2pStatusFor(t.el);
       if (action === 'download') {
-        window.cisrP2P?.download?.(t.magnet, status);
+        window.siteP2P?.download?.(t.magnet, status);
       } else if (action === 'copy') {
-        window.cisrP2P?.copy?.(t.magnet, status);
+        window.siteP2P?.copy?.(t.magnet, status);
       } else if (action === 'open' && t.el?.href) {
-        // OPEN navigates to the file's detail page. The page itself decides
-        // whether to offer an "Open in viewer" button (only for kinds the
-        // browser can actually play).
+        // OPEN navigates to the detail page; that page decides what to offer.
         swap(t.el.href, true);
       }
       return;
     }
     if (!e.target.closest('#ctxmenu')) hideCtx();
 
-    // GUI-mode file cell: left-click triggers a p2p download (LIST mode files
-    // still navigate to the detail page via the data-link handler below).
-    // Modifier/middle clicks fall through to the browser so Ctrl+click opens
-    // the detail page in a new tab.
+    // GUI cell: left-click downloads; modifier/middle falls through.
     const guiFile = e.target.closest('.lib-cell-file');
     if (guiFile) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
       e.preventDefault();
       const mag = guiFile.dataset.magnet;
       if (mag) {
-        window.cisrP2P?.download?.(mag, p2pStatusFor(guiFile));
+        window.siteP2P?.download?.(mag, p2pStatusFor(guiFile));
       } else if (guiFile.href) {
         swap(guiFile.href, true);
       }
+      return;
+    }
+
+    // LIST mode lean item (<span data-file>) — no detail page, so left-click
+    // mirrors the GUI behavior and triggers a p2p download. Rich items keep
+    // the <a data-link> path below and navigate.
+    const listSpan = e.target.closest('.lib-list span[data-file]');
+    if (listSpan) {
+      e.preventDefault();
+      const mag = listSpan.dataset.magnet;
+      if (mag) window.siteP2P?.download?.(mag, p2pStatusFor(listSpan));
       return;
     }
 
@@ -369,9 +540,7 @@
   });
 
   document.addEventListener('contextmenu', (e) => {
-    // Right-click on any library file (GUI cell or LIST anchor) shows the
-    // 3-option p2p menu. We require a magnet — files without one (legacy
-    // entries) fall through to the browser's native menu.
+    // Magnet-bearing files get our 3-option menu; others fall through.
     const f = e.target.closest('[data-file][data-magnet]');
     if (!f || !f.dataset.magnet) return;
     e.preventDefault();
@@ -385,5 +554,5 @@
   addEventListener('popstate', () => { swap(location.href, false); });
 
   syncActive();
-  renderAllLibGrids();
+  ensureAllLibContainers();
 })();

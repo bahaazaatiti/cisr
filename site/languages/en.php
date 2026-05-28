@@ -82,6 +82,10 @@ return [
         'label.more'           => 'more',
 
         // UI / aria
+        'a11y.skip'         => 'Skip to content',
+        'ui.language'       => 'Language',
+        'media.tabs'        => 'Media tabs',
+        'media.region'      => 'Media',
         'ui.toggle_theme'   => 'Toggle theme',
         'ui.toggle_sidebar' => 'Toggle sidebar',
         'ui.close'          => 'Close',
@@ -113,5 +117,26 @@ return [
         'media.open'       => 'OPEN',
         'media.download'   => 'DOWNLOAD',
         'media.copylink'   => 'COPY MAGNET',
+
+        // comm drawer (chat + live conference)
+        'comm.title'        => 'COMMS',
+        'comm.region'       => 'Communications',
+        'comm.toggle'       => 'Open communications',
+        'comm.tabs'         => 'Communication tabs',
+        'comm.chat'         => 'CHAT',
+        'comm.conf'         => 'CONF',
+        'comm.send'         => 'SEND',
+        'comm.composer_ph'  => 'Type a message…',
+        'comm.join_conf'    => 'JOIN CONFERENCE',
+        'comm.leave_conf'   => 'LEAVE',
+        'comm.mic'          => 'MIC',
+        'comm.cam'          => 'CAM',
+        'comm.peers_n'      => '{n} peers',
+        'comm.privacy_note' => 'WebRTC over public trackers. Your IP is visible to peers; camera and mic stay off until you click JOIN.',
+        'comm.chat_privacy' => 'WebRTC peer connection — your IP is visible to peers in this lobby. Close the tab or refresh to disconnect.',
+        'comm.gum_denied'   => 'Camera/microphone access denied.',
+        'comm.lobby_label'  => 'LOBBY',
+        'mirror.title_library'  => 'Mirror library — your browser downloads + re-shares items that need help. Stops on refresh.',
+        'mirror.title_videos'   => 'Mirror videos — your browser downloads + re-shares items that need help. Stops on refresh.',
     ],
 ];

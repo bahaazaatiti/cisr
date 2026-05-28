@@ -3,19 +3,18 @@
   $list = $page->children()->listed()->sortBy('date', 'desc');
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [t('nav.videos', 'Videos'), null],
 ]]) ?>
 
 <header class="mb-6">
-  <div class="usgc-sku">CISR / VIDEOS</div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
 <?php if (count($list) === 0): ?>
   <p class="text-muted-foreground"><?= t('msg.no_videos', 'No videos yet.') ?></p>
 <?php else: ?>
-  <table class="usgc-table">
+  <table class="ui-table">
     <thead>
       <tr>
         <th class="w-24"><?= t('th.date', 'Date') ?></th>
@@ -27,11 +26,18 @@
     <tbody>
       <?php foreach ($list as $v):
         $src = $v->hasMagnetSource() ? 'WT' : ($v->hasYouTubeSource() ? 'YT' : '—');
+        $rich = $v->isRich();
       ?>
         <tr>
           <td><?= $v->date()->toDate('Y-m-d') ?: '—' ?></td>
           <td><?= esc($src) ?></td>
-          <td><a href="<?= $v->url() ?>" data-link><?= esc($v->title()) ?></a></td>
+          <td>
+            <?php if ($rich): ?>
+              <a href="<?= $v->url() ?>" data-link><?= esc($v->title()) ?></a>
+            <?php else: ?>
+              <span><?= esc($v->title()) ?></span>
+            <?php endif ?>
+          </td>
           <td><?= esc($v->duration()->or('—')) ?></td>
         </tr>
       <?php endforeach ?>
@@ -39,4 +45,4 @@
   </table>
 <?php endif ?>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>

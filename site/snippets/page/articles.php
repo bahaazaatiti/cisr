@@ -11,15 +11,14 @@
   ];
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => [
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [$page->title()->value(), null],
 ]]) ?>
 <header class="mb-6">
-  <div class="usgc-sku">CISR / INDEX</div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
-<nav class="sort-bar usgc-sku" aria-label="<?= t('ui.sort', 'Sort') ?>">
+<nav class="sort-bar ui-sku" aria-label="<?= t('ui.sort', 'Sort') ?>">
   <span><?= t('sort.label', 'Sort:') ?></span>
   <?php foreach ($sortOptions as $i => $o): ?>
     <button type="button"
@@ -32,7 +31,7 @@
 <?php if (count($list) === 0): ?>
   <p class="text-muted-foreground"><?= t('msg.no_articles', 'No articles yet.') ?></p>
 <?php else: ?>
-  <table class="usgc-table" data-sortable>
+  <table class="ui-table" data-sortable>
     <thead>
       <tr>
         <th class="w-32"><?= t('th.date', 'Date') ?></th>

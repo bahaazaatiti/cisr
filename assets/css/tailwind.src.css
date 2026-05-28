@@ -93,11 +93,11 @@
 }
 
 @layer components {
-  .usgc-rule {
+  .ui-rule {
     border-top: 1px solid var(--border);
     box-shadow: 0 3px 0 -2px var(--border);
   }
-  .usgc-badge {
+  .ui-badge {
     display: inline-block;
     border: 1px solid currentColor;
     padding: 0 0.4em;
@@ -106,67 +106,83 @@
     font-size: 0.75em;
     line-height: 1.6;
   }
-  .usgc-badge[data-status="draft"]    { color: var(--destructive); }
-  .usgc-badge[data-status="unlisted"] { color: var(--muted-foreground); }
-  .usgc-badge[data-status="listed"]   { color: var(--accent); }
-  .usgc-sku {
+  .ui-badge[data-status="draft"]    { color: var(--destructive); }
+  .ui-badge[data-status="unlisted"] { color: var(--muted-foreground); }
+  .ui-badge[data-status="listed"]   { color: var(--accent); }
+  /* Theme toggle sits beside the language chooser; match its inherited size
+     and pick up accent on hover, like other interactive controls. */
+  [data-theme-toggle] { font-size: inherit; line-height: 1.4; padding: 0 0.4em; }
+  [data-theme-toggle]:hover { color: var(--accent); border-color: var(--accent); background: transparent; }
+  .ui-sku {
     font-size: 0.75em;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--muted-foreground);
   }
-  .usgc-table {
+  .ui-table {
     width: 100%;
     border-collapse: collapse;
     border: 1px solid var(--border);
     font-variant-numeric: tabular-nums;
   }
-  .usgc-table th,
-  .usgc-table td {
-    border-bottom: 1px solid var(--border);
-    padding: 0.5rem 0.75rem;
+  .ui-table th,
+  .ui-table td {
+    padding: 0.65rem 0.75rem;
     text-align: start;
     vertical-align: top;
   }
-  .usgc-table th {
+  /* Column labels read as semantic axes — the same way `a:hover` and active
+     indicators use accent. Header keeps a solid bottom line as an anchor. */
+  .ui-table thead th {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 700;
     font-size: 0.75rem;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
   }
-  .usgc-table tr:last-child td { border-bottom: 0; }
-  .usgc-table td a { display: inline-block; min-height: 24px; line-height: 24px; vertical-align: middle; }
+  /* Dashed inter-row separators read more "form/paper" than the solid armor-
+     plate version, without abandoning the ledger feel. */
+  .ui-table tbody td { border-bottom: 1px dashed var(--border); }
+  .ui-table tr:last-child td { border-bottom: 0; }
+  /* Tactile hover — same accent-stripe vocabulary as the active nav-item, so
+     interactive surfaces echo each other rather than each inventing one. */
+  .ui-table tbody tr { transition: background 0.12s ease; }
+  .ui-table tbody tr:hover { background: var(--secondary); }
+  .ui-table tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+  html[dir=rtl] .ui-table tbody tr:hover td:first-child { box-shadow: inset -2px 0 0 var(--accent); }
+  .ui-table td a { display: inline-block; min-height: 24px; line-height: 24px; vertical-align: middle; }
 
-  .prose-usgc h1, .prose-usgc h2, .prose-usgc h3 { margin-top: 2rem; margin-bottom: 0.5rem; }
-  .prose-usgc h1 { font-size: 1.25rem; }
-  .prose-usgc h2 { font-size: 1.125rem; }
-  .prose-usgc h3 { font-size: 1rem; }
-  .prose-usgc p { margin: 0.75rem 0; }
-  .prose-usgc ul, .prose-usgc ol { margin: 0.75rem 0; padding-inline-start: 1.5rem; }
-  .prose-usgc li { margin: 0.25rem 0; }
-  .prose-usgc blockquote {
+  .ui-prose h1, .ui-prose h2, .ui-prose h3 { margin-top: 2rem; margin-bottom: 0.5rem; }
+  .ui-prose h1 { font-size: 1.25rem; }
+  .ui-prose h2 { font-size: 1.125rem; }
+  .ui-prose h3 { font-size: 1rem; }
+  .ui-prose p { margin: 0.75rem 0; }
+  .ui-prose ul, .ui-prose ol { margin: 0.75rem 0; padding-inline-start: 1.5rem; }
+  .ui-prose li { margin: 0.25rem 0; }
+  .ui-prose blockquote {
     border-inline-start: 1px solid var(--border);
     padding-inline-start: 1rem;
     margin: 1rem 0;
     color: var(--muted-foreground);
   }
-  .prose-usgc pre {
+  .ui-prose pre {
     border: 1px solid var(--border);
     padding: 0.75rem 1rem;
     overflow-x: auto;
     background: var(--secondary);
     font-size: 0.8125rem;
   }
-  .prose-usgc code {
+  .ui-prose code {
     border: 1px solid var(--border);
     padding: 0 0.25em;
     font-size: 0.9em;
   }
-  .prose-usgc pre code { border: 0; padding: 0; }
-  .prose-usgc img { border: 1px solid var(--border); max-width: 100%; height: auto; }
+  .ui-prose pre code { border: 0; padding: 0; }
+  .ui-prose img { border: 1px solid var(--border); max-width: 100%; height: auto; }
 
   /* Fraternal organizations — group section heading above table */
-  .frat-group-head {
+  .org-group-head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -176,15 +192,15 @@
     border-block-end: 1px solid var(--border);
   }
   /* Roomier listing table for fraternals — title + native + meta stacked in one wide name cell */
-  .frat-table th,
-  .frat-table td { padding-block: 0.85rem; padding-inline: 0.875rem; vertical-align: top; }
-  .frat-col-sku  { width: 8rem; }
-  .frat-col-link { width: 2.5rem; }
-  .frat-cell-sku  { white-space: nowrap; }
-  .frat-cell-link { text-align: end; }
-  .frat-cell-link a { color: var(--accent); text-decoration: none; font-size: 1rem; }
-  .frat-cell-link a:hover { text-decoration: underline; }
-  .frat-title {
+  .org-table th,
+  .org-table td { padding-block: 0.85rem; padding-inline: 0.875rem; vertical-align: top; }
+  .org-col-sku  { width: 8rem; }
+  .org-col-link { width: 2.5rem; }
+  .org-cell-sku  { white-space: nowrap; }
+  .org-cell-link { text-align: end; }
+  .org-cell-link a { color: var(--accent); text-decoration: none; font-size: 1rem; }
+  .org-cell-link a:hover { text-decoration: underline; }
+  .org-title {
     display: inline-block;
     font-weight: 700;
     text-transform: uppercase;
@@ -192,36 +208,36 @@
     font-size: 0.95rem;
     line-height: 1.3;
   }
-  .frat-native {
+  .org-native {
     font-size: 0.85rem;
     color: var(--muted-foreground);
     margin-block-start: 0.2rem;
     line-height: 1.3;
   }
-  .frat-meta {
+  .org-meta {
     margin-block-start: 0.45rem;
     line-height: 1.5;
     word-spacing: 0.15em;
   }
   /* Stack each entry on narrow viewports — table semantics preserved, layout linearized */
   @media (max-width: 640px) {
-    .frat-table thead { display: none; }
-    .frat-table,
-    .frat-table tbody,
-    .frat-table tr { display: block; width: 100%; }
-    .frat-table td  { display: block; width: 100%; padding-inline: 0.75rem; border-block-end: 0; }
-    .frat-table tbody tr {
+    .org-table thead { display: none; }
+    .org-table,
+    .org-table tbody,
+    .org-table tr { display: block; width: 100%; }
+    .org-table td  { display: block; width: 100%; padding-inline: 0.75rem; border-block-end: 0; }
+    .org-table tbody tr {
       border-block-end: 1px solid var(--border);
       padding-block: 0.5rem;
     }
-    .frat-table tbody tr:last-child { border-block-end: 0; }
-    .frat-cell-sku  { padding-block: 0.25rem 0; }
-    .frat-cell-name { padding-block: 0.25rem 0; }
-    .frat-cell-link { padding-block: 0.25rem 0.5rem; text-align: start; }
+    .org-table tbody tr:last-child { border-block-end: 0; }
+    .org-cell-sku  { padding-block: 0.25rem 0; }
+    .org-cell-name { padding-block: 0.25rem 0; }
+    .org-cell-link { padding-block: 0.25rem 0.5rem; text-align: start; }
   }
 
   /* Fraternal detail page spec list */
-  .frat-spec {
+  .org-spec {
     display: grid;
     grid-template-columns: max-content 1fr;
     gap: 0.3rem 1rem;
@@ -229,12 +245,219 @@
     padding: 0.6rem 0.75rem;
     font-size: 0.82rem;
   }
-  .frat-spec dt {
+  .org-spec dt {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.7rem;
     color: var(--muted-foreground);
     align-self: baseline;
   }
-  .frat-spec dd { margin: 0; }
+  .org-spec dd { margin: 0; }
+
+  /* Sidebar — below-fold details (head/foot/home-art) */
+  .sidebar-sign { position: absolute; inset-block-start: 0.4rem; inset-inline-end: 0.4rem; width: 2.6rem; height: auto; opacity: 0.85; pointer-events: none; }
+  .home-art { display: flex; justify-content: center; margin: 1rem 0; }
+  .home-art img { display: block; max-width: 30%; height: auto; }
+  .home-art-place img { max-width: 35%; }
+  .dark .home-art img, .dark .sidebar-sign { filter: invert(1); }
+  .sidebar-foot-row { display: flex; gap: 0.5rem; align-items: baseline; }
+  .sidebar-foot-meta { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.65rem; opacity: 0.85; }
+  .sidebar-foot-meta a { color: inherit; text-decoration: none; }
+  .sidebar-foot-meta a:hover { color: var(--accent); }
+
+  /* Mirrors popover: hover or click the MIRROR row to reveal the full list.
+     <details> drives the click-to-pin semantic + ARIA; CSS adds hover preview.
+     The list reuses .ctxmenu for the visual surface; only position changes. */
+  .mirror-popover { position: relative; }
+  .mirror-summary { cursor: pointer; list-style: none; display: block; }
+  .mirror-summary::-webkit-details-marker { display: none; }
+  .mirror-summary::marker { content: ''; }
+  .mirror-summary:hover { color: var(--accent); }
+  .mirror-popover > .ctxmenu {
+    position: absolute;
+    inset-block-end: 100%;
+    inset-inline-start: 0;
+    margin-block-end: 0.3rem;
+    min-width: 14rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    display: none;
+  }
+  .mirror-popover[open] > .ctxmenu,
+  .mirror-popover:hover > .ctxmenu,
+  .mirror-popover:focus-within > .ctxmenu { display: flex; }
+  /* Active section gets an accent stripe — secondary background alone reads
+     as just "hover" against another hover. */
+  .nav-item.active { color: var(--foreground); box-shadow: inset 2px 0 0 var(--accent); }
+  html[dir=rtl] .nav-item.active { box-shadow: inset -2px 0 0 var(--accent); }
+
+  /* Skip-link (a11y) — visually hidden until focused */
+  .skip { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 50%; transform: translateX(-50%) translateY(-200%); background: var(--background); color: var(--foreground); border: 1px solid var(--border); padding: 0.4rem 0.8rem; z-index: 100; text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; transition: transform 0.15s ease; }
+  .skip:focus { transform: translateX(-50%) translateY(0); outline: 1px solid var(--ring); outline-offset: 1px; }
+
+  /* Right aside (only on lg+ viewports) */
+  .aside-right { width: 18rem; position: fixed; inset-block: 0; inset-inline-end: 0; border-inline-start: 1px solid var(--border); background: var(--background); display: flex; flex-direction: column; z-index: 30; }
+  @media (max-width: 1023px) { .aside-right { display: none; } }
+  .ar-half { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .ar-video { border-block-start: 1px solid var(--border); }
+  .ar-head { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.6rem; border-block-end: 1px solid var(--border); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .ar-title { font-weight: 700; text-decoration: none; color: inherit; }
+  a.ar-title:hover { color: var(--accent); }
+  .ar-tools { display: flex; gap: 0.25rem; }
+  .ar-mode, .lib-up { font: inherit; border: 1px solid var(--border); background: transparent; padding: 0.15rem 0.45em; cursor: pointer; line-height: 1.4; min-width: 24px; min-height: 24px; }
+  .ar-mode.active { background: var(--secondary); }
+  /* Mirror toggle — distinct action button (not a mode toggle). Accent stroke
+     to read as "offer help to the swarm"; filled-accent when actively mirroring. */
+  .ar-mirror { color: var(--accent); border-color: var(--accent); }
+  .ar-mirror:hover { background: var(--secondary); }
+  .ar-mirror.pending { background: var(--secondary); }
+  .ar-mirror.active { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
+  .lib-up[disabled] { opacity: 0.4; cursor: not-allowed; }
+  .ar-body { flex: 1; overflow: auto; padding: 0.4rem 0.5rem; font-size: 0.78rem; line-height: 1.4; }
+
+  /* Library GUI grid + flat list */
+  .lib-gui { display: flex; flex-direction: column; height: 100%; }
+  /* Sits above both modes; up/cwd hide in LIST so the status keeps the same
+     row position with no layout shift between mode toggles. */
+  .lib-bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0 0.4rem; border-block-end: 1px dashed var(--border); margin-block-end: 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+  .lib-status { margin-inline-start: auto; color: var(--accent); text-align: end; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ar-library[data-mode="list"] .lib-up,
+  .ar-library[data-mode="list"] .lib-cwd { display: none; }
+  /* In LIST mode, up/cwd are gone — when nothing is downloading either, the
+     dashed bar is just visual noise floating above the table. Collapse it. */
+  .ar-library[data-mode="list"] .lib-bar:has(.lib-status:empty) { display: none; }
+  /* In LIST mode the status is the only visible item, so margin auto can't
+     push it — give it the full row width so text-align:end actually right-aligns. */
+  .ar-library[data-mode="list"] .lib-status { flex: 1; }
+  .lib-cwd { flex: 1; word-break: break-all; }
+  .lib-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; align-content: start; }
+  .lib-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; border: 1px solid var(--border); background: transparent; font: inherit; text-decoration: none; padding: 0.4rem 0.5rem; cursor: pointer; text-align: start; color: inherit; min-height: 3.2rem; line-height: 1.25; user-select: none; transition: color 0.1s ease; }
+  .lib-cell:hover { background: var(--secondary); color: var(--accent); }
+  .lib-cell:hover .lib-cell-icon { color: var(--accent); }
+  .lib-cell:focus-visible { outline: 1px solid var(--ring); outline-offset: 1px; }
+  .lib-cell-folder { font-weight: 700; }
+  .lib-cell-icon { font-family: var(--font-mono); color: var(--muted-foreground); }
+  .lib-cell-folder .lib-cell-icon { color: var(--accent); }
+  .lib-cell-name { word-break: break-word; font-size: 0.78rem; line-height: 1.2; }
+  .lib-cell-meta { font-size: 0.65rem; margin-block-start: auto; }
+  .lib-empty-grid { grid-column: 1 / -1; padding: 0.5rem; }
+  .lib-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .lib-table th, .lib-table td { border-block-end: 1px solid var(--border); padding: 0.2rem 0.3rem; text-align: start; vertical-align: top; }
+  .lib-table th { text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .lib-table a, .lib-table span[data-file] { text-decoration: none; cursor: pointer; }
+  .lib-table a:hover, .lib-table span[data-file]:hover { background: var(--secondary); color: var(--accent); }
+  .lib-row-folder { cursor: pointer; }
+  .lib-row-folder:hover td { background: var(--secondary); }
+  .lib-toggle { color: var(--accent); user-select: none; }
+  .lib-flat-folder { color: var(--muted-foreground); }
+
+  /* Video stage */
+  .vid-stage { padding: 0.5rem; }
+  .vid-frame { display: block; width: 100%; aspect-ratio: 16/9; border: 1px solid var(--border); }
+  iframe.vid-frame, video.vid-frame { background: #000; outline: 0; }
+  .vid-frame-empty { background: var(--secondary); display: flex; align-items: center; justify-content: center; }
+  .ar-video #player { --vid-zoom: 0.7; overflow: hidden; }
+  .ar-video #player > iframe.vid-frame { width: calc(100% / var(--vid-zoom)); height: calc(100% / var(--vid-zoom)); transform: scale(var(--vid-zoom)); transform-origin: top left; border: 0; }
+  html[dir=rtl] .ar-video #player > iframe.vid-frame { transform-origin: top right; }
+  .vid-list { list-style: none; padding: 0; margin: 0; border-block-start: 1px solid var(--border); }
+  .vid-list li { border-block-end: 1px solid var(--border); }
+  .vid-pick { display: flex; gap: 0.4rem; width: 100%; min-height: 32px; text-align: start; font: inherit; background: transparent; border: 0; cursor: pointer; padding: 0.5rem 0.5rem; align-items: center; }
+  .vid-pick:hover, .vid-pick.active { background: var(--secondary); color: var(--accent); }
+  /* Match the library status — any p2p status row reads as accent. */
+  .ar-p2p-status { color: var(--accent); padding: 0 0.6rem 0.3rem; min-height: 1em; }
+  .ar-p2p-status:empty { display: none; }
+  .vid-pick-icon { color: var(--accent); }
+  .vid-pick-title { flex: 1; }
+
+  /* Drawer (mobile) + context menu */
+  .drawer-toggle { display: none; position: fixed; inset-block-end: 0.5rem; inset-inline-end: 0.5rem; z-index: 40; border: 1px solid var(--border); background: var(--background); padding: 0.3rem 0.6rem; font: inherit; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  @media (max-width: 1023px) { .drawer-toggle { display: inline-block; } }
+  .drawer { position: fixed; inset-inline: 0; inset-block-end: 0; height: 50dvh; border-block-start: 1px solid var(--border); background: var(--background); z-index: 50; transform: translateY(100%); transition: transform 0.15s ease; display: flex; flex-direction: column; }
+  .drawer:not([hidden]) { display: flex; }
+  .drawer.open { transform: none; }
+  .drawer-tabs { display: flex; border-block-end: 1px solid var(--border); }
+  .drawer-tabs button { flex: 0 0 auto; font: inherit; border: 0; border-inline-end: 1px solid var(--border); background: transparent; padding: 0.4rem 0.8rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.7rem; }
+  .drawer-tabs button.active { background: var(--secondary); font-weight: 700; }
+  .drawer-x { margin-inline-start: auto; border-inline-end: 0 !important; border-inline-start: 1px solid var(--border) !important; }
+  .drawer-panels { flex: 1; overflow: hidden; position: relative; }
+  .drawer-panel { position: absolute; inset: 0; overflow: auto; padding: 0.5rem; }
+
+  /* COMM toggle is visible at ALL viewport sizes. On mobile it sits next to
+     the MEDIA toggle (offset to the inline-start); on desktop, just left of
+     the fixed .aside-right (18rem). */
+  .drawer-toggle-comm { display: inline-block; inset-inline-end: 6rem; }
+  @media (min-width: 1024px) {
+    .drawer-toggle-comm { inset-inline-end: calc(18rem + 0.5rem); }
+  }
+
+  /* COMM drawer is a small floating box on desktop (Facebook-chat shape),
+     full-width slide-up on mobile (inherits base .drawer). */
+  @media (min-width: 1024px) {
+    .drawer-comm {
+      inset-inline: auto;
+      inset-inline-end: calc(18rem + 0.5rem);
+      width: 24rem;
+      height: min(60dvh, 28rem);
+      border-inline: 1px solid var(--border);
+    }
+  }
+
+  /* COMM panel internals */
+  .comm-panel { display: flex; flex-direction: column; height: 100%; gap: 0.4rem; padding: 0.5rem; }
+  .comm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem; }
+  .comm-msgs { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; font-size: 0.8rem; line-height: 1.35; }
+  .comm-msgs li { padding: 0.2rem 0; border-block-end: 1px dashed var(--border); word-break: break-word; }
+  .comm-msgs li:last-child { border-block-end: 0; }
+  .comm-peer { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; margin-inline-end: 0.4rem; }
+  /* System notice — first-line WebRTC privacy line. Reads as supplementary,
+     not alarmist; dashed separator already handled by .comm-msgs li above. */
+  .comm-msgs li.comm-system { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; line-height: 1.4; padding: 0.4rem 0; }
+  .comm-composer { display: flex; gap: 0.3rem; align-items: stretch; }
+  .comm-composer textarea {
+    flex: 1; font: inherit; color: var(--foreground); background: var(--background);
+    border: 1px solid var(--border); padding: 0.3rem 0.4rem; resize: none; outline: 0;
+  }
+  .comm-composer textarea:focus-visible { border-color: var(--accent); }
+  .comm-composer .ui-badge { align-self: stretch; display: flex; align-items: center; }
+  .comm-precall { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.3rem; }
+  .comm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 0.25rem; flex: 1; min-height: 0; overflow: auto; }
+  .comm-grid video { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #000; border: 1px solid var(--border); }
+  .comm-controls { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+  [data-comm-gum-err]:empty { display: none; }
+  [data-comm-gum-err] { color: var(--destructive); }
+  /* Muted mic/cam = inactive look; default ON = accent. */
+  [data-comm-mute-mic].active, [data-comm-mute-cam].active { color: var(--accent); border-color: var(--accent); }
+  /* Shared context-menu surface — used by the right-click library menu
+     (position:fixed, JS-positioned via inline left/top) and by the mirror
+     popover (position overridden under .mirror-popover, see below). */
+  .ctxmenu[hidden] { display: none; }
+  .ctxmenu { position: fixed; z-index: 60; background: var(--background); border: 1px solid var(--border); display: flex; flex-direction: column; min-width: 9rem; list-style: none; margin: 0; padding: 0; }
+  .ctxmenu li { display: block; }
+  .ctxmenu button, .ctxmenu a { font: inherit; color: inherit; border: 0; background: transparent; text-align: start; padding: 0.35rem 0.6rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; text-decoration: none; display: block; }
+  .ctxmenu button:hover, .ctxmenu a:hover { background: var(--secondary); color: var(--accent); }
+  .ctxmenu-item-name { display: block; }
+  .ctxmenu-item-note { display: block; font-size: 0.65rem; letter-spacing: 0.04em; text-transform: none; color: var(--muted-foreground); margin-block-start: 0.1rem; white-space: normal; }
+  .ctxmenu a:hover .ctxmenu-item-note { color: var(--muted-foreground); }
+
+  /* Featured list + sort bar */
+  .nav-featured { font-weight: 700; }
+  .featured-list { list-style: none; padding: 0; margin: 0; border-block-start: 1px solid var(--border); }
+  .featured-list li { border-block-end: 1px solid var(--border); }
+  .featured-list a { display: block; padding: 0.6rem 0.75rem; text-decoration: none; transition: background 0.12s ease; }
+  .featured-list a:hover { background: var(--secondary); box-shadow: inset 2px 0 0 var(--accent); }
+  html[dir=rtl] .featured-list a:hover { box-shadow: inset -2px 0 0 var(--accent); }
+  .featured-list a:hover h3 { color: var(--accent); }
+  .featured-list h3 { margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; transition: color 0.12s ease; }
+  .sort-bar { display: flex; gap: 0.8rem; align-items: baseline; margin-block-end: 0.5rem; flex-wrap: wrap; }
+  .sort-bar a, .sort-bar button { text-decoration: none; font: inherit; color: inherit; background: transparent; border: 0; padding: 0; cursor: pointer; letter-spacing: inherit; text-transform: inherit; }
+  .sort-bar a.active, .sort-bar button.active { font-weight: 700; text-decoration: underline; color: var(--accent); }
+  .sort-bar button:hover { color: var(--accent); }
+
+  /* Skeleton during SPA swap */
+  .ui-skeleton { padding: 0; }
+  .ui-skeleton .sk { background: var(--secondary); height: 0.85rem; margin: 0.6rem 0; animation: sk 1.2s linear infinite alternate; }
+  .ui-skeleton .sk-h { height: 1.4rem; width: 60%; margin-block-end: 1.2rem; }
+  .ui-skeleton .sk-line { width: 100%; }
+  .ui-skeleton .w-2\/3 { width: 66%; }
+  @keyframes sk { from { opacity: 0.5; } to { opacity: 1; } }
 }

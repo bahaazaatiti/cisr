@@ -1,0 +1,10 @@
+# Netlify / Cloudflare Pages syntax — ignored by GitHub Pages.
+# The same CSP is mirrored in <meta http-equiv> via site/snippets/head.php
+# so gh-pages mirrors still get policy enforcement at the document level.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ytimg.com data: blob:; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' wss: https:; worker-src 'self' blob:; manifest-src 'self'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

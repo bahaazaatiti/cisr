@@ -80,4 +80,12 @@ Header set Cache-Control "public, max-age=31536000, immutable"
 Header set Content-Type "text/plain" "expr=-z %{CONTENT_TYPE}"
 Header set X-Content-Type-Options "nosniff"
 
+# Mirrors the CSP that ships in head.php and _headers. WebTorrent needs
+# blob: for streams and SW workers; 'unsafe-inline' is required by the
+# theme-restore <script> and inline <style>.
+Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ytimg.com data: blob:; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' wss: https:; worker-src 'self' blob:; manifest-src 'self'"
+Header set X-Frame-Options "SAMEORIGIN"
+Header set Referrer-Policy "strict-origin-when-cross-origin"
+Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
 </IfModule>

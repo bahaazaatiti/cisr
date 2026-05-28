@@ -58,6 +58,6 @@ Icon
 # ---------------
 /static/
 /_build.json
-vendor
+/vendor/
 kirby
 site/plugins/static-site-generator

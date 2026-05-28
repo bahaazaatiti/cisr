@@ -37,7 +37,7 @@ columns:
       sku:
         label: SKU
         type: text
-        placeholder: CISR/FRA-XXX
+        placeholder: SKU/FRA-XXX
         translate: false
       affinity:
         label: Affinity

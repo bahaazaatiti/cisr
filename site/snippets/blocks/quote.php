@@ -2,6 +2,6 @@
 <blockquote class="my-4">
   <?= $block->text() ?>
   <?php if ($block->citation()->isNotEmpty()): ?>
-    <footer class="mt-2 usgc-sku">— <?= esc($block->citation()) ?></footer>
+    <footer class="mt-2 ui-sku">— <?= esc($block->citation()) ?></footer>
   <?php endif ?>
 </blockquote>

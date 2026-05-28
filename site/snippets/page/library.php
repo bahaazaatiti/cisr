@@ -3,13 +3,12 @@
   $isRoot = $page->slug() === 'library';
 ?>
 <?php snippet('ui/breadcrumb', ['crumbs' => array_filter([
-  [t('nav.home', 'Home'), site()->homePage()->url()],
+  [option('brand.sku', site()->title()), site()->homePage()->url()],
   [t('nav.library', 'Library'), $isRoot ? null : page('library')?->url()],
   $isRoot ? null : [$page->title()->value(), null],
 ])]) ?>
 
 <header class="mb-6">
-  <div class="usgc-sku">CISR / LIBRARY</div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
   <?php if ($page->description()->isNotEmpty()): ?>
     <p class="text-sm text-muted-foreground mt-2"><?= esc($page->description()) ?></p>
@@ -25,7 +24,7 @@
 <?php if (count($folders) === 0 && count($items) === 0): ?>
   <p class="text-muted-foreground"><?= t('msg.empty_library', 'This folder is empty.') ?></p>
 <?php else: ?>
-  <table class="usgc-table">
+  <table class="ui-table">
     <thead>
       <tr>
         <th class="w-12"><?= t('th.kind', 'Kind') ?></th>
@@ -53,10 +52,18 @@
         $k = (string) $i->kind();
         $size = (string) $i->size_human();
         $added = $i->added()->isNotEmpty() ? $i->added()->toDate('Y-m-d') : '—';
+        $magnet = (string) $i->magnet();
+        $rich = $i->isRich();
       ?>
         <tr>
           <td>[<?= esc(strtoupper($k ?: '...')) ?>]</td>
-          <td><a href="<?= $i->url() ?>" data-link><?= esc($i->title()) ?></a></td>
+          <td>
+            <?php if ($rich): ?>
+              <a href="<?= $i->url() ?>" data-link data-file data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($k ?: 'other') ?>"><?= esc($i->title()) ?></a>
+            <?php else: ?>
+              <span data-file data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($k ?: 'other') ?>"><?= esc($i->title()) ?></span>
+            <?php endif ?>
+          </td>
           <td><?= $size !== '' ? esc($size) : '—' ?></td>
           <td><?= esc($added) ?></td>
         </tr>
@@ -65,4 +72,4 @@
   </table>
 <?php endif ?>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>

@@ -1,13 +1,22 @@
 (() => {
-  if (window.cisrP2P) return;
+  if (window.siteP2P) return;
 
   let client = null;
-  let torrent = null;
-  let statusTimer = null;
+  let viewerTorrent = null;
+  let viewerStatusTimer = null;
   let activeStatusEl = null;
   let wtPromise = null;
   let swPromise = null;
   let serverStarted = false;
+
+  // Mirror is a separate pool — opt-in, persists across SPA nav, runs alongside
+  // any viewer torrent without disturbing it. Tracks status sinks per active
+  // section (library / videos) so the aggregate line appears in each.
+  const mirrorTorrents = new Map();   // magnet → torrent (includes both downloading + seeding)
+  const mirrorInFlight = new Set();   // subset still downloading; gates concurrency cap
+  const mirrorSections = new Map();   // magnet → section label ('library' | 'videos')
+  const mirrorStatusEls = new Map();  // section → status element
+  let mirrorStatusTimer = null;
 
   function vendorUrl() {
     const s = document.querySelector('script[data-vendor]');
@@ -16,12 +25,7 @@
   }
 
   function swUrl() {
-    // Read from the script tag's data-sw attr — populated server-side by
-    // Kirby's url() helper, which respects the deploy base (so it returns
-    // /sw.min.js under root deployments and /<repo>/sw.min.js under a
-    // GitHub Pages project page). Default scope = SW's directory, which
-    // matches the deploy base in both cases — no Service-Worker-Allowed
-    // header needed.
+    // data-sw is rendered with Kirby's url() so it respects the deploy base.
     const s = document.querySelector('script[data-sw]');
     if (s && s.dataset.sw) return s.dataset.sw;
     return '/sw.min.js';
@@ -36,16 +40,13 @@
     return wtPromise;
   }
 
-  // Register the WebTorrent service worker so file.streamURL can be used for
-  // progressive playback (no need to wait for the whole file to download).
+  // SW unlocks file.streamURL for progressive playback (vs blob fallback).
   function registerSW() {
     if (swPromise) return swPromise;
     if (!('serviceWorker' in navigator)) {
       swPromise = Promise.resolve(null);
       return swPromise;
     }
-    // No explicit scope: use the SW's own directory as the max scope.
-    // That equals the deploy root for both root and subpath deployments.
     swPromise = navigator.serviceWorker.register(swUrl())
       .then(reg => {
         const worker = reg.active || reg.waiting || reg.installing;
@@ -61,8 +62,7 @@
     return swPromise;
   }
 
-  // Prefer status/stage elements inside the main panel — keeps action buttons on
-  // a library-item detail page from accidentally writing into the aside-right.
+  // Prefer #panel-local status/stage so detail-page actions don't write into the aside.
   function defaultStatus() {
     return document.querySelector('#panel [data-p2p-status]')
         || document.querySelector('[data-p2p-status]');
@@ -84,13 +84,18 @@
     return n.toFixed(n < 10 ? 1 : 0) + ' ' + u[i];
   }
 
-  function watchTorrent(t) {
-    if (statusTimer) clearInterval(statusTimer);
-    statusTimer = setInterval(() => {
-      const pct = (t.progress * 100).toFixed(0);
-      setStatus('peers ' + t.numPeers + ' · ' + pct + '% · ↓ ' + fmtBytes(t.downloadSpeed) + '/s');
+  // Viewer-only status painter — independent of the mirror's painter so the
+  // two don't fight when a viewer download runs while a mirror is active.
+  function watchViewer(t) {
+    if (viewerStatusTimer) clearInterval(viewerStatusTimer);
+    viewerStatusTimer = setInterval(() => {
+      if (t.done) {
+        setStatus('peers ' + t.numPeers + ' · ↑ ' + fmtBytes(t.uploadSpeed) + '/s');
+      } else {
+        const pct = (t.progress * 100).toFixed(0);
+        setStatus('peers ' + t.numPeers + ' · ' + pct + '% · ↓ ' + fmtBytes(t.downloadSpeed) + '/s');
+      }
     }, 800);
-    t.on('done', () => setStatus('done · ' + t.numPeers + ' peers · ' + fmtBytes(t.length)));
     t.on('error', (err) => setStatus('error: ' + (err && err.message ? err.message : err)));
     t.on('warning', () => {});
   }
@@ -149,7 +154,7 @@
       el = document.createElement('a');
       el.download = fileName;
       el.textContent = '⤓ ' + fileName;
-      el.className = 'usgc-badge';
+      el.className = 'ui-badge';
     }
     el.src = src;
     return el;
@@ -169,9 +174,8 @@
   }
 
   /**
-   * Start a magnet torrent and render the largest file into `stage`.
-   * Uses file.streamURL when the service worker is active (progressive
-   * playback) and falls back to a Blob URL otherwise.
+   * Start a magnet and render its largest file into `stage`. SW path uses
+   * streamURL for progressive playback; blob fallback waits for full download.
    */
   async function open(magnet, kind, stage, statusEl) {
     activeStatusEl = statusEl || null;
@@ -179,11 +183,11 @@
     const target = stage || defaultStage();
     try {
       const c = await ensureClient();
-      if (torrent) { try { torrent.destroy(); } catch (_) {} torrent = null; }
+      if (viewerTorrent) { try { viewerTorrent.destroy(); } catch (_) {} viewerTorrent = null; }
       clearEl(target);
       c.add(magnet, async (t) => {
-        torrent = t;
-        watchTorrent(t);
+        viewerTorrent = t;
+        watchViewer(t);
         const file = pickFile(t);
         if (!file) { setStatus('no files in torrent'); return; }
         if (serverStarted && typeof file.streamURL === 'string') {
@@ -209,10 +213,10 @@
     setStatus('connecting…');
     try {
       const c = await ensureClient();
-      if (torrent) { try { torrent.destroy(); } catch (_) {} torrent = null; }
+      if (viewerTorrent) { try { viewerTorrent.destroy(); } catch (_) {} viewerTorrent = null; }
       c.add(magnet, async (t) => {
-        torrent = t;
-        watchTorrent(t);
+        viewerTorrent = t;
+        watchViewer(t);
         const file = pickFile(t);
         if (!file) { setStatus('no files in torrent'); return; }
         try {
@@ -242,10 +246,153 @@
     );
   }
 
+  // ---- Mirror ----
+
+  function paintMirrorStatus() {
+    if (!mirrorStatusEls.size) return;
+    mirrorStatusEls.forEach((el, section) => {
+      const tors = sectionTorrents(section);
+      if (!tors.length) { el.textContent = ''; return; }
+      let done = 0, upSpeed = 0, dl = 0, len = 0;
+      tors.forEach(t => {
+        if (t.done) done++;
+        upSpeed += t.uploadSpeed || 0;
+        dl += t.downloaded || 0;
+        len += t.length || 0;
+      });
+      if (done === tors.length) {
+        el.textContent = 'mirroring ' + tors.length + ' · ↑ ' + fmtBytes(upSpeed) + '/s';
+      } else {
+        const pct = len ? Math.floor((dl / len) * 100) : 0;
+        el.textContent = 'mirroring ' + done + '/' + tors.length + ' · ' + pct + '% · ↑ ' + fmtBytes(upSpeed) + '/s';
+      }
+    });
+  }
+  function sectionTorrents(section) {
+    const out = [];
+    mirrorSections.forEach((sec, magnet) => {
+      if (sec === section) {
+        const t = mirrorTorrents.get(magnet);
+        if (t) out.push(t);
+      }
+    });
+    return out;
+  }
+
+  // Scan a list of magnets to see which actually have peers in the swarm right
+  // now. Adds each torrent briefly with all pieces deselected (so we don't
+  // accidentally start a download), waits for the tracker to report peers,
+  // then destroys the probe torrents. Returns survivors sorted by demand.
+  async function mirrorScan(magnets, statusEl) {
+    if (statusEl) statusEl.textContent = 'scanning swarm…';
+    try {
+      await ensureClient();
+    } catch (e) {
+      if (statusEl) statusEl.textContent = 'scan failed: ' + (e.message || e);
+      return [];
+    }
+    const probes = magnets.map(magnet => new Promise(resolve => {
+      let t;
+      try {
+        t = client.add(magnet);
+      } catch (_) { resolve(null); return; }
+      const onMeta = () => {
+        try { t.deselect(0, t.pieces.length - 1, true); } catch (_) {}
+      };
+      t.on('metadata', onMeta);
+      t.on('error', () => {});
+      t.on('warning', () => {});
+      setTimeout(() => {
+        const result = { magnet, numPeers: t.numPeers || 0, size: t.length || 0 };
+        try { t.destroy(); } catch (_) {}
+        resolve(result);
+      }, 2500);
+    }));
+    const results = (await Promise.all(probes)).filter(Boolean);
+    // Return every probe; the caller decides whether to mirror only those with
+    // peers waiting, or fall back to mirroring everything when no one's around.
+    // Sort by numPeers desc so the most-demanded items naturally come first.
+    return results.sort((a, b) => b.numPeers - a.numPeers);
+  }
+
+  async function mirrorStart(targets, statusEl, section) {
+    if (!targets || !targets.length) return;
+    const sec = section || 'default';
+    try {
+      await ensureClient();
+    } catch (e) {
+      if (statusEl) statusEl.textContent = 'mirror failed: ' + (e.message || e);
+      return;
+    }
+    if (statusEl) mirrorStatusEls.set(sec, statusEl);
+    const queue = targets.slice();
+    function spawn() {
+      // Cap counts ACTIVELY downloading torrents (mirrorInFlight), not the
+      // total mirror pool — completed ones stay seeding but no longer occupy
+      // a download slot. Global cap across all sections.
+      while (mirrorInFlight.size < 3 && queue.length) {
+        const item = queue.shift();
+        const magnet = item.magnet || item;
+        if (mirrorTorrents.has(magnet)) continue;
+        let t;
+        try { t = client.add(magnet); } catch (_) { continue; }
+        mirrorTorrents.set(magnet, t);
+        mirrorSections.set(magnet, sec);
+        if (!t.done) mirrorInFlight.add(t);
+        t.on('error', () => { mirrorInFlight.delete(t); spawn(); });
+        t.on('warning', () => {});
+        t.on('done', () => { mirrorInFlight.delete(t); spawn(); });
+      }
+    }
+    spawn();
+    if (!mirrorStatusTimer) {
+      mirrorStatusTimer = setInterval(paintMirrorStatus, 800);
+    }
+    paintMirrorStatus();
+  }
+
+  function mirrorStop(section) {
+    if (section) {
+      // Destroy only this section's torrents.
+      const sec = section;
+      const dead = [];
+      mirrorSections.forEach((s, magnet) => { if (s === sec) dead.push(magnet); });
+      dead.forEach(magnet => {
+        const t = mirrorTorrents.get(magnet);
+        if (t) { mirrorInFlight.delete(t); try { t.destroy(); } catch (_) {} }
+        mirrorTorrents.delete(magnet);
+        mirrorSections.delete(magnet);
+      });
+      const el = mirrorStatusEls.get(sec);
+      if (el) el.textContent = '';
+      mirrorStatusEls.delete(sec);
+      if (!mirrorTorrents.size && mirrorStatusTimer) {
+        clearInterval(mirrorStatusTimer); mirrorStatusTimer = null;
+      }
+      return;
+    }
+    // Full stop — every section.
+    if (mirrorStatusTimer) { clearInterval(mirrorStatusTimer); mirrorStatusTimer = null; }
+    mirrorTorrents.forEach(t => { try { t.destroy(); } catch (_) {} });
+    mirrorTorrents.clear();
+    mirrorInFlight.clear();
+    mirrorSections.clear();
+    mirrorStatusEls.forEach(el => { el.textContent = ''; });
+    mirrorStatusEls.clear();
+  }
+
+  function mirrorIsActive(section) {
+    if (!section) return mirrorTorrents.size > 0;
+    let n = 0;
+    mirrorSections.forEach(s => { if (s === section) n++; });
+    return n > 0;
+  }
+
+  // SPA-scope teardown: only the viewer torrent, never the client or mirror.
+  // The full client + mirror are torn down by the beforeunload handler.
   function teardown() {
-    if (statusTimer) { clearInterval(statusTimer); statusTimer = null; }
-    if (torrent) { try { torrent.destroy(); } catch (_) {} torrent = null; }
-    if (client) { try { client.destroy(); } catch (_) {} client = null; }
+    if (viewerStatusTimer) { clearInterval(viewerStatusTimer); viewerStatusTimer = null; }
+    if (viewerTorrent) { try { viewerTorrent.destroy(); } catch (_) {} viewerTorrent = null; }
     activeStatusEl = null;
   }
 
@@ -262,8 +409,14 @@
       else if (a === 'download') download(m);
       else if (a === 'open') open(m, k);
     });
+    // True page exit destroys everything; SPA nav only clears the viewer.
+    addEventListener('beforeunload', () => {
+      try { mirrorStop(); } catch (_) {}
+      try { teardown(); } catch (_) {}
+      if (client) { try { client.destroy(); } catch (_) {} client = null; }
+    });
   }
 
-  window.cisrP2P = { teardown, init, open, download, copy };
+  window.siteP2P = { teardown, init, open, download, copy, mirrorScan, mirrorStart, mirrorStop, mirrorIsActive };
   init();
 })();

@@ -81,6 +81,10 @@ return [
         'label.more'           => 'plus',
 
         // UI / aria
+        'a11y.skip'         => 'Aller au contenu',
+        'ui.language'       => 'Langue',
+        'media.tabs'        => 'Onglets média',
+        'media.region'      => 'Média',
         'ui.toggle_theme'   => 'Changer de thème',
         'ui.toggle_sidebar' => 'Afficher/masquer la barre latérale',
         'ui.close'          => 'Fermer',
@@ -112,5 +116,26 @@ return [
         'media.open'       => 'OUVRIR',
         'media.download'   => 'TÉLÉCHARGER',
         'media.copylink'   => 'COPIER MAGNET',
+
+        // comm drawer (chat + live conference)
+        'comm.title'        => 'COMMS',
+        'comm.region'       => 'Communications',
+        'comm.toggle'       => 'Ouvrir les communications',
+        'comm.tabs'         => 'Onglets de communication',
+        'comm.chat'         => 'CHAT',
+        'comm.conf'         => 'CONF',
+        'comm.send'         => 'ENVOYER',
+        'comm.composer_ph'  => 'Tapez un message…',
+        'comm.join_conf'    => 'REJOINDRE LA CONF',
+        'comm.leave_conf'   => 'QUITTER',
+        'comm.mic'          => 'MIC',
+        'comm.cam'          => 'CAM',
+        'comm.peers_n'      => '{n} pairs',
+        'comm.privacy_note' => 'WebRTC via des trackers publics. Votre IP est visible des pairs ; caméra et micro restent éteints jusqu’au clic sur REJOINDRE.',
+        'comm.chat_privacy' => 'Connexion WebRTC pair-à-pair — votre IP est visible des pairs dans ce salon. Fermez l’onglet ou rechargez pour vous déconnecter.',
+        'comm.gum_denied'   => 'Accès caméra/micro refusé.',
+        'comm.lobby_label'  => 'SALON',
+        'mirror.title_library'  => 'Mirroir bibliothèque — votre navigateur télécharge + repartage les éléments qui ont besoin d’aide. S’arrête au rechargement.',
+        'mirror.title_videos'   => 'Mirroir vidéos — votre navigateur télécharge + repartage les vidéos qui ont besoin d’aide. S’arrête au rechargement.',
     ],
 ];

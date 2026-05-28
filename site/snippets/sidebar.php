@@ -14,19 +14,24 @@
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
     <img class="sidebar-sign" src="<?= url('assets/img/sign.svg') ?>" alt="" aria-hidden="true" width="200" height="230">
-    <div class="usgc-sku">CISR / LB-001</div>
+    <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(option('brand.site_id', '')) ?></div>
     <div class="font-bold uppercase tracking-[0.08em]"><?= esc($site->title()) ?></div>
     <?php if ($site->tagline()->isNotEmpty()): ?>
       <div class="text-xs text-muted-foreground mt-1"><?= esc($site->tagline()) ?></div>
     <?php endif ?>
   </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" aria-label="<?= t('nav.sections', 'Sections') ?>">
     <div class="group-label"><?= t('nav.sections', 'Sections') ?></div>
     <ul>
-      <li><a class="nav-item<?= $current->isHomePage() ? ' active' : '' ?>" href="<?= $homeUrl ?>" data-link><?= t('nav.home', 'Home') ?></a></li>
-      <li><a class="nav-item<?= $current->is($articles) ? ' active' : '' ?>" href="<?= $articlesUrl ?>" data-link><?= t('nav.articles', 'Articles') ?></a></li>
-      <li><a class="nav-item<?= ($fraternals && ($current->is($fraternals) || $current->parents()->find($fraternals->id()))) ? ' active' : '' ?>" href="<?= $fraternalsUrl ?>" data-link><?= t('nav.fraternals', 'Fraternal') ?></a></li>
+      <?php
+        $isHome      = $current->isHomePage();
+        $isArticles  = $current->is($articles);
+        $isFrats     = $fraternals && ($current->is($fraternals) || $current->parents()->find($fraternals->id()));
+      ?>
+      <li><a class="nav-item<?= $isHome ? ' active' : '' ?>"<?= $isHome ? ' aria-current="page"' : '' ?> href="<?= $homeUrl ?>" data-link><?= t('nav.home', 'Home') ?></a></li>
+      <li><a class="nav-item<?= $isArticles ? ' active' : '' ?>"<?= $isArticles ? ' aria-current="page"' : '' ?> href="<?= $articlesUrl ?>" data-link><?= t('nav.articles', 'Articles') ?></a></li>
+      <li><a class="nav-item<?= $isFrats ? ' active' : '' ?>"<?= $isFrats ? ' aria-current="page"' : '' ?> href="<?= $fraternalsUrl ?>" data-link><?= t('nav.fraternals', 'Fraternal') ?></a></li>
     </ul>
 
     <?php
@@ -53,7 +58,7 @@
             <a class="nav-item<?= $current->is($a) ? ' active' : '' ?>" href="<?= $a->url() ?>" data-link title="<?= esc($a->title()) ?>">
               <span class="block truncate"><?= esc($a->title()) ?></span>
               <?php if ($a->sku()->isNotEmpty()): ?>
-                <span class="usgc-sku block"><?= esc($a->sku()) ?></span>
+                <span class="ui-sku block"><?= esc($a->sku()) ?></span>
               <?php endif ?>
             </a>
           </li>
@@ -63,35 +68,48 @@
   </nav>
 
   <?php
-    $stamp   = cisr_build_stamp();
-    $mirrors = cisr_mirrors(3);
+    $stamp   = build_stamp();
+    $mirrors = mirrors_list(50);
   ?>
   <div class="sidebar-foot">
     <div class="sidebar-foot-row">
-      <div class="flex gap-2 items-baseline flex-1">
-        <?php foreach ($langs as $i => $l): ?>
+      <div class="flex gap-2 items-baseline flex-1" role="group" aria-label="<?= t('ui.language', 'Language') ?>">
+        <?php foreach ($langs as $i => $l):
+          $isCurrent = $l->code() === $kirby->language()->code();
+        ?>
           <?php if ($i): ?><span aria-hidden="true">·</span><?php endif ?>
-          <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $l->code() === $kirby->language()->code() ? ' class="font-bold"' : '' ?>>
+          <a href="<?= $page->url($l->code()) ?>" hreflang="<?= esc($l->code()) ?>"<?= $isCurrent ? ' class="font-bold" aria-current="page"' : '' ?>>
             <?= esc(strtoupper($l->code())) ?>
           </a>
         <?php endforeach ?>
       </div>
-      <button data-theme-toggle class="usgc-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
+      <button data-theme-toggle class="ui-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
     </div>
-    <?php if (!empty($stamp) || !empty($mirrors)): ?>
-      <div class="sidebar-foot-meta usgc-sku">
-        <?php if (!empty($stamp['sha'])): ?>
+    <?php if (!empty($stamp['sha'])): ?>
+      <div class="sidebar-foot-meta ui-sku">
+        <?php if ($mirrors): ?>
+          <details class="mirror-popover" title="<?= esc($stamp['sha_full'] ?? $stamp['sha']) ?>">
+            <summary class="mirror-summary">
+              <?= t('mirror.label', 'MIRROR') ?> · <?= esc($stamp['sha']) ?>
+              <?php if (!empty($stamp['built_at'])): ?> · <?= esc(substr($stamp['built_at'], 0, 10)) ?><?php endif ?>
+            </summary>
+            <ul class="ctxmenu" role="menu" aria-label="<?= t('mirror.also_at', 'Also at:') ?>">
+              <?php foreach ($mirrors as $m): ?>
+                <li role="none">
+                  <a role="menuitem" href="<?= esc($m['url']) ?>" rel="noopener" target="_blank">
+                    <span class="ctxmenu-item-name"><?= esc($m['name']) ?> <span aria-hidden="true">↗</span></span>
+                    <?php if (!empty($m['note'])): ?>
+                      <span class="ctxmenu-item-note"><?= esc($m['note']) ?></span>
+                    <?php endif ?>
+                  </a>
+                </li>
+              <?php endforeach ?>
+            </ul>
+          </details>
+        <?php else: ?>
           <div title="<?= esc($stamp['sha_full'] ?? $stamp['sha']) ?>">
             <?= t('mirror.label', 'MIRROR') ?> · <?= esc($stamp['sha']) ?>
             <?php if (!empty($stamp['built_at'])): ?> · <?= esc(substr($stamp['built_at'], 0, 10)) ?><?php endif ?>
-          </div>
-        <?php endif ?>
-        <?php if ($mirrors): ?>
-          <div><?= t('mirror.also_at', 'Also at:') ?>
-            <?php foreach ($mirrors as $i => $m): ?>
-              <?php if ($i): ?> · <?php endif ?>
-              <a href="<?= esc($m['url']) ?>" rel="noopener" target="_blank"><?= esc($m['name']) ?> <span aria-hidden="true">↗</span></a>
-            <?php endforeach ?>
           </div>
         <?php endif ?>
       </div>
