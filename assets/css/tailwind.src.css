@@ -306,6 +306,12 @@
   .ar-tools { display: flex; gap: 0.25rem; }
   .ar-mode, .lib-up { font: inherit; border: 1px solid var(--border); background: transparent; padding: 0.15rem 0.45em; cursor: pointer; line-height: 1.4; min-width: 24px; min-height: 24px; }
   .ar-mode.active { background: var(--secondary); }
+  /* Mirror toggle — distinct action button (not a mode toggle). Accent stroke
+     to read as "offer help to the swarm"; filled-accent when actively mirroring. */
+  .ar-mirror { color: var(--accent); border-color: var(--accent); }
+  .ar-mirror:hover { background: var(--secondary); }
+  .ar-mirror.pending { background: var(--secondary); }
+  .ar-mirror.active { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
   .lib-up[disabled] { opacity: 0.4; cursor: not-allowed; }
   .ar-body { flex: 1; overflow: auto; padding: 0.4rem 0.5rem; font-size: 0.78rem; line-height: 1.4; }
 

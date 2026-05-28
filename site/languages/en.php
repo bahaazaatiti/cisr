@@ -136,5 +136,7 @@ return [
         'comm.chat_privacy' => 'WebRTC peer connection — your IP is visible to peers in this lobby. Close the tab or refresh to disconnect.',
         'comm.gum_denied'   => 'Camera/microphone access denied.',
         'comm.lobby_label'  => 'LOBBY',
+        'mirror.title_library'  => 'Mirror library — your browser downloads + re-shares items that need help. Stops on refresh.',
+        'mirror.title_videos'   => 'Mirror videos — your browser downloads + re-shares items that need help. Stops on refresh.',
     ],
 ];

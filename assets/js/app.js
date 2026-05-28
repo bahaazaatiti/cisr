@@ -269,6 +269,99 @@
     if (tree) paintLibGrid(container, tree);
   }
 
+  // Mirror buttons — two-phase click (scan → confirm), per-section state.
+  // First click runs a tracker scan (~2.5 s) to find magnets with peers waiting,
+  // shows count + size, second click starts mirroring those, third click stops.
+  function fmtSize(n) {
+    if (!n || n < 0) return '0 B';
+    const u = ['B','KB','MB','GB','TB'];
+    let i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return n.toFixed(n < 10 ? 1 : 0) + ' ' + u[i];
+  }
+  async function collectMirrorMagnets(section) {
+    if (section === 'library') {
+      const container = document.querySelector('.ar-library .lib-gui[data-lib-tree-src]');
+      if (!container) return [];
+      const tree = await loadLibTree(container.dataset.libTreeSrc);
+      if (!tree) return [];
+      const out = [];
+      (function walk(node) {
+        (node.folders || []).forEach(walk);
+        (node.files || []).forEach(f => { if (f.magnet) out.push(f.magnet); });
+      })(tree);
+      return out;
+    }
+    if (section === 'videos') {
+      const seen = new Set();
+      return $$('[data-vid-magnet]')
+        .map(el => el.dataset.vidMagnet)
+        .filter(m => m && !seen.has(m) && seen.add(m));
+    }
+    return [];
+  }
+  function mirrorStatusElFor(section) {
+    if (section === 'library') return document.querySelector('.ar-library [data-p2p-status]');
+    if (section === 'videos')  return document.querySelector('.ar-video [data-ar-p2p-status]');
+    return null;
+  }
+  function syncMirrorButtonsFor(section) {
+    const active = window.siteP2P?.mirrorIsActive?.(section);
+    $$(`[data-mirror-toggle="${section}"]`).forEach(b => {
+      b.classList.toggle('active', !!active);
+      if (active) { b.classList.remove('pending'); delete b.dataset.mirrorPending; }
+    });
+  }
+  async function handleMirrorClick(btn) {
+    if (!window.siteP2P) return;
+    const section = btn.dataset.mirrorToggle;
+    const statusEl = mirrorStatusElFor(section);
+    // Already mirroring this section → stop.
+    if (window.siteP2P.mirrorIsActive(section)) {
+      window.siteP2P.mirrorStop(section);
+      syncMirrorButtonsFor(section);
+      return;
+    }
+    // Second click after a scan → confirm + start.
+    if (btn.dataset.mirrorPending) {
+      let survivors = [];
+      try { survivors = JSON.parse(btn.dataset.mirrorPending); } catch (_) {}
+      delete btn.dataset.mirrorPending;
+      btn.classList.remove('pending');
+      if (!survivors.length) return;
+      await window.siteP2P.mirrorStart(survivors, statusEl, section);
+      syncMirrorButtonsFor(section);
+      return;
+    }
+    // First click → scan.
+    btn.classList.add('pending');
+    const magnets = await collectMirrorMagnets(section);
+    if (!magnets.length) {
+      btn.classList.remove('pending');
+      if (statusEl) statusEl.textContent = 'nothing to mirror.';
+      return;
+    }
+    const scan = await window.siteP2P.mirrorScan(magnets, statusEl);
+    const inDemand = scan.filter(r => r.numPeers > 0);
+    // Default path: mirror what's actually needed. Fallback when no one is
+    // leeching: mirror everything so the swarm always has a seed available.
+    const targets = inDemand.length ? inDemand : scan;
+    if (!targets.length) {
+      btn.classList.remove('pending');
+      if (statusEl) statusEl.textContent = 'nothing to mirror.';
+      return;
+    }
+    btn.dataset.mirrorPending = JSON.stringify(targets);
+    const totalSize = targets.reduce((a, r) => a + (r.size || 0), 0);
+    if (statusEl) {
+      const noun = targets.length === 1 ? 'item' : 'items';
+      const lead = inDemand.length
+        ? (targets.length + ' ' + (targets.length === 1 ? 'item needs' : 'items need') + ' help')
+        : ('no one needs help right now — mirror all ' + targets.length + ' ' + noun);
+      statusEl.textContent = lead + ' (~' + fmtSize(totalSize) + ') · click again to mirror';
+    }
+  }
+
   // Drawer plumbing — name-scoped via data-drawer="<name>" so multiple drawers
   // can coexist (e.g. media + comm). Only the media drawer needs cloning; the
   // others ship their content directly.
@@ -346,6 +439,8 @@
       try { localStorage.theme = dark ? 'dark' : 'light'; } catch (_) {}
       return;
     }
+    const mirror = e.target.closest('[data-mirror-toggle]');
+    if (mirror) { e.preventDefault(); handleMirrorClick(mirror); return; }
     const mode = e.target.closest('[data-mode-set]');
     if (mode) { setLibMode(mode.dataset.modeSet); return; }
     const fold = e.target.closest('tr.lib-row-folder');

@@ -14,6 +14,9 @@
       <div class="ar-tools">
         <button data-mode-set="gui"  class="ar-mode active" type="button" aria-label="<?= t('media.gui',  'GUI')  ?>" title="<?= t('media.gui',  'GUI')  ?>">▦</button>
         <button data-mode-set="list" class="ar-mode"        type="button" aria-label="<?= t('media.list', 'LIST') ?>" title="<?= t('media.list', 'LIST') ?>">≣</button>
+        <button data-mirror-toggle="library" class="ar-mode ar-mirror" type="button"
+                aria-label="<?= esc(t('mirror.title_library', 'Mirror library')) ?>"
+                title="<?= esc(t('mirror.title_library', 'Mirror library — your browser downloads + re-shares items that need help. Stops on refresh.'), 'attr') ?>">↑</button>
       </div>
     </header>
     <div class="ar-body">
@@ -51,6 +54,11 @@
       <?php else: ?>
         <span class="ar-title"><?= t('media.video', 'VIDEO') ?></span>
       <?php endif ?>
+      <div class="ar-tools">
+        <button data-mirror-toggle="videos" class="ar-mode ar-mirror" type="button"
+                aria-label="<?= esc(t('mirror.title_videos', 'Mirror videos')) ?>"
+                title="<?= esc(t('mirror.title_videos', 'Mirror videos — your browser downloads + re-shares items that need help. Stops on refresh.'), 'attr') ?>">↑</button>
+      </div>
     </header>
     <div class="vid-stage">
       <div id="player" class="vid-frame vid-frame-empty">

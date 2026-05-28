@@ -135,5 +135,7 @@ return [
         'comm.chat_privacy' => 'Connexion WebRTC pair-à-pair — votre IP est visible des pairs dans ce salon. Fermez l’onglet ou rechargez pour vous déconnecter.',
         'comm.gum_denied'   => 'Accès caméra/micro refusé.',
         'comm.lobby_label'  => 'SALON',
+        'mirror.title_library'  => 'Mirroir bibliothèque — votre navigateur télécharge + repartage les éléments qui ont besoin d’aide. S’arrête au rechargement.',
+        'mirror.title_videos'   => 'Mirroir vidéos — votre navigateur télécharge + repartage les vidéos qui ont besoin d’aide. S’arrête au rechargement.',
     ],
 ];
