@@ -6,7 +6,9 @@ Each mirror serves an identical copy of the site. The actual archived content li
 
 <!-- Add mirrors below. Format: `- [display name](https://url/) — optional note` -->
 <!-- The first 3 entries are surfaced in the sidebar foot of every page on every mirror. -->
-
+- [your-domain](https://your-domain.example/) — short note
+- [your-domain](https://your-domain.example/) — short note
+- [your-domain](https://your-domain.example/) — short note
 ## Historical / inactive
 
 <!-- Mirrors that went down — keep listed for context. -->

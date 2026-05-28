@@ -63,8 +63,9 @@ if (!function_exists('mirrors_list')) {
         $f = repo_root() . '/MIRRORS.md';
         if (!file_exists($f)) return [];
         foreach (file($f, FILE_IGNORE_NEW_LINES) as $line) {
-            if (preg_match('/^\s*-\s*\[([^\]]+)\]\(([^)\s]+)\)/', $line, $m)) {
-                $cache[] = ['name' => $m[1], 'url' => $m[2]];
+            // `- [name](url) — note` — note is optional, accepts em/en/regular dash.
+            if (preg_match('/^\s*-\s*\[([^\]]+)\]\(([^)\s]+)\)\s*(?:[—–-]\s*(.+))?$/u', $line, $m)) {
+                $cache[] = ['name' => $m[1], 'url' => $m[2], 'note' => trim($m[3] ?? '')];
             }
         }
         return array_slice($cache, 0, $limit);

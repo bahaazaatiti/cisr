@@ -69,7 +69,7 @@
 
   <?php
     $stamp   = build_stamp();
-    $mirrors = mirrors_list(3);
+    $mirrors = mirrors_list(50);
   ?>
   <div class="sidebar-foot">
     <div class="sidebar-foot-row">
@@ -85,20 +85,31 @@
       </div>
       <button data-theme-toggle class="ui-badge" type="button" aria-label="<?= t('ui.toggle_theme', 'Toggle theme') ?>" title="<?= t('ui.toggle_theme', 'Toggle theme') ?>">◐</button>
     </div>
-    <?php if (!empty($stamp) || !empty($mirrors)): ?>
+    <?php if (!empty($stamp['sha'])): ?>
       <div class="sidebar-foot-meta ui-sku">
-        <?php if (!empty($stamp['sha'])): ?>
+        <?php if ($mirrors): ?>
+          <details class="mirror-popover" title="<?= esc($stamp['sha_full'] ?? $stamp['sha']) ?>">
+            <summary class="mirror-summary">
+              <?= t('mirror.label', 'MIRROR') ?> · <?= esc($stamp['sha']) ?>
+              <?php if (!empty($stamp['built_at'])): ?> · <?= esc(substr($stamp['built_at'], 0, 10)) ?><?php endif ?>
+            </summary>
+            <ul class="ctxmenu" role="menu" aria-label="<?= t('mirror.also_at', 'Also at:') ?>">
+              <?php foreach ($mirrors as $m): ?>
+                <li role="none">
+                  <a role="menuitem" href="<?= esc($m['url']) ?>" rel="noopener" target="_blank">
+                    <span class="ctxmenu-item-name"><?= esc($m['name']) ?> <span aria-hidden="true">↗</span></span>
+                    <?php if (!empty($m['note'])): ?>
+                      <span class="ctxmenu-item-note"><?= esc($m['note']) ?></span>
+                    <?php endif ?>
+                  </a>
+                </li>
+              <?php endforeach ?>
+            </ul>
+          </details>
+        <?php else: ?>
           <div title="<?= esc($stamp['sha_full'] ?? $stamp['sha']) ?>">
             <?= t('mirror.label', 'MIRROR') ?> · <?= esc($stamp['sha']) ?>
             <?php if (!empty($stamp['built_at'])): ?> · <?= esc(substr($stamp['built_at'], 0, 10)) ?><?php endif ?>
-          </div>
-        <?php endif ?>
-        <?php if ($mirrors): ?>
-          <div><?= t('mirror.also_at', 'Also at:') ?>
-            <?php foreach ($mirrors as $i => $m): ?>
-              <?php if ($i): ?> · <?php endif ?>
-              <a href="<?= esc($m['url']) ?>" rel="noopener" target="_blank"><?= esc($m['name']) ?> <span aria-hidden="true">↗</span></a>
-            <?php endforeach ?>
           </div>
         <?php endif ?>
       </div>
