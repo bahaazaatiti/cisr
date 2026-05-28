@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>/cisr/ar</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr"/>
+  </url>
+  <url>
+    <loc>/cisr/</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr"/>
+  </url>
+  <url>
+    <loc>/cisr/fr</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr"/>
+  </url>
+  <url>
+    <loc>/cisr/ar/articles/what-is-to-be-done</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar/articles/what-is-to-be-done"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/articles/what-is-to-be-done"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr/articles/que-faire"/>
+  </url>
+  <url>
+    <loc>/cisr/articles/what-is-to-be-done</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar/articles/what-is-to-be-done"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/articles/what-is-to-be-done"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr/articles/que-faire"/>
+  </url>
+  <url>
+    <loc>/cisr/fr/articles/que-faire</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar/articles/what-is-to-be-done"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/articles/what-is-to-be-done"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr/articles/que-faire"/>
+  </url>
+  <url>
+    <loc>/cisr/ar/articles/phosphor-aging</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar/articles/phosphor-aging"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/articles/phosphor-aging"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr/articles/situation-classe-laborieuse-en-algerie"/>
+  </url>
+  <url>
+    <loc>/cisr/articles/phosphor-aging</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar/articles/phosphor-aging"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/articles/phosphor-aging"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr/articles/situation-classe-laborieuse-en-algerie"/>
+  </url>
+  <url>
+    <loc>/cisr/fr/articles/situation-classe-laborieuse-en-algerie</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="/cisr/ar/articles/phosphor-aging"/>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/articles/phosphor-aging"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="/cisr/fr/articles/situation-classe-laborieuse-en-algerie"/>
+  </url>
+  <url>
+    <loc>/cisr/fraternals/icp</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/fraternals/icp"/>
+  </url>
+  <url>
+    <loc>/cisr/fraternals/intcp</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/fraternals/intcp"/>
+  </url>
+  <url>
+    <loc>/cisr/fraternals/internationalist</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/fraternals/internationalist"/>
+  </url>
+  <url>
+    <loc>/cisr/fraternals/pcielcomunista</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/fraternals/pcielcomunista"/>
+  </url>
+  <url>
+    <loc>/cisr/fraternals/quinternalab</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/fraternals/quinternalab"/>
+  </url>
+  <url>
+    <loc>/cisr/fraternals/sinistra</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/fraternals/sinistra"/>
+  </url>
+  <url>
+    <loc>/cisr/library/books</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/library/books"/>
+  </url>
+  <url>
+    <loc>/cisr/library/algerian-communist-publication</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/library/algerian-communist-publication"/>
+  </url>
+  <url>
+    <loc>/cisr/videos/magnet</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="/cisr/videos/magnet"/>
+  </url>
+</urlset>

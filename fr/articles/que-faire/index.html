@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ytimg.com data: blob:; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' wss: https:; worker-src 'self' blob:; manifest-src 'self'">
   <title>Que faire ? Questions brûlantes de notre mouvement · CISR</title>
     <meta name="description" content="Au Liban, où l&#039;organisation s&#039;engage depuis plus de deux ans et demi dans la lutte anti-impérialiste et anti-coloniale que mènent les classes laborieuses au Liban, en Palestine occupée, en Syrie, au Yémen, en Irak et en Iran désormais — face à l&#039;agression de l&#039;entité sioniste condamnée pour génocide, qui mène une guerre impérialiste et coloniale totale contre toutes les classes laborieuses de la région, avec pour objectif déclaré la mise en œuvre d&#039;un projet d&#039;épuration ethnique à grande échelle.">
   <link rel="icon" type="image/svg+xml" href="/cisr/assets/img/favicon.svg">
@@ -18,10 +19,14 @@
   <meta property="og:url" content="/cisr/fr/articles/que-faire">
   <meta property="og:locale" content="fr">
   <meta name="twitter:card" content="summary">
+  <meta name="build-sha" content="dea4b49">
   <script>try{const m=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
   <style>
+  /* Wrapped in @layer base so the rest of app.css (@layer components) can
+     override individual rules — unlayered CSS would otherwise beat layered. */
   :root{--background:#FFFFFF;--foreground:#000000;--secondary:#F2F2F2;--muted-foreground:#666666;--accent:#0000FF;--accent-foreground:#FFFFFF;--border:#000000;--ring:#0000FF}
   .dark{--background:#000000;--foreground:#00A645;--secondary:#0a0a0a;--muted-foreground:#999999;--accent:#FFB000;--accent-foreground:#000000;--border:#00A645;--ring:#FFFFFF}
+  @layer base{
   *,*::before,*::after{box-sizing:border-box;border:0 solid var(--border);margin:0;padding:0}
   html,body{background:var(--background);color:var(--foreground);font-family:monospace;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
@@ -32,145 +37,48 @@
   .sidebar{width:16rem;border-inline-end:1px solid var(--border);display:flex;flex-direction:column;position:fixed;inset-block:0;inset-inline-start:0;background:var(--background);z-index:30;transition:transform .15s ease}
   @media (max-width:767px){.sidebar{transform:translateX(-100%)}html[dir=rtl] .sidebar{transform:translateX(100%)}.sidebar.translate-x-0{transform:translateX(0)!important}}
   .sidebar-head{padding:.75rem 1rem;border-block-end:1px solid var(--border);position:relative;overflow:hidden}
-  .sidebar-sign{position:absolute;inset-block-start:.4rem;inset-inline-end:.4rem;width:2.6rem;height:auto;opacity:.85;pointer-events:none}
-  .home-art{display:flex;justify-content:center;margin:1rem 0}
-  .home-art img{display:block;max-width:30%;height:auto}
-  .home-art-place img{max-width:35%}
-  .dark .home-art img,.dark .sidebar-sign{filter:invert(1)}
   .sidebar-nav{flex:1;overflow-y:auto;padding:.5rem 0}
-  .sidebar-foot{border-block-start:1px solid var(--border);padding:.75rem 1rem;display:flex;flex-direction:column;gap:.5rem;font-size:.75rem}
-  .sidebar-foot-row{display:flex;gap:.5rem;align-items:baseline}
-  .sidebar-foot-meta{display:flex;flex-direction:column;gap:.25rem;font-size:.65rem;opacity:.85}
-  .sidebar-foot-meta a{color:inherit;text-decoration:none}
-  .sidebar-foot-meta a:hover{color:var(--accent)}
-  .group-label{padding:.25rem 1rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground)}
   .sidebar-nav ul{margin-block-end:.75rem}
+  .sidebar-foot{border-block-start:1px solid var(--border);padding:.75rem 1rem;display:flex;flex-direction:column;gap:.5rem;font-size:.75rem}
+  .group-label{padding:.25rem 1rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground)}
   .nav-item{display:block;padding:.25rem 1rem;text-decoration:none}
-  .nav-item:hover{background:var(--secondary)}
-  .nav-item.active{background:var(--secondary);color:var(--foreground)}
+  .nav-item:hover,.nav-item.active{background:var(--secondary)}
   .main{margin-inline-start:16rem;padding:1.5rem;max-width:80ch;width:100%}
   .main > section{margin-block-end:1.25rem}
   @media (min-width:1024px){.main{margin-inline-end:18rem}}
   @media (max-width:767px){.main{margin-inline-start:0;padding:3rem 1rem 4rem}}
   .sidebar-toggle{position:fixed;inset-block-start:.5rem;inset-inline-start:.5rem;z-index:40;border:1px solid var(--border);background:var(--background);padding:.25rem .5rem;font:inherit;cursor:pointer;display:none}
   @media (max-width:767px){.sidebar-toggle{display:block}}
-  .usgc-sku{font-size:.75em;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground)}
-  .usgc-badge{display:inline-block;border:1px solid currentColor;padding:0 .4em;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;line-height:1.6;background:transparent;cursor:pointer;font:inherit;text-decoration:none}
-  .usgc-badge:hover{background:var(--secondary)}
+  .ui-sku{font-size:.75em;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground)}
+  .ui-badge{display:inline-block;border:1px solid currentColor;padding:0 .4em;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;line-height:1.6;background:transparent;cursor:pointer;font:inherit;text-decoration:none}
+  .ui-badge:hover{background:var(--secondary)}
   #loadbar{position:fixed;inset-block-start:0;inset-inline-start:0;height:2px;width:0;background:var(--accent);z-index:50;transition:width .15s ease,opacity .2s ease;opacity:0}
   #loadbar.loading{width:80%;opacity:1;transition:width 1.6s cubic-bezier(.1,.7,.1,1)}
-  .usgc-skeleton{padding:0}
-  .usgc-skeleton .sk{background:var(--secondary);height:.85rem;margin:.6rem 0;animation:sk 1.2s linear infinite alternate}
-  .usgc-skeleton .sk-h{height:1.4rem;width:60%;margin-block-end:1.2rem}
-  .usgc-skeleton .sk-line{width:100%}
-  .usgc-skeleton .w-2\/3{width:66%}
-  @keyframes sk{from{opacity:.5}to{opacity:1}}
   .breadcrumb{display:flex;gap:.5rem;align-items:baseline;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);margin-block-end:.5rem}
   .breadcrumb a{text-decoration:none}
   .breadcrumb a:hover{color:var(--accent)}
   .breadcrumb-sep{opacity:.6}
-
-  /* Right sidebar */
-  .aside-right{width:18rem;position:fixed;inset-block:0;inset-inline-end:0;border-inline-start:1px solid var(--border);background:var(--background);display:flex;flex-direction:column;z-index:30}
-  @media (max-width:1023px){.aside-right{display:none}}
-  .ar-half{flex:1;min-height:0;display:flex;flex-direction:column}
-  .ar-video{border-block-start:1px solid var(--border)}
-  .ar-head{display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;border-block-end:1px solid var(--border);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}
-  .ar-title{font-weight:700}
-  .ar-tools{display:flex;gap:.25rem}
-  .ar-mode,.lib-up{font:inherit;border:1px solid var(--border);background:transparent;padding:.15rem .45em;cursor:pointer;line-height:1.4;min-width:24px;min-height:24px}
-  .ar-mode.active{background:var(--secondary)}
-  .lib-up[disabled]{opacity:.4;cursor:not-allowed}
-  .ar-body{flex:1;overflow:auto;padding:.4rem .5rem;font-size:.78rem;line-height:1.4}
-
-  /* Library GUI grid */
-  .lib-gui{display:flex;flex-direction:column;height:100%}
-  .lib-bar{display:flex;align-items:center;gap:.4rem;padding:.2rem 0 .4rem;border-block-end:1px dashed var(--border);margin-block-end:.4rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-foreground)}
-  .lib-cwd{flex:1;word-break:break-all}
-  .lib-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;align-content:start}
-  .lib-cell{display:flex;flex-direction:column;align-items:flex-start;gap:.1rem;border:1px solid var(--border);background:transparent;font:inherit;text-decoration:none;padding:.4rem .5rem;cursor:pointer;text-align:start;color:inherit;min-height:3.2rem;line-height:1.25;user-select:none}
-  .lib-cell:hover{background:var(--secondary)}
-  .lib-cell:focus-visible{outline:1px solid var(--ring);outline-offset:1px}
-  .lib-cell-folder{font-weight:700}
-  .lib-cell-icon{font-family:var(--font-mono);color:var(--muted-foreground)}
-  .lib-cell-folder .lib-cell-icon{color:var(--accent)}
-  .lib-cell-name{word-break:break-word;font-size:.78rem;line-height:1.2}
-  .lib-cell-meta{font-size:.65rem;margin-block-start:auto}
-  .lib-empty-grid{grid-column:1/-1;padding:.5rem}
-
-  .lib-table{width:100%;border-collapse:collapse;font-size:.72rem}
-  .lib-table th,.lib-table td{border-block-end:1px solid var(--border);padding:.2rem .3rem;text-align:start;vertical-align:top}
-  .lib-table th{text-transform:uppercase;letter-spacing:.05em;font-weight:700}
-  .lib-table a{text-decoration:none}
-  .lib-table a:hover{background:var(--secondary)}
-  .lib-row-folder{cursor:pointer}
-  .lib-row-folder:hover td{background:var(--secondary)}
-  .lib-toggle{color:var(--accent);user-select:none}
-  .lib-flat-folder{color:var(--muted-foreground)}
-
-  .vid-stage{padding:.5rem}
-  .vid-frame{display:block;width:100%;aspect-ratio:16/9;border:1px solid var(--border)}
-  iframe.vid-frame,video.vid-frame{background:#000;outline:0}
-  .vid-frame-empty{background:var(--secondary);display:flex;align-items:center;justify-content:center}
-  .ar-video #player{--vid-zoom:.7;overflow:hidden}
-  .ar-video #player > iframe.vid-frame{width:calc(100% / var(--vid-zoom));height:calc(100% / var(--vid-zoom));transform:scale(var(--vid-zoom));transform-origin:top left;border:0}
-  html[dir=rtl] .ar-video #player > iframe.vid-frame{transform-origin:top right}
-  .vid-list{list-style:none;padding:0;margin:0;border-block-start:1px solid var(--border)}
-  .vid-list li{border-block-end:1px solid var(--border)}
-  .vid-pick{display:flex;gap:.4rem;width:100%;text-align:start;font:inherit;background:transparent;border:0;cursor:pointer;padding:.35rem .5rem;align-items:baseline}
-  .vid-pick:hover{background:var(--secondary)}
-  .vid-pick.active{background:var(--secondary)}
-  .vid-pick-icon{color:var(--accent)}
-  .vid-pick-title{flex:1}
-
-  /* Drawer (mobile) */
-  .drawer-toggle{display:none;position:fixed;inset-block-end:.5rem;inset-inline-end:.5rem;z-index:40;border:1px solid var(--border);background:var(--background);padding:.3rem .6rem;font:inherit;cursor:pointer;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}
-  @media (max-width:1023px){.drawer-toggle{display:inline-block}}
-  .drawer{position:fixed;inset-inline:0;inset-block-end:0;height:50dvh;border-block-start:1px solid var(--border);background:var(--background);z-index:50;transform:translateY(100%);transition:transform .15s ease;display:flex;flex-direction:column}
-  .drawer:not([hidden]){display:flex}
-  .drawer.open{transform:none}
-  .drawer-tabs{display:flex;border-block-end:1px solid var(--border)}
-  .drawer-tabs button{flex:0 0 auto;font:inherit;border:0;border-inline-end:1px solid var(--border);background:transparent;padding:.4rem .8rem;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-size:.7rem}
-  .drawer-tabs button.active{background:var(--secondary);font-weight:700}
-  .drawer-x{margin-inline-start:auto;border-inline-end:0!important;border-inline-start:1px solid var(--border)!important}
-  .drawer-panels{flex:1;overflow:hidden;position:relative}
-  .drawer-panel{position:absolute;inset:0;overflow:auto;padding:.5rem}
-
-  /* Context menu */
-  .ctxmenu[hidden]{display:none}
-  .ctxmenu{position:fixed;z-index:60;background:var(--background);border:1px solid var(--border);display:flex;flex-direction:column;min-width:9rem}
-  .ctxmenu button{font:inherit;border:0;background:transparent;text-align:start;padding:.35rem .6rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;font-size:.72rem}
-  .ctxmenu button:hover{background:var(--secondary)}
-
-  /* Featured / sort */
-  .nav-featured{font-weight:700}
-  .featured-list{list-style:none;padding:0;margin:0;border-block-start:1px solid var(--border)}
-  .featured-list li{border-block-end:1px solid var(--border)}
-  .featured-list a{display:block;padding:.6rem 0;text-decoration:none}
-  .featured-list a:hover{background:var(--secondary)}
-  .featured-list h3{margin:0;font-size:1rem;text-transform:uppercase;letter-spacing:.08em}
-  .sort-bar{display:flex;gap:.8rem;align-items:baseline;margin-block-end:.5rem;flex-wrap:wrap}
-  .sort-bar a,.sort-bar button{text-decoration:none;font:inherit;color:inherit;background:transparent;border:0;padding:0;cursor:pointer;letter-spacing:inherit;text-transform:inherit}
-  .sort-bar a.active,.sort-bar button.active{font-weight:700;text-decoration:underline;color:var(--foreground)}
-  .sort-bar button:hover{color:var(--accent)}
+  }
   </style>
+  <link rel="preload" as="style" href="/cisr/assets/css/app.css">
   <link rel="stylesheet" href="/cisr/assets/css/app.css">
 </head>
 <body>
+<a class="skip" href="#panel">Aller au contenu</a>
 <div id="loadbar" aria-hidden="true"></div>
 <div class="layout">
   <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
     <img class="sidebar-sign" src="/cisr/assets/img/sign.svg" alt="" aria-hidden="true" width="200" height="230">
-    <div class="usgc-sku">CISR / LB-001</div>
+    <div class="ui-sku">CISR / LB-001</div>
     <div class="font-bold uppercase tracking-[0.08em]">CISR</div>
           <div class="text-xs text-muted-foreground mt-1">le Communiste International pour le Soulèvement Révolutionnaire</div>
       </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" aria-label="Sections">
     <div class="group-label">Sections</div>
     <ul>
-      <li><a class="nav-item" href="/cisr/fr" data-link>Accueil</a></li>
+            <li><a class="nav-item" href="/cisr/fr" data-link>Accueil</a></li>
       <li><a class="nav-item" href="/cisr/fr/articles" data-link>Articles</a></li>
       <li><a class="nav-item" href="/cisr/fr/fraternals" data-link>Fraternelles</a></li>
     </ul>
@@ -188,13 +96,13 @@
                   <li>
             <a class="nav-item" href="/cisr/fr/articles/situation-classe-laborieuse-en-algerie" data-link title="Informations sur la Situation de la Classe Laborieuse en Algérie">
               <span class="block truncate">Informations sur la Situation de la Classe Laborieuse en Algérie</span>
-                              <span class="usgc-sku block">CISR-002</span>
+                              <span class="ui-sku block">CISR-002</span>
                           </a>
           </li>
                   <li>
             <a class="nav-item active" href="/cisr/fr/articles/que-faire" data-link title="Que faire ? Questions brûlantes de notre mouvement">
               <span class="block truncate">Que faire ? Questions brûlantes de notre mouvement</span>
-                              <span class="usgc-sku block">CISR-001</span>
+                              <span class="ui-sku block">CISR-001</span>
                           </a>
           </li>
               </ul>
@@ -202,39 +110,62 @@
 
     <div class="sidebar-foot">
     <div class="sidebar-foot-row">
-      <div class="flex gap-2 items-baseline flex-1">
+      <div class="flex gap-2 items-baseline flex-1" role="group" aria-label="Langue">
                   <span aria-hidden="true">·</span>          <a href="/cisr/ar/articles/what-is-to-be-done" hreflang="ar">
             AR          </a>
                   <span aria-hidden="true">·</span>          <a href="/cisr/articles/what-is-to-be-done" hreflang="en">
             EN          </a>
-                  <span aria-hidden="true">·</span>          <a href="/cisr/fr/articles/que-faire" hreflang="fr" class="font-bold">
+                  <span aria-hidden="true">·</span>          <a href="/cisr/fr/articles/que-faire" hreflang="fr" class="font-bold" aria-current="page">
             FR          </a>
               </div>
-      <button data-theme-toggle class="usgc-badge" type="button" aria-label="Changer de thème" title="Changer de thème">◐</button>
+      <button data-theme-toggle class="ui-badge" type="button" aria-label="Changer de thème" title="Changer de thème">◐</button>
     </div>
-          <div class="sidebar-foot-meta usgc-sku">
-                  <div title="d0e7c0cf7ab8e3c8d276a210ec89634fcb7894f6">
-            MIRROR · d0e7c0c             · 2026-05-27          </div>
-                      </div>
+          <div class="sidebar-foot-meta ui-sku">
+                  <details class="mirror-popover" title="dea4b491145af33212200a577b4b2902a3b1502b">
+            <summary class="mirror-summary">
+              MIRROR · dea4b49               · 2026-05-28            </summary>
+            <ul class="ctxmenu" role="menu" aria-label="Also at:">
+                              <li role="none">
+                  <a role="menuitem" href="https://your-domain.example/" rel="noopener" target="_blank">
+                    <span class="ctxmenu-item-name">your-domain <span aria-hidden="true">↗</span></span>
+                                          <span class="ctxmenu-item-note">short note</span>
+                                      </a>
+                </li>
+                              <li role="none">
+                  <a role="menuitem" href="https://your-domain.example/" rel="noopener" target="_blank">
+                    <span class="ctxmenu-item-name">your-domain <span aria-hidden="true">↗</span></span>
+                                          <span class="ctxmenu-item-note">short note</span>
+                                      </a>
+                </li>
+                              <li role="none">
+                  <a role="menuitem" href="https://your-domain.example/" rel="noopener" target="_blank">
+                    <span class="ctxmenu-item-name">your-domain <span aria-hidden="true">↗</span></span>
+                                          <span class="ctxmenu-item-note">short note</span>
+                                      </a>
+                </li>
+                          </ul>
+          </details>
+              </div>
       </div>
 </aside>
 
 <button class="sidebar-toggle" data-sidebar-toggle type="button" aria-label="Afficher/masquer la barre latérale">≡</button>
   <main id="panel" class="main">
 
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Que faire ? Questions brûlantes de notre mouvement","mainEntityOfPage":"/cisr/fr/articles/que-faire","inLanguage":"fr","datePublished":"2026-04-12T00:00:00+00:00","description":"Au Liban, où l'organisation s'engage depuis plus de deux ans et demi dans la lutte anti-impérialiste et anti-coloniale que mènent les classes laborieuses au Liban, en Palestine occupée, en Syrie, au Yémen, en Irak et en Iran désormais — face à l'agression de l'entité sioniste condamnée pour génocide, qui mène une guerre impérialiste et coloniale totale contre toutes les classes laborieuses de la région, avec pour objectif déclaré la mise en œuvre d'un projet d'épuration ethnique à grande échelle.","publisher":{"@type":"Organization","name":"CISR"}}</script>
 <nav class="breadcrumb" aria-label="Fil d’Ariane">
-                <a href="/cisr/fr" data-link>Accueil</a>
+                <a href="/cisr/fr" data-link>CISR</a>
         <span class="breadcrumb-sep" aria-hidden="true">›</span>                <a href="/cisr/fr/articles" data-link>Articles</a>
         <span class="breadcrumb-sep" aria-hidden="true">›</span>                <span>Que faire ? Questions brûlantes de notre mouvement</span>
           </nav>
 <header class="mb-6">
-  <div class="usgc-sku flex items-center gap-2">
+  <div class="ui-sku flex items-center gap-2">
     <span>CISR-001</span>    <span>· 2026-04-12</span>      </div>
   <h1 class="text-xl">Que faire ? Questions brûlantes de notre mouvement</h1>
       <p class="text-sm text-muted-foreground mt-2">Au Liban, où l&#039;organisation s&#039;engage depuis plus de deux ans et demi dans la lutte anti-impérialiste et anti-coloniale que mènent les classes laborieuses au Liban, en Palestine occupée, en Syrie, au Yémen, en Irak et en Iran désormais — face à l&#039;agression de l&#039;entité sioniste condamnée pour génocide, qui mène une guerre impérialiste et coloniale totale contre toutes les classes laborieuses de la région, avec pour objectif déclaré la mise en œuvre d&#039;un projet d&#039;épuration ethnique à grande échelle.</p>
   </header>
 
-<div class="prose-usgc">
+<div class="ui-prose">
   <h2 id="b1" class="mt-8 mb-2">
   Portée</h2>
 <div class="my-3"><p>Au vu de l'évolution de la situation, notre organisation, le Communiste International pour le Soulèvement Révolutionnaire (C.I.S.R.) se voit dans la necessité de faire un point général sur la situation et de développer, dans une perspective communiste authentiquement révolutionnaire, son analyse et d'y apporter des consignes.</p></div>
@@ -242,122 +173,95 @@
   Appareillage</h2>
 <div class="my-3"><ul><li>Un instrument de banc étalonné, numéro de série enregistré.</li><li>Un échantillon de contrôle, scellé.</li><li>Journal ambiant : température, humidité, tension de ligne.</li></ul></div>
 <blockquote class="my-4">
-  <p>Une mesure qui ne peut pas être répétée n'est pas une mesure.</p>      <footer class="mt-2 usgc-sku">— TR-100 §1.2</footer>
+  <p>Une mesure qui ne peut pas être répétée n'est pas une mesure.</p>      <footer class="mt-2 ui-sku">— TR-100 §1.2</footer>
   </blockquote>
 </div>
 
-<p class="text-center my-10 usgc-sku">* * *</p>
+<p class="text-center my-10 ui-sku">* * *</p>
   </main>
-  <aside class="aside-right" data-aside-right>
+  <aside class="aside-right" data-aside-right aria-label="Média">
   <section class="ar-half ar-library" data-mode="gui">
     <header class="ar-head">
-      <span class="ar-title">BIBLIOTHÈQUE</span>
-      <div class="ar-tools">
+                    <a class="ar-title" href="/cisr/fr/library" data-link>BIBLIOTHÈQUE</a>
+            <div class="ar-tools">
         <button data-mode-set="gui"  class="ar-mode active" type="button" aria-label="GRILLE" title="GRILLE">▦</button>
         <button data-mode-set="list" class="ar-mode"        type="button" aria-label="LISTE" title="LISTE">≣</button>
+        <button data-mirror-toggle="library" class="ar-mode ar-mirror" type="button"
+                aria-label="Mirroir bibliothèque — votre navigateur télécharge + repartage les éléments qui ont besoin d’aide. S’arrête au rechargement."
+                title="Mirroir&#x20;biblioth&#xE8;que&#x20;&#x2014;&#x20;votre&#x20;navigateur&#x20;t&#xE9;l&#xE9;charge&#x20;&#x2B;&#x20;repartage&#x20;les&#x20;&#xE9;l&#xE9;ments&#x20;qui&#x20;ont&#x20;besoin&#x20;d&#x2019;aide.&#x20;S&#x2019;arr&#xEA;te&#x20;au&#x20;rechargement.">↑</button>
       </div>
     </header>
     <div class="ar-body">
-            <div class="lib-gui" data-lib-tree="{&quot;name&quot;:&quot;Bibliothèque&quot;,&quot;slug&quot;:&quot;library&quot;,&quot;folders&quot;:[{&quot;name&quot;:&quot;Algerian communist publication&quot;,&quot;slug&quot;:&quot;algerian-communist-publication&quot;,&quot;folders&quot;:[],&quot;files&quot;:[]},{&quot;name&quot;:&quot;books&quot;,&quot;slug&quot;:&quot;books&quot;,&quot;folders&quot;:[],&quot;files&quot;:[{&quot;name&quot;:&quot;Sintel demo&quot;,&quot;url&quot;:&quot;/cisr/fr/library/books/sintel-demo&quot;,&quot;size&quot;:&quot;129 MB&quot;,&quot;date&quot;:&quot;2026-05-19&quot;,&quot;kind&quot;:&quot;video&quot;,&quot;magnet&quot;:&quot;magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&amp;dn=Sintel&amp;tr=udp%3A%2F%2Fexplodie.org%3A6969&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&amp;tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&amp;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&amp;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&amp;tr=wss%3A%2F%2Ftracker.btorrent.xyz&amp;tr=wss%3A%2F%2Ftracker.openwebtorrent.com&amp;ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&amp;xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent&quot;}]}],&quot;files&quot;:[{&quot;name&quot;:&quot;README&quot;,&quot;url&quot;:&quot;/cisr/fr/library/readme&quot;,&quot;size&quot;:&quot;17 bytes&quot;,&quot;date&quot;:&quot;2026-05-19&quot;,&quot;kind&quot;:&quot;other&quot;,&quot;magnet&quot;:&quot;magnet:?xt=urn:btih:285b39d8fb767a9ab497cdfc1075b0be38a26bf5&amp;dn=README.txt&amp;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&amp;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&amp;tr=udp%3A%2F%2Fexplodie.org%3A6969&amp;tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&amp;tr=wss%3A%2F%2Ftracker.btorrent.xyz&amp;tr=wss%3A%2F%2Ftracker.openwebtorrent.com&quot;}]}" data-lib-path="">
-        <div class="lib-bar">
-          <button type="button" class="lib-up" data-lib-up disabled title="Haut"><span aria-hidden="true">↑</span></button>
-          <span class="lib-cwd" data-lib-cwd>/</span>
-          <span class="usgc-sku lib-status" data-p2p-status></span>
-        </div>
+      <div class="lib-bar">
+        <button type="button" class="lib-up" data-lib-up disabled title="Haut"><span aria-hidden="true">↑</span></button>
+        <span class="lib-cwd" data-lib-cwd>/</span>
+        <span class="ui-sku lib-status" data-p2p-status></span>
+      </div>
+      <div class="lib-gui"
+           data-lib-tree-src="/cisr/fr/library.json"
+           data-lib-empty="Ce&#x20;dossier&#x20;est&#x20;vide."
+           data-lib-path="">
         <div class="lib-grid" data-lib-grid></div>
       </div>
       <div class="lib-list" hidden>
-                  <table class="lib-table">
-            <thead><tr>
-              <th class="w-6"></th>
-              <th>Nom</th>
-              <th class="w-12">Taille</th>
-              <th class="w-20">Ajouté</th>
-            </tr></thead>
-            <tbody>
-                                        <tr class="lib-row-folder" data-parent="" data-folder="books">
-                <td><span class="lib-toggle">[+]</span></td>
-                <td>
-                                      <span class="lib-flat-folder">books/</span>
-                                  </td>
-                <td class="usgc-sku">—</td>
-                <td class="usgc-sku">—</td>
-              </tr>
-                                        <tr data-parent="books" hidden>
-                <td><span>[VID]</span></td>
-                <td>
-                                      <a href="/cisr/fr/library/books/sintel-demo" data-link data-file
-                       data-magnet="magnet&#x3A;&#x3F;xt&#x3D;urn&#x3A;btih&#x3A;08ada5a7a6183aae1e09d831df6748d566095a10&amp;dn&#x3D;Sintel&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Fexplodie.org&#x25;3A6969&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.coppersurfer.tk&#x25;3A6969&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.empire-js.us&#x25;3A1337&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.leechers-paradise.org&#x25;3A6969&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.opentrackr.org&#x25;3A1337&amp;tr&#x3D;wss&#x25;3A&#x25;2F&#x25;2Ftracker.btorrent.xyz&amp;tr&#x3D;wss&#x25;3A&#x25;2F&#x25;2Ftracker.openwebtorrent.com&amp;ws&#x3D;https&#x25;3A&#x25;2F&#x25;2Fwebtorrent.io&#x25;2Ftorrents&#x25;2F&amp;xs&#x3D;https&#x25;3A&#x25;2F&#x25;2Fwebtorrent.io&#x25;2Ftorrents&#x25;2Fsintel.torrent"
-                       data-kind="video"
-                       title="books/Sintel demo">books/Sintel demo</a>
-                                  </td>
-                <td class="usgc-sku">129 MB</td>
-                <td class="usgc-sku">2026-05-19</td>
-              </tr>
-                                        <tr class="lib-row-folder" data-parent="" data-folder="algerian-communist-publication">
-                <td><span class="lib-toggle">[+]</span></td>
-                <td>
-                                      <span class="lib-flat-folder">Algerian communist publication/</span>
-                                  </td>
-                <td class="usgc-sku">—</td>
-                <td class="usgc-sku">—</td>
-              </tr>
-                                        <tr data-parent="">
-                <td><span>[OTH]</span></td>
-                <td>
-                                      <a href="/cisr/fr/library/readme" data-link data-file
-                       data-magnet="magnet&#x3A;&#x3F;xt&#x3D;urn&#x3A;btih&#x3A;285b39d8fb767a9ab497cdfc1075b0be38a26bf5&amp;dn&#x3D;README.txt&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.leechers-paradise.org&#x25;3A6969&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.coppersurfer.tk&#x25;3A6969&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.opentrackr.org&#x25;3A1337&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Fexplodie.org&#x25;3A6969&amp;tr&#x3D;udp&#x25;3A&#x25;2F&#x25;2Ftracker.empire-js.us&#x25;3A1337&amp;tr&#x3D;wss&#x25;3A&#x25;2F&#x25;2Ftracker.btorrent.xyz&amp;tr&#x3D;wss&#x25;3A&#x25;2F&#x25;2Ftracker.openwebtorrent.com"
-                       data-kind="other"
-                       title="README">README</a>
-                                  </td>
-                <td class="usgc-sku">17 bytes</td>
-                <td class="usgc-sku">2026-05-19</td>
-              </tr>
-                        </tbody>
-          </table>
-              </div>
+        <table class="lib-table">
+          <thead><tr>
+            <th class="w-6"></th>
+            <th>Nom</th>
+            <th class="w-12">Taille</th>
+            <th class="w-20">Ajouté</th>
+          </tr></thead>
+          <tbody data-lib-list-body></tbody>
+        </table>
+        <div class="ui-sku" data-lib-list-empty hidden>Ce dossier est vide.</div>
+      </div>
     </div>
   </section>
 
   <section class="ar-half ar-video">
     <header class="ar-head">
-      <span class="ar-title">VIDÉO</span>
+                    <a class="ar-title" href="/cisr/fr/videos" data-link>VIDÉO</a>
+            <div class="ar-tools">
+        <button data-mirror-toggle="videos" class="ar-mode ar-mirror" type="button"
+                aria-label="Mirroir vidéos — votre navigateur télécharge + repartage les vidéos qui ont besoin d’aide. S’arrête au rechargement."
+                title="Mirroir&#x20;vid&#xE9;os&#x20;&#x2014;&#x20;votre&#x20;navigateur&#x20;t&#xE9;l&#xE9;charge&#x20;&#x2B;&#x20;repartage&#x20;les&#x20;vid&#xE9;os&#x20;qui&#x20;ont&#x20;besoin&#x20;d&#x2019;aide.&#x20;S&#x2019;arr&#xEA;te&#x20;au&#x20;rechargement.">↑</button>
+      </div>
     </header>
     <div class="vid-stage">
       <div id="player" class="vid-frame vid-frame-empty">
-        <span class="usgc-sku" data-player-placeholder>CHOISIR UNE VIDÉO</span>
+        <span class="ui-sku" data-player-placeholder>CHOISIR UNE VIDÉO</span>
       </div>
     </div>
-    <div class="usgc-sku ar-p2p-status" data-ar-p2p-status></div>
+    <div class="ui-sku ar-p2p-status" data-ar-p2p-status></div>
     <ul class="vid-list">
+              <li>
+          <button type="button" class="vid-pick"
+            data-video
+            data-vid-src="https://www.youtube-nocookie.com/embed/bNyUyrR0PHo?rel=0"                        data-vid-title="Al Jazeera Arabic Live">
+            <span class="vid-pick-icon" aria-hidden="true">▷</span>
+            <span class="vid-pick-title">Al Jazeera Arabic Live</span>
+            <span class="ui-sku vid-pick-badge">YT</span>
+                      </button>
+        </li>
               <li>
           <button type="button" class="vid-pick"
             data-video
                         data-vid-magnet="magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&amp;dn=Sintel&amp;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&amp;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&amp;tr=udp%3A%2F%2Fexplodie.org%3A6969&amp;tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&amp;tr=wss%3A%2F%2Ftracker.btorrent.xyz&amp;tr=wss%3A%2F%2Ftracker.openwebtorrent.com&amp;tr=wss%3A%2F%2Ftracker.fastcast.nz"            data-vid-title="Sintel via magnet">
             <span class="vid-pick-icon" aria-hidden="true">▷</span>
             <span class="vid-pick-title">Sintel via magnet</span>
-            <span class="usgc-sku vid-pick-badge">WT</span>
-                          <span class="usgc-sku vid-pick-dur">14:48</span>
-                      </button>
-        </li>
-              <li>
-          <button type="button" class="vid-pick"
-            data-video
-            data-vid-src="https://www.youtube-nocookie.com/embed/9uBnJAEiDug?rel=0"                        data-vid-title="video">
-            <span class="vid-pick-icon" aria-hidden="true">▷</span>
-            <span class="vid-pick-title">video</span>
-            <span class="usgc-sku vid-pick-badge">YT</span>
+            <span class="ui-sku vid-pick-badge">WT</span>
+                          <span class="ui-sku vid-pick-dur">14:48</span>
                       </button>
         </li>
           </ul>
   </section>
 </aside>
 
-<button class="drawer-toggle" data-drawer-toggle type="button" aria-label="MÉDIA">
+<button class="drawer-toggle" data-drawer-toggle="media" type="button" aria-controls="drawer-media" aria-expanded="false">
   <span aria-hidden="true">▲</span> MÉDIA</button>
 
-<div class="drawer" data-drawer hidden>
-  <div class="drawer-tabs" role="tablist">
+<div class="drawer" id="drawer-media" data-drawer="media" hidden>
+  <div class="drawer-tabs" role="tablist" aria-label="Onglets média">
     <button type="button" data-tab="library" class="active" role="tab" aria-selected="true">BIBLIOTHÈQUE</button>
     <button type="button" data-tab="video" role="tab" aria-selected="false">VIDÉO</button>
     <button type="button" data-drawer-close class="drawer-x" aria-label="Fermer">✕</button>
@@ -365,6 +269,61 @@
   <div class="drawer-panels">
     <div data-panel="library" class="drawer-panel"></div>
     <div data-panel="video"   class="drawer-panel" hidden></div>
+  </div>
+</div>
+
+<button class="drawer-toggle drawer-toggle-comm"
+        data-drawer-toggle="comm"
+        type="button"
+        aria-controls="drawer-comm"
+        aria-expanded="false">
+  <span aria-hidden="true">▲</span> COMMS</button>
+
+<div class="drawer drawer-comm" id="drawer-comm" data-drawer="comm" hidden role="dialog" aria-label="Communications">
+  <div class="drawer-tabs" role="tablist" aria-label="Onglets de communication">
+    <button type="button" data-tab="chat" class="active" role="tab" aria-selected="true">CHAT</button>
+    <button type="button" data-tab="conf" role="tab" aria-selected="false">CONF</button>
+    <button type="button" data-drawer-close class="drawer-x" aria-label="Fermer">✕</button>
+  </div>
+  <div class="drawer-panels">
+
+    <div data-panel="chat" class="drawer-panel comm-panel comm-panel-chat">
+      <div class="comm-head">
+        <span class="ui-sku">SALON</span>
+        <span class="ui-sku" data-comm-peer-count
+              data-fmt="&#x7B;n&#x7D;&#x20;pairs"></span>
+      </div>
+      <ol class="comm-msgs" data-comm-msg-list aria-live="polite"
+          data-chat-privacy="Connexion&#x20;WebRTC&#x20;pair-&#xE0;-pair&#x20;&#x2014;&#x20;votre&#x20;IP&#x20;est&#x20;visible&#x20;des&#x20;pairs&#x20;dans&#x20;ce&#x20;salon.&#x20;Fermez&#x20;l&#x2019;onglet&#x20;ou&#x20;rechargez&#x20;pour&#x20;vous&#x20;d&#xE9;connecter."></ol>
+      <form class="comm-composer" onsubmit="return false">
+        <textarea data-comm-msg-input
+                  rows="2"
+                  maxlength="500"
+                  aria-label="Tapez un message…"
+                  placeholder="Tapez&#x20;un&#x20;message&#x2026;"></textarea>
+        <button type="submit" class="ui-badge" data-comm-send>ENVOYER</button>
+      </form>
+    </div>
+
+    <div data-panel="conf" class="drawer-panel comm-panel comm-panel-conf" hidden>
+      <div class="comm-precall" data-comm-precall>
+        <p class="ui-sku">WebRTC via des trackers publics. Votre IP est visible des pairs ; caméra et micro restent éteints jusqu’au clic sur REJOINDRE.</p>
+        <div class="comm-controls">
+          <button type="button" class="ui-badge" data-comm-join-conf>REJOINDRE LA CONF</button>
+        </div>
+        <div class="ui-sku" data-comm-gum-err
+             data-fallback="Acc&#xE8;s&#x20;cam&#xE9;ra&#x2F;micro&#x20;refus&#xE9;."></div>
+      </div>
+      <div class="comm-call" data-comm-call hidden>
+        <div class="comm-grid" data-comm-grid></div>
+        <div class="comm-controls">
+          <button type="button" class="ui-badge active" data-comm-mute-mic>MIC</button>
+          <button type="button" class="ui-badge active" data-comm-mute-cam>CAM</button>
+          <button type="button" class="ui-badge" data-comm-leave-conf>QUITTER</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -379,6 +338,9 @@
 <script src="/cisr/assets/js/p2p.min.js"
         data-vendor="/cisr/assets/js/vendor/webtorrent.min.js"
         data-sw="/cisr/sw.min.js"
+        defer></script>
+<script src="/cisr/assets/js/comm.min.js"
+        data-comm-vendor="/cisr/assets/js/vendor/trystero.min.js"
         defer></script>
 </body>
 </html>
