@@ -5,7 +5,12 @@
 <aside class="aside-right" data-aside-right aria-label="<?= t('media.region', 'Media') ?>">
   <section class="ar-half ar-library" data-mode="gui">
     <header class="ar-head">
-      <span class="ar-title"><?= t('media.library', 'LIBRARY') ?></span>
+      <?php $libPage = page('library'); ?>
+      <?php if ($libPage): ?>
+        <a class="ar-title" href="<?= $libPage->url() ?>" data-link><?= t('media.library', 'LIBRARY') ?></a>
+      <?php else: ?>
+        <span class="ar-title"><?= t('media.library', 'LIBRARY') ?></span>
+      <?php endif ?>
       <div class="ar-tools">
         <button data-mode-set="gui"  class="ar-mode active" type="button" aria-label="<?= t('media.gui',  'GUI')  ?>" title="<?= t('media.gui',  'GUI')  ?>">▦</button>
         <button data-mode-set="list" class="ar-mode"        type="button" aria-label="<?= t('media.list', 'LIST') ?>" title="<?= t('media.list', 'LIST') ?>">≣</button>
@@ -40,7 +45,12 @@
 
   <section class="ar-half ar-video">
     <header class="ar-head">
-      <span class="ar-title"><?= t('media.video', 'VIDEO') ?></span>
+      <?php $vidPage = page('videos'); ?>
+      <?php if ($vidPage): ?>
+        <a class="ar-title" href="<?= $vidPage->url() ?>" data-link><?= t('media.video', 'VIDEO') ?></a>
+      <?php else: ?>
+        <span class="ar-title"><?= t('media.video', 'VIDEO') ?></span>
+      <?php endif ?>
     </header>
     <div class="vid-stage">
       <div id="player" class="vid-frame vid-frame-empty">

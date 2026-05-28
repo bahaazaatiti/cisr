@@ -279,7 +279,8 @@
   .ar-half { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .ar-video { border-block-start: 1px solid var(--border); }
   .ar-head { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.6rem; border-block-end: 1px solid var(--border); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
-  .ar-title { font-weight: 700; }
+  .ar-title { font-weight: 700; text-decoration: none; color: inherit; }
+  a.ar-title:hover { color: var(--accent); }
   .ar-tools { display: flex; gap: 0.25rem; }
   .ar-mode, .lib-up { font: inherit; border: 1px solid var(--border); background: transparent; padding: 0.15rem 0.45em; cursor: pointer; line-height: 1.4; min-width: 24px; min-height: 24px; }
   .ar-mode.active { background: var(--secondary); }
