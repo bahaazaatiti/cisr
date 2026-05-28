@@ -86,11 +86,11 @@
   </section>
 </aside>
 
-<button class="drawer-toggle" data-drawer-toggle type="button" aria-controls="drawer" aria-expanded="false" aria-label="<?= t('media.media', 'Open media') ?>">
+<button class="drawer-toggle" data-drawer-toggle="media" type="button" aria-controls="drawer-media" aria-expanded="false">
   <span aria-hidden="true">▲</span> <?= t('media.media', 'MEDIA') ?>
 </button>
 
-<div class="drawer" id="drawer" data-drawer hidden>
+<div class="drawer" id="drawer-media" data-drawer="media" hidden>
   <div class="drawer-tabs" role="tablist" aria-label="<?= t('media.tabs', 'Media tabs') ?>">
     <button type="button" data-tab="library" class="active" role="tab" aria-selected="true"><?= t('media.library', 'LIBRARY') ?></button>
     <button type="button" data-tab="video" role="tab" aria-selected="false"><?= t('media.video', 'VIDEO') ?></button>
@@ -101,6 +101,8 @@
     <div data-panel="video"   class="drawer-panel" hidden></div>
   </div>
 </div>
+
+<?php snippet('aside-comm') ?>
 
 <div id="ctxmenu" class="ctxmenu" hidden>
   <button type="button" data-ctx="open"><?= t('media.open', 'OPEN') ?></button>

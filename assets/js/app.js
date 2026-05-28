@@ -25,6 +25,8 @@
     const abort = new AbortController();
     currentAbort = abort;
     try { window.siteP2P?.teardown?.(); } catch (_) {}
+    // siteComm intentionally persists across SPA nav (same as aside-right).
+    // It tears down on beforeunload (see comm.js).
 
     loadbar()?.classList.add('loading');
     const skTimer = setTimeout(() => { if (!abort.signal.aborted) showSkeleton(); }, 120);
@@ -267,40 +269,47 @@
     if (tree) paintLibGrid(container, tree);
   }
 
-  let drawerCloned = false;
-  function cloneIntoDrawer() {
-    if (drawerCloned) return;
-    const aside = $('[data-aside-right]');
-    [['library', '.ar-library'], ['video', '.ar-video']].forEach(([panel, sel]) => {
-      const src = aside && aside.querySelector(sel);
-      const dst = $(`[data-panel="${panel}"]`);
-      if (src && dst) dst.appendChild(src.cloneNode(true));
-    });
-    drawerCloned = true;
-    ensureAllLibContainers();
+  // Drawer plumbing — name-scoped via data-drawer="<name>" so multiple drawers
+  // can coexist (e.g. media + comm). Only the media drawer needs cloning; the
+  // others ship their content directly.
+  const drawerCloned = new Set();
+  function cloneIntoDrawer(name) {
+    if (drawerCloned.has(name)) return;
+    if (name === 'media') {
+      const aside = $('[data-aside-right]');
+      const drawer = $('[data-drawer="media"]');
+      [['library', '.ar-library'], ['video', '.ar-video']].forEach(([panel, sel]) => {
+        const src = aside && aside.querySelector(sel);
+        const dst = drawer && drawer.querySelector(`[data-panel="${panel}"]`);
+        if (src && dst) dst.appendChild(src.cloneNode(true));
+      });
+      ensureAllLibContainers();
+    }
+    drawerCloned.add(name);
   }
-  function openDrawer() {
-    const d = $('[data-drawer]');
+  function openDrawer(name) {
+    const d = $(`[data-drawer="${name}"]`);
     if (!d) return;
-    cloneIntoDrawer();
+    cloneIntoDrawer(name);
     d.hidden = false;
     requestAnimationFrame(() => d.classList.add('open'));
-    $('[data-drawer-toggle]')?.setAttribute('aria-expanded', 'true');
+    $(`[data-drawer-toggle="${name}"]`)?.setAttribute('aria-expanded', 'true');
   }
-  function closeDrawer() {
-    const d = $('[data-drawer]');
+  function closeDrawer(name) {
+    const d = $(`[data-drawer="${name}"]`);
     if (!d) return;
     d.classList.remove('open');
     setTimeout(() => { d.hidden = true; }, 160);
-    $('[data-drawer-toggle]')?.setAttribute('aria-expanded', 'false');
+    $(`[data-drawer-toggle="${name}"]`)?.setAttribute('aria-expanded', 'false');
   }
-  function setDrawerTab(name) {
-    $$('[data-tab]').forEach(b => {
+  function setDrawerTab(name, drawerEl) {
+    const scope = drawerEl || document;
+    Array.from(scope.querySelectorAll('[data-tab]')).forEach(b => {
       const on = b.dataset.tab === name;
       b.classList.toggle('active', on);
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== name);
+    Array.from(scope.querySelectorAll('[data-panel]')).forEach(p => p.hidden = p.dataset.panel !== name);
   }
 
   // Context menu remembers the file the menu was opened from. Magnet + kind
@@ -369,14 +378,21 @@
     }
     const vid = e.target.closest('[data-video]');
     if (vid) { pickVideo(vid); return; }
-    if (e.target.closest('[data-drawer-toggle]')) {
-      const d = $('[data-drawer]');
-      (d && !d.hidden) ? closeDrawer() : openDrawer();
+    const tog = e.target.closest('[data-drawer-toggle]');
+    if (tog) {
+      const name = tog.dataset.drawerToggle;
+      const d = $(`[data-drawer="${name}"]`);
+      (d && !d.hidden) ? closeDrawer(name) : openDrawer(name);
       return;
     }
-    if (e.target.closest('[data-drawer-close]')) { closeDrawer(); return; }
+    const closeBtn = e.target.closest('[data-drawer-close]');
+    if (closeBtn) {
+      const name = closeBtn.closest('[data-drawer]')?.dataset.drawer;
+      if (name) closeDrawer(name);
+      return;
+    }
     const tab = e.target.closest('[data-tab]');
-    if (tab) { setDrawerTab(tab.dataset.tab); return; }
+    if (tab) { setDrawerTab(tab.dataset.tab, tab.closest('[data-drawer]')); return; }
     const ctxBtn = e.target.closest('#ctxmenu button');
     if (ctxBtn && ctxTarget) {
       const t = ctxTarget;

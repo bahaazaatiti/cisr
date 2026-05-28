@@ -116,5 +116,23 @@ return [
         'media.open'       => 'فتح',
         'media.download'   => 'تنزيل',
         'media.copylink'   => 'نسخ الرابط المغناطيسي',
+
+        // comm drawer (chat + live conference)
+        'comm.title'        => 'اتصال',
+        'comm.region'       => 'الاتصالات',
+        'comm.toggle'       => 'فتح الاتصالات',
+        'comm.tabs'         => 'علامات تبويب الاتصالات',
+        'comm.chat'         => 'دردشة',
+        'comm.conf'         => 'مكالمة',
+        'comm.send'         => 'إرسال',
+        'comm.composer_ph'  => 'اكتب رسالة…',
+        'comm.join_conf'    => 'انضم إلى المكالمة',
+        'comm.leave_conf'   => 'مغادرة',
+        'comm.mic'          => 'مايك',
+        'comm.cam'          => 'كاميرا',
+        'comm.peers_n'      => '{n} نظراء',
+        'comm.privacy_note' => 'يستخدم هذا الاتصال WebRTC عبر متتبّعات عامة. عنوان IP مرئي للنظراء؛ تبقى الكاميرا والمايك متوقفَين حتى تضغط على «انضم».',
+        'comm.gum_denied'   => 'تعذّر الوصول إلى الكاميرا/المايك.',
+        'comm.lobby_label'  => 'الردهة',
     ],
 ];
