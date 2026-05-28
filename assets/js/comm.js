@@ -8,7 +8,6 @@
   let trysteroPromise = null;
   let room = null;
   let chatSend = null;
-  let onChatMsg = null;
   let localStream = null;
   let peerVideos = new Map();   // peerId → <video> in the conf grid
   const messages = [];          // ring buffer, capped 200
@@ -62,6 +61,16 @@
       ol.scrollTop = ol.scrollHeight;
     });
   }
+  // Local-only system line — never broadcast over Trystero, never enters the
+  // 200-cap messages buffer (so it can't be evicted), no peer label or time.
+  function appendSystemMsg(text) {
+    if (!text) return;
+    const html = '<li class="comm-system">' + escHtml(text) + '</li>';
+    msgListEls().forEach(ol => {
+      ol.insertAdjacentHTML('beforeend', html);
+      ol.scrollTop = ol.scrollHeight;
+    });
+  }
   function showGumError(text) {
     gumErrEls().forEach(el => { el.textContent = text || ''; });
   }
@@ -85,6 +94,10 @@
       room.onPeerLeave = (id) => { removePeerVideo(id); updatePeerCount(); };
       room.onPeerStream = (stream, peerId) => attachPeerVideo(peerId, stream);
       updatePeerCount();
+      // First-line privacy notice (read from the aside-comm template's
+      // data-chat-privacy attribute so the wording follows the page language).
+      const notice = msgListEls()[0]?.dataset.chatPrivacy;
+      if (notice) appendSystemMsg(notice);
     } catch (err) {
       console.warn('comm: room init failed', err);
       roomEnsured = false;
@@ -188,7 +201,7 @@
   function teardown() {
     try { leaveConference(); } catch (_) {}
     try { if (room) room.leave(); } catch (_) {}
-    room = null; chatSend = null; onChatMsg = null;
+    room = null; chatSend = null;
     roomEnsured = false;
     messages.length = 0;
     msgListEls().forEach(ol => { ol.innerHTML = ''; });

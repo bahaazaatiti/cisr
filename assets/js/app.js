@@ -278,9 +278,9 @@
     if (name === 'media') {
       const aside = $('[data-aside-right]');
       const drawer = $('[data-drawer="media"]');
-      [['library', '.ar-library'], ['video', '.ar-video']].forEach(([panel, sel]) => {
+      [['library', '.ar-library'], ['video', '.ar-video']].forEach(([panelName, sel]) => {
         const src = aside && aside.querySelector(sel);
-        const dst = drawer && drawer.querySelector(`[data-panel="${panel}"]`);
+        const dst = drawer && drawer.querySelector(`[data-panel="${panelName}"]`);
         if (src && dst) dst.appendChild(src.cloneNode(true));
       });
       ensureAllLibContainers();

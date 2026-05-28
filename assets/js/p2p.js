@@ -78,10 +78,13 @@
   function watchTorrent(t) {
     if (statusTimer) clearInterval(statusTimer);
     statusTimer = setInterval(() => {
-      const pct = (t.progress * 100).toFixed(0);
-      setStatus('peers ' + t.numPeers + ' · ' + pct + '% · ↓ ' + fmtBytes(t.downloadSpeed) + '/s');
+      if (t.done) {
+        setStatus('peers ' + t.numPeers + ' · ↑ ' + fmtBytes(t.uploadSpeed) + '/s');
+      } else {
+        const pct = (t.progress * 100).toFixed(0);
+        setStatus('peers ' + t.numPeers + ' · ' + pct + '% · ↓ ' + fmtBytes(t.downloadSpeed) + '/s');
+      }
     }, 800);
-    t.on('done', () => setStatus('done · ' + t.numPeers + ' peers · ' + fmtBytes(t.length)));
     t.on('error', (err) => setStatus('error: ' + (err && err.message ? err.message : err)));
     t.on('warning', () => {});
   }

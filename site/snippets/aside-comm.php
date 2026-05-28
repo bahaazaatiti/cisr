@@ -23,7 +23,8 @@
         <span class="ui-sku" data-comm-peer-count
               data-fmt="<?= esc(t('comm.peers_n', '{n} peers'), 'attr') ?>"></span>
       </div>
-      <ol class="comm-msgs" data-comm-msg-list aria-live="polite"></ol>
+      <ol class="comm-msgs" data-comm-msg-list aria-live="polite"
+          data-chat-privacy="<?= esc(t('comm.chat_privacy', 'WebRTC peer connection — your IP is visible to peers in this lobby. Close the tab or refresh to disconnect.'), 'attr') ?>"></ol>
       <form class="comm-composer" onsubmit="return false">
         <textarea data-comm-msg-input
                   rows="2"

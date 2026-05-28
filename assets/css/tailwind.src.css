@@ -317,6 +317,9 @@
   .lib-status { margin-inline-start: auto; color: var(--accent); text-align: end; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ar-library[data-mode="list"] .lib-up,
   .ar-library[data-mode="list"] .lib-cwd { display: none; }
+  /* In LIST mode, up/cwd are gone — when nothing is downloading either, the
+     dashed bar is just visual noise floating above the table. Collapse it. */
+  .ar-library[data-mode="list"] .lib-bar:has(.lib-status:empty) { display: none; }
   /* In LIST mode the status is the only visible item, so margin auto can't
      push it — give it the full row width so text-align:end actually right-aligns. */
   .ar-library[data-mode="list"] .lib-status { flex: 1; }
@@ -400,6 +403,9 @@
   .comm-msgs li { padding: 0.2rem 0; border-block-end: 1px dashed var(--border); word-break: break-word; }
   .comm-msgs li:last-child { border-block-end: 0; }
   .comm-peer { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; margin-inline-end: 0.4rem; }
+  /* System notice — first-line WebRTC privacy line. Reads as supplementary,
+     not alarmist; dashed separator already handled by .comm-msgs li above. */
+  .comm-msgs li.comm-system { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; line-height: 1.4; padding: 0.4rem 0; }
   .comm-composer { display: flex; gap: 0.3rem; align-items: stretch; }
   .comm-composer textarea {
     flex: 1; font: inherit; color: var(--foreground); background: var(--background);
