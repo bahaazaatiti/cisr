@@ -306,6 +306,12 @@
   .ar-tools { display: flex; gap: 0.25rem; }
   .ar-mode, .lib-up { font: inherit; border: 1px solid var(--border); background: transparent; padding: 0.15rem 0.45em; cursor: pointer; line-height: 1.4; min-width: 24px; min-height: 24px; }
   .ar-mode.active { background: var(--secondary); }
+  /* Mirror toggle — distinct action button (not a mode toggle). Accent stroke
+     to read as "offer help to the swarm"; filled-accent when actively mirroring. */
+  .ar-mirror { color: var(--accent); border-color: var(--accent); }
+  .ar-mirror:hover { background: var(--secondary); }
+  .ar-mirror.pending { background: var(--secondary); }
+  .ar-mirror.active { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
   .lib-up[disabled] { opacity: 0.4; cursor: not-allowed; }
   .ar-body { flex: 1; overflow: auto; padding: 0.4rem 0.5rem; font-size: 0.78rem; line-height: 1.4; }
 
@@ -317,6 +323,9 @@
   .lib-status { margin-inline-start: auto; color: var(--accent); text-align: end; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ar-library[data-mode="list"] .lib-up,
   .ar-library[data-mode="list"] .lib-cwd { display: none; }
+  /* In LIST mode, up/cwd are gone — when nothing is downloading either, the
+     dashed bar is just visual noise floating above the table. Collapse it. */
+  .ar-library[data-mode="list"] .lib-bar:has(.lib-status:empty) { display: none; }
   /* In LIST mode the status is the only visible item, so margin auto can't
      push it — give it the full row width so text-align:end actually right-aligns. */
   .ar-library[data-mode="list"] .lib-status { flex: 1; }
@@ -372,6 +381,52 @@
   .drawer-x { margin-inline-start: auto; border-inline-end: 0 !important; border-inline-start: 1px solid var(--border) !important; }
   .drawer-panels { flex: 1; overflow: hidden; position: relative; }
   .drawer-panel { position: absolute; inset: 0; overflow: auto; padding: 0.5rem; }
+
+  /* COMM toggle is visible at ALL viewport sizes. On mobile it sits next to
+     the MEDIA toggle (offset to the inline-start); on desktop, just left of
+     the fixed .aside-right (18rem). */
+  .drawer-toggle-comm { display: inline-block; inset-inline-end: 6rem; }
+  @media (min-width: 1024px) {
+    .drawer-toggle-comm { inset-inline-end: calc(18rem + 0.5rem); }
+  }
+
+  /* COMM drawer is a small floating box on desktop (Facebook-chat shape),
+     full-width slide-up on mobile (inherits base .drawer). */
+  @media (min-width: 1024px) {
+    .drawer-comm {
+      inset-inline: auto;
+      inset-inline-end: calc(18rem + 0.5rem);
+      width: 24rem;
+      height: min(60dvh, 28rem);
+      border-inline: 1px solid var(--border);
+    }
+  }
+
+  /* COMM panel internals */
+  .comm-panel { display: flex; flex-direction: column; height: 100%; gap: 0.4rem; padding: 0.5rem; }
+  .comm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem; }
+  .comm-msgs { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; font-size: 0.8rem; line-height: 1.35; }
+  .comm-msgs li { padding: 0.2rem 0; border-block-end: 1px dashed var(--border); word-break: break-word; }
+  .comm-msgs li:last-child { border-block-end: 0; }
+  .comm-peer { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; margin-inline-end: 0.4rem; }
+  /* System notice — first-line WebRTC privacy line. Reads as supplementary,
+     not alarmist; dashed separator already handled by .comm-msgs li above. */
+  .comm-msgs li.comm-system { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; line-height: 1.4; padding: 0.4rem 0; }
+  .comm-composer { display: flex; gap: 0.3rem; align-items: stretch; }
+  .comm-composer textarea {
+    flex: 1; font: inherit; color: var(--foreground); background: var(--background);
+    border: 1px solid var(--border); padding: 0.3rem 0.4rem; resize: none; outline: 0;
+  }
+  .comm-composer textarea:focus-visible { border-color: var(--accent); }
+  .comm-composer .ui-badge { align-self: stretch; display: flex; align-items: center; }
+  .comm-precall { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.3rem; }
+  .comm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 0.25rem; flex: 1; min-height: 0; overflow: auto; }
+  .comm-grid video { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #000; border: 1px solid var(--border); }
+  .comm-controls { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+  [data-comm-gum-err]:empty { display: none; }
+  [data-comm-gum-err] { color: var(--destructive); }
+  /* Muted mic/cam = inactive look; default ON = accent. */
+  [data-comm-mute-mic].active, [data-comm-mute-cam].active { color: var(--accent); border-color: var(--accent); }
   /* Shared context-menu surface — used by the right-click library menu
      (position:fixed, JS-positioned via inline left/top) and by the mirror
      popover (position overridden under .mirror-popover, see below). */

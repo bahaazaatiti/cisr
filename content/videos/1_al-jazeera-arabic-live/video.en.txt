@@ -1,4 +1,4 @@
-Title: video
+Title: Al Jazeera Arabic Live
 
 ----
 
@@ -6,7 +6,7 @@ Source-type: youtube
 
 ----
 
-Youtube-url: https://www.youtube.com/watch?v=9uBnJAEiDug&t=793s
+Youtube-url: https://www.youtube.com/watch?v=bNyUyrR0PHo
 
 ----
 
@@ -18,7 +18,7 @@ Summary:
 
 ----
 
-Date: 
+Date: 2026-05-28
 
 ----
 

@@ -14,6 +14,9 @@
       <div class="ar-tools">
         <button data-mode-set="gui"  class="ar-mode active" type="button" aria-label="<?= t('media.gui',  'GUI')  ?>" title="<?= t('media.gui',  'GUI')  ?>">▦</button>
         <button data-mode-set="list" class="ar-mode"        type="button" aria-label="<?= t('media.list', 'LIST') ?>" title="<?= t('media.list', 'LIST') ?>">≣</button>
+        <button data-mirror-toggle="library" class="ar-mode ar-mirror" type="button"
+                aria-label="<?= esc(t('mirror.title_library', 'Mirror library')) ?>"
+                title="<?= esc(t('mirror.title_library', 'Mirror library — your browser downloads + re-shares items that need help. Stops on refresh.'), 'attr') ?>">↑</button>
       </div>
     </header>
     <div class="ar-body">
@@ -51,6 +54,11 @@
       <?php else: ?>
         <span class="ar-title"><?= t('media.video', 'VIDEO') ?></span>
       <?php endif ?>
+      <div class="ar-tools">
+        <button data-mirror-toggle="videos" class="ar-mode ar-mirror" type="button"
+                aria-label="<?= esc(t('mirror.title_videos', 'Mirror videos')) ?>"
+                title="<?= esc(t('mirror.title_videos', 'Mirror videos — your browser downloads + re-shares items that need help. Stops on refresh.'), 'attr') ?>">↑</button>
+      </div>
     </header>
     <div class="vid-stage">
       <div id="player" class="vid-frame vid-frame-empty">
@@ -86,11 +94,11 @@
   </section>
 </aside>
 
-<button class="drawer-toggle" data-drawer-toggle type="button" aria-controls="drawer" aria-expanded="false" aria-label="<?= t('media.media', 'Open media') ?>">
+<button class="drawer-toggle" data-drawer-toggle="media" type="button" aria-controls="drawer-media" aria-expanded="false">
   <span aria-hidden="true">▲</span> <?= t('media.media', 'MEDIA') ?>
 </button>
 
-<div class="drawer" id="drawer" data-drawer hidden>
+<div class="drawer" id="drawer-media" data-drawer="media" hidden>
   <div class="drawer-tabs" role="tablist" aria-label="<?= t('media.tabs', 'Media tabs') ?>">
     <button type="button" data-tab="library" class="active" role="tab" aria-selected="true"><?= t('media.library', 'LIBRARY') ?></button>
     <button type="button" data-tab="video" role="tab" aria-selected="false"><?= t('media.video', 'VIDEO') ?></button>
@@ -101,6 +109,8 @@
     <div data-panel="video"   class="drawer-panel" hidden></div>
   </div>
 </div>
+
+<?php snippet('aside-comm') ?>
 
 <div id="ctxmenu" class="ctxmenu" hidden>
   <button type="button" data-ctx="open"><?= t('media.open', 'OPEN') ?></button>
