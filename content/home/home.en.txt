@@ -2,14 +2,7 @@ Title: Home
 
 ----
 
-Intro:
-
-**The International Arab Communist Brigade
-**We are a group or organization *C.I.S.R*, not a party. This bulletin is a project by internationalist communist militants aimed at disseminating authentic Marxist theory and program, including texts of the "Italian Communist Left," also known as the "Bordigist parties." These pages are our way of participating in the struggle to rebuild the International Communist Party, which will be capable of guiding and leading the world proletariat toward its ultimate goal: *the communist proletarian revolution*, and the abolition of the exploitation of men and nature, wage labor, and any form of economy based on money.
-
-Our platform seeks to share our political analyses, and above all, to provide the theoretical material and political guidance that enables the formation and organization of the vanguards of revolutionary struggle across the entire Arab world, from the Middle East to the Maghreb.
-
-Our goal is clear: **We want to position ourselves within the historical window that allows the transformation of cross-border resistance struggles — in the context of this regional war — into an internationalist revolutionary struggle.**
+Body: [{"content":{"location":"kirby","image":["file://t3tdein9myxvymye"],"src":"","alt":"","caption":"","link":"","ratio":"","crop":"false"},"id":"7380950e-d7dc-4c05-9389-a9d46cc890e7","isHidden":false,"type":"image"},{"content":{"text":"<p><strong>The International Arab Communist Brigade</strong> We are a group or organization <em>C.I.S.R</em>, not a party. This bulletin is a project by internationalist communist militants aimed at disseminating authentic Marxist theory and program, including texts of the \"Italian Communist Left,\" also known as the \"Bordigist parties.\" These pages are our way of participating in the struggle to rebuild the International Communist Party, which will be capable of guiding and leading the world proletariat toward its ultimate goal: <em>the communist proletarian revolution</em>, and the abolition of the exploitation of men and nature, wage labor, and any form of economy based on money.</p><p>Our platform seeks to share our political analyses, and above all, to provide the theoretical material and political guidance that enables the formation and organization of the vanguards of revolutionary struggle across the entire Arab world, from the Middle East to the Maghreb.</p><p>Our goal is clear: <strong>We want to position ourselves within the historical window that allows the transformation of cross-border resistance struggles — in the context of this regional war — into an internationalist revolutionary struggle.</strong></p>"},"id":"home-intro","isHidden":false,"type":"text"},{"content":{"location":"kirby","image":["file://ujbpq9gvnke2lcs9"],"src":"","alt":"","caption":"","link":"","ratio":"","crop":"false"},"id":"dc773035-54cb-4800-9ad9-95bf363b2280","isHidden":false,"type":"image"}]
 
 ----
 

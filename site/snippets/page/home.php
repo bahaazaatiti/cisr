@@ -11,19 +11,22 @@
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
-<figure class="home-art home-art-signal" aria-hidden="true">
-  <img src="<?= url('assets/img/signal.svg') ?>" alt="" width="233" height="126">
-</figure>
-
-<?php if ($page->intro()->isNotEmpty()): ?>
-  <section class="ui-prose mb-8">
-    <?= $page->intro()->kt() ?>
-  </section>
-<?php endif ?>
-
-<figure class="home-art home-art-place" aria-hidden="true">
-  <img src="<?= url('assets/img/place.svg') ?>" alt="" width="326" height="197">
-</figure>
+<?php foreach ($page->body()->toBlocks() as $block): ?>
+  <?php if ($block->type() === 'image'):
+    $image = $block->image()->toFile();
+    if (!$image) continue;
+    $alt = (string) $block->alt();
+  ?>
+    <figure class="home-art">
+      <img src="<?= esc($image->url()) ?>" alt="<?= esc($alt) ?>"
+           <?php if ($image->width() && $image->height()): ?>width="<?= $image->width() ?>" height="<?= $image->height() ?>"<?php endif ?>
+           loading="lazy" decoding="async"
+           <?= $alt === '' ? 'aria-hidden="true"' : '' ?>>
+    </figure>
+  <?php elseif ($block->type() === 'text'): ?>
+    <section class="ui-prose mb-8"><?= $block->text() ?></section>
+  <?php endif ?>
+<?php endforeach ?>
 
 <?php $featured = $page->featured()->toPages(); ?>
 <?php if (count($featured)): ?>

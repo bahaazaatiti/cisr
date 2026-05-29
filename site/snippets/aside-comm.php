@@ -21,7 +21,8 @@
       <div class="comm-head">
         <span class="ui-sku"><?= esc(t('comm.lobby_label', 'Lobby')) ?></span>
         <span class="ui-sku" data-comm-peer-count
-              data-fmt="<?= esc(t('comm.peers_n', '{n} peers'), 'attr') ?>"></span>
+              data-fmt="<?= esc(t('comm.peers_n', '{n} peers'), 'attr') ?>"
+              data-connecting="<?= esc(t('comm.connecting', 'connecting…'), 'attr') ?>"></span>
       </div>
       <ol class="comm-msgs" data-comm-msg-list aria-live="polite"
           data-chat-privacy="<?= esc(t('comm.chat_privacy', 'WebRTC peer connection — your IP is visible to peers in this lobby. Close the tab or refresh to disconnect.'), 'attr') ?>"></ol>

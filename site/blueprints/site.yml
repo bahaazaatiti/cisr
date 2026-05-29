@@ -14,6 +14,22 @@ columns:
             type: text
             translate: true
             placeholder: Short tagline
+          logo:
+            label: Sidebar logo
+            type: files
+            multiple: false
+            uploads:
+              template: image
+            help: >
+              Defaults to the bundled sign image if empty. A monochrome image
+              works best — the sidebar inverts it in dark mode.
+      logo_files:
+        type: files
+        headline: Site files
+        template: image
+        layout: cards
+        info: "{{ file.dimensions }} · {{ file.niceSize }}"
+        empty: Upload a logo here, then pick it in the Sidebar logo field above.
       navigation:
         type: pages
         headline: Pages

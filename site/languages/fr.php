@@ -131,6 +131,7 @@ return [
         'comm.mic'          => 'MIC',
         'comm.cam'          => 'CAM',
         'comm.peers_n'      => '{n} pairs',
+        'comm.connecting'   => 'connexion en cours…',
         'comm.privacy_note' => 'WebRTC via des trackers publics. Votre IP est visible des pairs ; caméra et micro restent éteints jusqu’au clic sur REJOINDRE.',
         'comm.chat_privacy' => 'Connexion WebRTC pair-à-pair — votre IP est visible des pairs dans ce salon. Fermez l’onglet ou rechargez pour vous déconnecter.',
         'comm.gum_denied'   => 'Accès caméra/micro refusé.',

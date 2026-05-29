@@ -9,24 +9,32 @@ options:
 
 columns:
   - width: 1/2
-    fields:
-      intro:
-        label: Intro
-        type: textarea
-        size: large
-        translate: true
-        buttons:
-          - bold
-          - italic
-          - link
-      featured:
-        label: Featured articles (up to 5)
-        type: pages
-        query: site.find("articles").children.listed
-        multiple: true
-        max: 5
-        layout: list
-        info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
+    sections:
+      meta:
+        type: fields
+        fields:
+          body:
+            label: Content
+            type: blocks
+            translate: true
+            fieldsets:
+              - text
+              - image
+          featured:
+            label: Featured articles (up to 5)
+            type: pages
+            query: site.find("articles").children.listed
+            multiple: true
+            max: 5
+            layout: list
+            info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
+      home_files:
+        type: files
+        headline: Page files
+        template: image
+        layout: cards
+        info: "{{ file.dimensions }} · {{ file.niceSize }}"
+        empty: Upload images here, then pick them inside an image block.
   - width: 1/2
     sections:
       latest:

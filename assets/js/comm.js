@@ -13,6 +13,11 @@
   const messages = [];          // ring buffer, capped 200
   let roomEnsured = false;
   let inConference = false;
+  // Connecting state — true between ensureRoom() and either first-peer or a
+  // generous timeout. Used to distinguish "still negotiating with trackers"
+  // from "trackers are up but no one else is here right now".
+  let chatConnecting = false;
+  let chatConnectingTimer = null;
 
   function vendorUrl() {
     const s = document.querySelector('script[data-comm-vendor]');
@@ -48,6 +53,10 @@
   function updatePeerCount() {
     const n = room ? Object.keys(room.getPeers ? room.getPeers() : {}).length : 0;
     peerCountEls().forEach(el => {
+      if (chatConnecting && n === 0) {
+        el.textContent = el.dataset.connecting || 'connecting…';
+        return;
+      }
       const fmt = el.dataset.fmt || '{n} peers';
       el.textContent = fmt.replace('{n}', n);
     });
@@ -90,9 +99,17 @@
         const peerId = info && info.peerId ? info.peerId : info;
         appendMsg({ peerId, text: String(text), ts: Date.now(), self: false });
       };
-      room.onPeerJoin = () => updatePeerCount();
+      room.onPeerJoin = () => { chatConnecting = false; updatePeerCount(); };
       room.onPeerLeave = (id) => { removePeerVideo(id); updatePeerCount(); };
       room.onPeerStream = (stream, peerId) => attachPeerVideo(peerId, stream);
+      // Initial connecting state — flips to "0 peers" once trackers have had a
+      // chance to report back. 6 s is enough for the WSS handshake + announce
+      // round-trip on most networks without making the user wait forever.
+      chatConnecting = true;
+      if (chatConnectingTimer) clearTimeout(chatConnectingTimer);
+      chatConnectingTimer = setTimeout(() => {
+        chatConnecting = false; chatConnectingTimer = null; updatePeerCount();
+      }, 6000);
       updatePeerCount();
       // First-line privacy notice (read from the aside-comm template's
       // data-chat-privacy attribute so the wording follows the page language).
@@ -161,12 +178,19 @@
   async function joinConference() {
     if (inConference) return;
     showGumError('');
+    // Try audio + video first; on failure (no camera, camera in use by another
+    // app, etc.) retry with audio only so users without a webcam can still
+    // talk and see other peers' video.
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-    } catch (err) {
-      const fallback = gumErrEls()[0]?.dataset.fallback || 'Camera/microphone access denied.';
-      showGumError(fallback + (err?.message ? ' — ' + err.message : ''));
-      return;
+    } catch (avErr) {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      } catch (audioErr) {
+        const fallback = gumErrEls()[0]?.dataset.fallback || 'Camera/microphone access denied.';
+        showGumError(fallback + (audioErr?.message ? ' — ' + audioErr.message : ''));
+        return;
+      }
     }
     await ensureRoom();
     if (!room) {

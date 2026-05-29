@@ -132,6 +132,7 @@ return [
         'comm.mic'          => 'MIC',
         'comm.cam'          => 'CAM',
         'comm.peers_n'      => '{n} peers',
+        'comm.connecting'   => 'connecting…',
         'comm.privacy_note' => 'WebRTC over public trackers. Your IP is visible to peers; camera and mic stay off until you click JOIN.',
         'comm.chat_privacy' => 'WebRTC peer connection — your IP is visible to peers in this lobby. Close the tab or refresh to disconnect.',
         'comm.gum_denied'   => 'Camera/microphone access denied.',
