@@ -90,6 +90,19 @@
   a:hover { color: var(--accent); }
   h1, h2, h3, h4, h5, h6 { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
   ::selection { background: var(--accent); color: var(--accent-foreground); }
+
+  /* Hairline scrollbars — webkit + firefox. Theme variables flip with palette
+     so the bar reads HIGHK in light and RETICLE in dark without extra rules. */
+  html { scrollbar-color: var(--border) var(--secondary); scrollbar-width: thin; scroll-padding-top: 1rem; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--secondary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--foreground); }
+  ::-webkit-scrollbar-corner { background: var(--secondary); }
+
+  /* Image blocks without intrinsic width/height (web-URL source) get a
+     16/9 fallback so layout doesn't shift when the image lazy-loads. */
+  figure.my-6 > img:not([width]) { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
 }
 
 @layer components {
@@ -109,6 +122,60 @@
   .ui-badge[data-status="draft"]    { color: var(--destructive); }
   .ui-badge[data-status="unlisted"] { color: var(--muted-foreground); }
   .ui-badge[data-status="listed"]   { color: var(--accent); }
+  /* Variant set for ad-hoc notices — reuses existing tokens so the same
+     vocabulary applies across both palettes. */
+  .ui-badge[data-variant="success"] { color: var(--accent); }
+  .ui-badge[data-variant="info"]    { color: var(--muted-foreground); }
+  .ui-badge[data-variant="error"]   { color: var(--destructive); }
+
+  /* Inline status pip. Sized to typography baseline; state via data-state. */
+  .status-dot {
+    display: inline-block;
+    width: 0.55em; height: 0.55em;
+    border-radius: 50%;
+    background: var(--muted-foreground);
+    vertical-align: 0.05em;
+  }
+  .status-dot[data-state="on"]  { background: var(--accent); }
+  .status-dot[data-state="off"] { background: var(--destructive); }
+
+  /* Keyboard chord — hairline border. The body is already monospace. */
+  kbd {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0 0.35em;
+    font-size: 0.85em;
+    background: var(--secondary);
+    color: var(--foreground);
+  }
+
+  /* Toast stack — anchored bottom-end, slides in then auto-fades after 4s.
+     window.siteToast(text, kind?) appends; the toast removes itself on the
+     animation end event. */
+  .toast-stack {
+    position: fixed;
+    bottom: 1rem;
+    inset-inline-end: 1rem;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .toast {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    font-size: 0.85em;
+    max-width: 22em;
+    pointer-events: auto;
+    animation: toast-in 0.18s ease-out, toast-out 0.3s 4s ease-in forwards;
+  }
+  .toast[data-kind="success"] { border-color: var(--accent); }
+  .toast[data-kind="error"]   { border-color: var(--destructive); }
+  @keyframes toast-in  { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes toast-out { to { transform: translateY(8px); opacity: 0; } }
   /* Theme toggle sits beside the language chooser; match its inherited size
      and pick up accent on hover, like other interactive controls. */
   [data-theme-toggle] { font-size: inherit; line-height: 1.4; padding: 0 0.4em; }
@@ -287,9 +354,13 @@
   .mirror-popover:hover > .ctxmenu,
   .mirror-popover:focus-within > .ctxmenu { display: flex; }
   /* Active section gets an accent stripe — secondary background alone reads
-     as just "hover" against another hover. */
+     as just "hover" against another hover. Hover previews the same stripe at
+     half thickness so the chord between hover and active feels intentional. */
+  .nav-item { transition: box-shadow 0.12s ease; }
   .nav-item.active { color: var(--foreground); box-shadow: inset 2px 0 0 var(--accent); }
+  .nav-item:hover:not(.active) { box-shadow: inset 1px 0 0 var(--accent); }
   html[dir=rtl] .nav-item.active { box-shadow: inset -2px 0 0 var(--accent); }
+  html[dir=rtl] .nav-item:hover:not(.active) { box-shadow: inset -1px 0 0 var(--accent); }
 
   /* Skip-link (a11y) — visually hidden until focused */
   .skip { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 50%; transform: translateX(-50%) translateY(-200%); background: var(--background); color: var(--foreground); border: 1px solid var(--border); padding: 0.4rem 0.8rem; z-index: 100; text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; transition: transform 0.15s ease; }

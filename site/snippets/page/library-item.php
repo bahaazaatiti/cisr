@@ -58,7 +58,7 @@
     <button type="button" class="ui-badge" data-p2p-action="copy" data-magnet="<?= esc($magnet) ?>"><?= t('ui.copy_magnet', 'Copy magnet') ?></button>
   </div>
 
-  <div class="p2p-status ui-sku mb-2" data-p2p-status></div>
+  <div class="p2p-status ui-sku mb-2" data-p2p-status role="status" aria-live="polite"></div>
 
   <?php if ($isViewable): ?>
     <div class="p2p-stage mb-4" data-p2p-stage data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"></div>

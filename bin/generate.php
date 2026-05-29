@@ -110,4 +110,18 @@ foreach ($copies as $name) {
 }
 touch($outputFolder . '/.nojekyll');
 
+// Per-route gz size manifest. Lets CI surface byte-budget diffs vs prior
+// build and gives clients a cheap way to read the page weight before navigating.
+$sizes = [];
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($outputFolder, RecursiveDirectoryIterator::SKIP_DOTS));
+foreach ($it as $f) {
+    $path = $f->getPathname();
+    if (!str_ends_with($path, '.html')) continue;
+    $rel = '/' . str_replace($outputFolder . '/', '', $path);
+    $sizes[$rel] = strlen((string) gzencode((string) file_get_contents($path), 9));
+}
+ksort($sizes);
+file_put_contents($outputFolder . '/_sizes.json', json_encode($sizes, JSON_PRETTY_PRINT) . "\n");
+fwrite(STDERR, "wrote:    _sizes.json (" . count($sizes) . " routes)\n");
+
 fwrite(STDERR, "done\n");

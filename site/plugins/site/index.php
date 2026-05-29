@@ -26,6 +26,9 @@ if (!function_exists('magnet_parse')) {
 }
 
 if (!function_exists('magnet_has_wss')) {
+    // True iff the magnet declares at least one wss:// tracker. Browsers can
+    // only reach WebSocket trackers — UDP/HTTP-only magnets are dead-on-arrival.
+    // Used by isBroken() page method + the dashboard stats audit.
     function magnet_has_wss(?string $magnet): bool {
         $p = magnet_parse($magnet);
         if (!$p) return false;
@@ -102,24 +105,6 @@ if (!function_exists('tree_build')) {
     }
 }
 
-if (!function_exists('file_kind')) {
-    function file_kind(\Kirby\Cms\File $file): string {
-        static $map = [
-            'pdf'  => 'pdf',
-            'jpg'  => 'img', 'jpeg' => 'img', 'png' => 'img', 'gif' => 'img', 'webp' => 'img', 'svg' => 'img',
-            'mp4'  => 'mp4', 'webm' => 'mp4', 'mov' => 'mp4', 'ogg' => 'mp4',
-            'mp3'  => 'snd', 'wav' => 'snd', 'flac' => 'snd', 'm4a' => 'snd',
-            'doc'  => 'doc', 'docx' => 'doc', 'odt' => 'doc', 'rtf' => 'doc',
-            'xls'  => 'xls', 'xlsx' => 'xls', 'csv' => 'xls', 'tsv' => 'xls', 'ods' => 'xls',
-            'ppt'  => 'ppt', 'pptx' => 'ppt', 'odp' => 'ppt', 'key' => 'ppt',
-            'zip'  => 'zip', 'tar' => 'zip', 'gz' => 'zip', '7z' => 'zip', 'rar' => 'zip',
-            'txt'  => 'txt', 'md' => 'txt', 'log' => 'txt',
-            'json' => 'dat', 'xml' => 'dat', 'yaml' => 'dat', 'yml' => 'dat',
-        ];
-        return $map[strtolower($file->extension())] ?? '...';
-    }
-}
-
 Kirby::plugin('site/helpers', [
     'pageMethods' => [
         'videoEmbedUrl' => function () {
@@ -174,10 +159,41 @@ Kirby::plugin('site/helpers', [
         // plain rows in the parent listing and skip per-item generation.
         'isRich' => function () {
             $tpl = $this->intendedTemplate()->name();
-            if ($tpl === 'library-item') return $this->notes()->isNotEmpty();
-            if ($tpl === 'video')        return $this->summary()->isNotEmpty();
-            if ($tpl === 'fraternal')    return $this->notes()->isNotEmpty();
+            // Uniform contract across rich-able templates: a non-empty Notes
+            // body earns a standalone static page. Summary stays the short
+            // listing/meta blurb regardless.
+            if (in_array($tpl, ['library-item', 'video', 'fraternal'], true)) {
+                return $this->notes()->isNotEmpty();
+            }
             return true;
+        },
+        // True when a magnet-bearing page (library-item or magnet-mode video)
+        // has a magnet without any wss:// tracker — i.e. unreachable from a
+        // browser. Drives the dashboard "broken magnets" stat.
+        'isBroken' => function () {
+            if (!$this->hasMagnetSource()) return false;
+            return !magnet_has_wss((string) $this->magnet());
+        },
+    ],
+    'siteMethods' => [
+        // Count of library-items + videos whose magnet is unreachable from a
+        // browser (no wss:// tracker). Cheap enough to call on every panel
+        // dashboard render thanks to the page cache.
+        'brokenMagnetCount' => function (): int {
+            $n = 0;
+            foreach ($this->index() as $p) {
+                if ($p->isBroken()) $n++;
+            }
+            return $n;
+        },
+        'libraryItemCount' => function (): int {
+            return $this->index()->filterBy('intendedTemplate', 'library-item')->count();
+        },
+        'fraternalCount' => function (): int {
+            return $this->index()->filterBy('intendedTemplate', 'fraternal')->count();
+        },
+        'videoCount' => function (): int {
+            return $this->index()->filterBy('intendedTemplate', 'video')->count();
         },
     ],
 ]);

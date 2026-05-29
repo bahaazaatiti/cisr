@@ -326,11 +326,14 @@
     }
     if (statusEl) mirrorStatusEls.set(sec, statusEl);
     const queue = targets.slice();
+    // Read cap from <html data-mirror-cap> so forks can tune without editing
+    // JS. Fallback to 3 if attribute missing or non-numeric.
+    const cap = parseInt(document.documentElement.dataset.mirrorCap, 10) || 3;
     function spawn() {
       // Cap counts ACTIVELY downloading torrents (mirrorInFlight), not the
       // total mirror pool — completed ones stay seeding but no longer occupy
       // a download slot. Global cap across all sections.
-      while (mirrorInFlight.size < 3 && queue.length) {
+      while (mirrorInFlight.size < cap && queue.length) {
         const item = queue.shift();
         const magnet = item.magnet || item;
         if (mirrorTorrents.has(magnet)) continue;
@@ -341,7 +344,17 @@
         if (!t.done) mirrorInFlight.add(t);
         t.on('error', () => { mirrorInFlight.delete(t); spawn(); });
         t.on('warning', () => {});
-        t.on('done', () => { mirrorInFlight.delete(t); spawn(); });
+        t.on('done', () => {
+          mirrorInFlight.delete(t);
+          spawn();
+          // Surface completion as a toast — the running status line tells you
+          // how the pool is doing in aggregate, but a finished mirror is a
+          // moment worth announcing once.
+          if (window.siteToast) {
+            const name = t.name || (t.files && t.files[0] && t.files[0].name) || 'item';
+            window.siteToast('mirror complete: ' + name, 'success');
+          }
+        });
       }
     }
     spawn();

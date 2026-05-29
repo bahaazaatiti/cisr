@@ -18,11 +18,13 @@ columns:
             label: Sidebar logo
             type: files
             multiple: false
+            query: site.images
             uploads:
               template: image
             help: >
-              Defaults to the bundled sign image if empty. A monochrome image
-              works best — the sidebar inverts it in dark mode.
+              Pick from Site files below, or drop one to upload. Defaults to the
+              bundled sign image if empty. Monochrome works best — the sidebar
+              inverts it in dark mode.
       logo_files:
         type: files
         headline: Site files
@@ -53,6 +55,7 @@ columns:
         sortBy: date desc
         limit: 20
         info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
+        empty: No articles yet. Use the + button to add one.
         create:
           template: article
           redirect: true

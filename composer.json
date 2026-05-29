@@ -22,7 +22,7 @@
   },
   "require": {
     "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
-    "getkirby/cms": "^5.2",
+    "getkirby/cms": "^5.4.3",
     "jreisdorf/kirby-static-site-generator": "^2.4"
   },
   "config": {

@@ -25,7 +25,9 @@
               data-connecting="<?= esc(t('comm.connecting', 'connecting…'), 'attr') ?>"></span>
       </div>
       <ol class="comm-msgs" data-comm-msg-list aria-live="polite"
-          data-chat-privacy="<?= esc(t('comm.chat_privacy', 'WebRTC peer connection — your IP is visible to peers in this lobby. Close the tab or refresh to disconnect.'), 'attr') ?>"></ol>
+          data-chat-privacy="<?= esc(t('comm.chat_privacy', 'WebRTC peer connection — your IP is visible to peers in this lobby. Close the tab or refresh to disconnect.'), 'attr') ?>"
+          data-chat-no-peers="<?= esc(t('comm.no_peers', 'no peers connected — message not delivered.'), 'attr') ?>"
+          data-chat-peer-joined="<?= esc(t('comm.peer_joined', 'peer joined: {id}'), 'attr') ?>"></ol>
       <form class="comm-composer" onsubmit="return false">
         <textarea data-comm-msg-input
                   rows="2"

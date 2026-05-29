@@ -42,6 +42,10 @@
   function callEls()      { return $$('[data-comm-call]'); }
   function gumErrEls()    { return $$('[data-comm-gum-err]'); }
 
+  // Security choke point: every string that flows into insertAdjacentHTML
+  // (peer ids, timestamps, received chat text, system notices) MUST pass
+  // through this. Adding new chat-line shapes? Escape first, concatenate
+  // second — no exceptions.
   function escHtml(s) {
     return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
@@ -63,6 +67,8 @@
   }
   function appendMsg({ peerId, text, ts, self }) {
     messages.push({ peerId, text, ts, self });
+    // Ring-buffer cap: 200 lines ≈ 30-100 KB depending on text length. In-RAM
+    // only — never persisted. Refresh wipes the history; that is intentional.
     if (messages.length > 200) messages.shift();
     const html = '<li><span class="comm-peer">' + escHtml(self ? 'you' : shortId(peerId)) + ' · ' + escHtml(fmtTime(ts)) + '</span> ' + escHtml(text) + '</li>';
     msgListEls().forEach(ol => {
@@ -90,6 +96,9 @@
     roomEnsured = true;
     try {
       const trystero = await loadTrystero();
+      // Single global channel: appId and room are hardcoded so every fork
+      // joins the same swarm by default. Neither is a secret — DHT
+      // discoverable. Forks that want a private lobby fork these constants.
       room = trystero.joinRoom({ appId: 'cisr' }, 'lobby');
       // Trystero v0.25 returns an object with .send / .onMessage (older
       // versions returned a [send, onMsg] tuple — don't assume).
@@ -99,7 +108,14 @@
         const peerId = info && info.peerId ? info.peerId : info;
         appendMsg({ peerId, text: String(text), ts: Date.now(), self: false });
       };
-      room.onPeerJoin = () => { chatConnecting = false; updatePeerCount(); };
+      room.onPeerJoin = (peerId) => {
+        chatConnecting = false;
+        updatePeerCount();
+        if (window.siteToast) {
+          const tmpl = msgListEls()[0]?.dataset.chatPeerJoined || 'peer joined: {id}';
+          window.siteToast(tmpl.replace('{id}', shortId(peerId)), 'info');
+        }
+      };
       room.onPeerLeave = (id) => { removePeerVideo(id); updatePeerCount(); };
       room.onPeerStream = (stream, peerId) => attachPeerVideo(peerId, stream);
       // Initial connecting state — flips to "0 peers" once trackers have had a
@@ -130,6 +146,12 @@
     if (!chatSend) return;
     chatSend(t);
     appendMsg({ peerId: 'self', text: t, ts: Date.now(), self: true });
+    // Trystero broadcasts without buffering — a message sent into an empty
+    // lobby is lost. Surface a local-only warning so the user knows.
+    const peers = room ? Object.keys(room.getPeers ? room.getPeers() : {}).length : 0;
+    if (peers === 0) {
+      appendSystemMsg(msgListEls()[0]?.dataset.chatNoPeers || 'no peers connected — message not delivered.');
+    }
   }
 
   // ---- Conference actions ----

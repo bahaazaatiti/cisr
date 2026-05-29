@@ -5,6 +5,33 @@
   const sidebar = () => $('[data-sidebar]');
   const loadbar = () => $('#loadbar');
 
+  // New SW activated (deploy with bumped sw.min.js content): surface a
+  // one-time toast so the user knows a refresh will pick up the new build.
+  // Guard navigator.serviceWorker for non-secure contexts (no toast there).
+  navigator.serviceWorker?.addEventListener?.('controllerchange', () => {
+    window.siteToast?.('new build active — refresh for latest', 'info');
+  });
+
+  // Ephemeral notice. kind = "success" | "info" | "error" | undefined.
+  // Self-cleans on the second animation (slide-out at 4s); stack lives in
+  // <body> because it must survive panel-swap.
+  window.siteToast = (text, kind) => {
+    let stack = $('.toast-stack');
+    if (!stack) {
+      stack = document.createElement('div');
+      stack.className = 'toast-stack';
+      document.body.appendChild(stack);
+    }
+    const t = document.createElement('div');
+    t.className = 'toast';
+    if (kind) t.dataset.kind = kind;
+    t.textContent = text;
+    t.addEventListener('animationend', e => {
+      if (e.animationName === 'toast-out') t.remove();
+    });
+    stack.appendChild(t);
+  };
+
   function syncActive() {
     const cur = location.pathname.replace(/\/+$/, '') || '/';
     $$('[data-sidebar] a[data-link]').forEach(a => {
@@ -139,6 +166,8 @@
     renderPlayer(host, { src: btn.dataset.vidSrc, title: btn.dataset.vidTitle || '' });
   }
 
+  // Mirrors the blueprint `kind` enum (library-item.yml). Three-letter labels
+  // fit the table-first aesthetic and stay readable at small sizes.
   const KIND_LABEL = { pdf:'PDF', epub:'EPB', audio:'AUD', video:'VID', image:'IMG', archive:'ZIP', other:'OTH' };
   function kindLabel(k) { return KIND_LABEL[k] || 'OTH'; }
 
@@ -149,6 +178,9 @@
     $$('.lib-list').forEach(el => el.hidden = mode !== 'list');
   }
 
+  // Choke point for every string from library.json (file/folder names, kinds)
+  // before it hits innerHTML in the grid/list paint. Editor-supplied = trusted
+  // in theory; escape anyway — a stray `<` in a title shouldn't break layout.
   function escHtml(s) {
     return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }

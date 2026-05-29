@@ -1,0 +1,56 @@
+title: Image
+
+accept:
+  mime: image/jpeg, image/png, image/webp, image/svg+xml, image/gif
+  maxsize: 8M
+
+options:
+  changeName: true
+  delete: true
+  download: true
+  replace: true
+  update: true
+
+columns:
+  - width: 1/2
+    fields:
+      alt:
+        label: Alt text
+        type: text
+        translate: true
+        help: Describe the image for screen readers and when it fails to load. Required for accessibility.
+      caption:
+        label: Caption
+        type: textarea
+        size: small
+        translate: true
+        help: Optional. Renders below the image in articles.
+
+  - width: 1/2
+    fields:
+      credit:
+        label: Credit
+        type: text
+        translate: false
+        placeholder: e.g. "Photo by …"
+        help: Photographer, illustrator, or attribution string.
+      license:
+        label: License
+        type: select
+        translate: false
+        default: own
+        options:
+          own:     Our own / unrestricted
+          cc-by:   CC BY 4.0
+          cc-by-sa: CC BY-SA 4.0
+          cc-by-nc: CC BY-NC 4.0
+          cc0:     CC0 / Public domain
+          fair:    Fair use
+          unknown: Unknown — verify before publishing
+        help: Drives attribution rendering and lets the audit catch unverified assets.
+      source_url:
+        label: Source URL
+        type: url
+        translate: false
+        placeholder: https://...
+        help: Where the image came from. Useful for re-checking attribution.

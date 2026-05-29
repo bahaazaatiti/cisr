@@ -7,8 +7,41 @@ options:
   delete: false
   preview: true
 
+icon: home
+
 columns:
-  - width: 1/2
+  # Dashboard strip — counts + a magnet health warning that lights up if any
+  # library-item or magnet-video has a tracker browsers can't reach.
+  dashboard:
+    width: 1/1
+    sections:
+      stats:
+        type: stats
+        reports:
+          - label: Articles
+            value: "{{ site.find('articles').children.listed.count }}"
+            icon: pen
+            link: pages/articles
+          - label: Library items
+            value: "{{ site.libraryItemCount }}"
+            icon: file
+            link: pages/library
+          - label: Fraternals
+            value: "{{ site.fraternalCount }}"
+            icon: users
+            link: pages/fraternals
+          - label: Videos
+            value: "{{ site.videoCount }}"
+            icon: video
+            link: pages/videos
+          - label: Broken magnets
+            value: "{{ site.brokenMagnetCount }}"
+            info: missing wss:// tracker
+            icon: alert
+            theme: negative
+
+  main:
+    width: 1/2
     sections:
       meta:
         type: fields
@@ -17,6 +50,7 @@ columns:
             label: Content
             type: blocks
             translate: true
+            help: Intro paragraph + optional images. Renders above the featured list.
             fieldsets:
               - text
               - image
@@ -28,17 +62,18 @@ columns:
             max: 5
             layout: list
             info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
+            help: Hand-picked. Leave empty to auto-show the latest articles.
       home_files:
-        type: files
+        extends: sections/files-with-meta
         headline: Page files
-        template: image
-        layout: cards
         info: "{{ file.dimensions }} · {{ file.niceSize }}"
         empty: Upload images here, then pick them inside an image block.
-  - width: 1/2
+
+  side:
+    width: 1/2
     sections:
       latest:
-        type: pages
+        extends: sections/pages-by-status
         headline: Latest articles
         parent: site.find("articles")
         template: article
@@ -46,6 +81,4 @@ columns:
         sortBy: date desc
         limit: 5
         info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
-        create:
-          template: article
-          redirect: true
+        empty: No published articles yet.

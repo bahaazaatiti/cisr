@@ -8,12 +8,10 @@ options:
 
 sections:
   list:
-    type: pages
+    extends: sections/pages-by-status
     headline: Videos
     status: all
     template: video
     sortBy: date desc
-    info: "{{ page.date.toDate('Y-m-d') }} · {{ page.youtube_url }}"
-    create:
-      template: video
-      redirect: true
+    info: "{{ page.date.toDate('Y-m-d') }} · {{ page.source_type.or('youtube') }}"
+    empty: No videos yet. Use + to add one (YouTube link or magnet).
