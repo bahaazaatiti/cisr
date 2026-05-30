@@ -1,0 +1,56 @@
+title: Live News Ticker
+icon: bell
+
+options:
+  changeSlug: false
+  changeStatus: false
+  changeTemplate: false
+  delete: false
+  preview: false
+
+columns:
+  - width: 1/1
+    sections:
+      intro:
+        type: info
+        label: How the crawl works
+        theme: info
+        text: |
+          Turn the crawl on or off from the **Home** page. It scrolls across the
+          top of every page.
+
+          **Telegram** and **Twitter / X** are fetched **live in the visitor's
+          browser** — just paste the channel's `t.me` link or the profile's
+          `x.com` link. No accounts, no setup. It's best-effort: Telegram is
+          reliable; X rides public mirrors that come and go, so that lane may
+          sometimes stay empty. If a lane won't load, switch it Off.
+
+          **Breaking news** is the one hand-written lane — type the lines
+          yourself; they show instantly.
+
+          Everything is per-language: switch language (top-right) to point at
+          the Arabic or French channels and write the Arabic/French lines.
+
+  - width: 1/2
+    sections:
+      feeds:
+        type: fields
+        fields:
+          telegram:
+            extends: fields/ticker-feed
+            label: Telegram
+            empty: No Telegram channels yet — paste a t.me link.
+          twitter:
+            extends: fields/ticker-feed
+            label: Twitter / X
+            empty: No X profiles yet — paste an x.com link.
+
+  - width: 1/2
+    sections:
+      manual:
+        type: fields
+        fields:
+          breaking:
+            extends: fields/ticker-news
+            label: Breaking news (hand-written)
+            empty: No breaking-news lines yet — add one.

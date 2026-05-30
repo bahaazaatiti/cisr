@@ -182,5 +182,8 @@ return [
         'xfer.seed_library_hint' => 'Seed all library items — adds them to your transfers and re-shares to the swarm. Stops on refresh.',
         'xfer.seed_videos'      => 'Seed videos',
         'xfer.seed_videos_hint' => 'Seed all videos — adds them to your transfers and re-shares to the swarm. Stops on refresh.',
+
+        // live news ticker
+        'ticker.region'         => 'Live news',
     ],
 ];

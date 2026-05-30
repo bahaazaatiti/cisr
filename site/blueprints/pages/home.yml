@@ -43,6 +43,24 @@ columns:
   main:
     width: 1/2
     sections:
+      ticker:
+        type: fields
+        fields:
+          ticker_on:
+            label: Live news ticker
+            type: toggle
+            text:
+              - "Off — no crawl"
+              - "On — crawl shows site-wide"
+            default: false
+            translate: false
+            icon: bell
+            help: Scrolling news crawl pinned to the top of every page.
+          ticker_link:
+            label: Sources
+            type: info
+            theme: passive
+            text: "[→ Manage the four crawl sources](/panel/pages/news-ticker)"
       meta:
         type: fields
         fields:

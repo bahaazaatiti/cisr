@@ -1,0 +1,29 @@
+# An auto-fetched crawl source (Telegram / Twitter). The editor pastes a raw
+# t.me / x.com link — the visitor's browser fetches the latest posts at view
+# time. Per-language: each language can point at its own channel. Disabling
+# keeps the row but darks it.
+type: structure
+translate: true
+empty: No sources yet — paste a channel link.
+columns:
+  enabled:
+    width: 1/4
+  url:
+    width: 3/4
+fields:
+  enabled:
+    label: On
+    type: toggle
+    default: true
+    width: 1/4
+    icon: power
+    help: Off keeps the row here but stops fetching it.
+  url:
+    label: Feed or channel link
+    type: url
+    width: 3/4
+    required: true
+    icon: url
+    help: >
+      Paste the channel's t.me link or the profile's x.com link. Fetched live in
+      the visitor's browser — best-effort (X can be intermittent).

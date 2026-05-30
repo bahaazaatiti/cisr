@@ -181,5 +181,8 @@ return [
         'xfer.seed_library_hint' => 'Partager tous les éléments — les ajoute à vos transferts et les repartage au réseau. S’arrête au rechargement.',
         'xfer.seed_videos'      => 'Partager les vidéos',
         'xfer.seed_videos_hint' => 'Partager toutes les vidéos — les ajoute à vos transferts et les repartage au réseau. S’arrête au rechargement.',
+
+        // live news ticker
+        'ticker.region'         => 'Actualités en direct',
     ],
 ];

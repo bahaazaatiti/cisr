@@ -34,6 +34,11 @@ return [
             'users',
             'system',
             '-',
+            'news-ticker' => [
+                'icon'  => 'bell',
+                'label' => 'News ticker',
+                'link'  => 'pages/news-ticker',
+            ],
             'quick-article' => [
                 'icon'  => 'pen',
                 'label' => 'New article',

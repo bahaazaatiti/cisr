@@ -1,0 +1,25 @@
+Title: Live News Ticker
+
+----
+
+Telegram:
+
+- 
+  enabled: 'false'
+  url: https://t.me/mmirlb
+
+----
+
+Twitter:
+
+- 
+  enabled: 'false'
+  url: https://x.com/AJENews
+
+----
+
+Breaking: 
+
+----
+
+Uuid: news-ticker

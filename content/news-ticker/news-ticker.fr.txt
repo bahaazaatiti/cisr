@@ -1,0 +1,30 @@
+Title: Live News Ticker
+
+----
+
+Telegram:
+
+-
+  enabled: 'true'
+  url: 'https://t.me/mmirlb'
+
+----
+
+Twitter:
+
+-
+  enabled: 'true'
+  url: 'https://x.com/AJENews'
+
+----
+
+Breaking:
+
+-
+  enabled: 'true'
+  text: 'CISR statement — on the tasks of internationalist militants'
+  url: ''
+-
+  enabled: 'true'
+  text: 'New in the library: the complete Bordiga readings'
+  url: ''

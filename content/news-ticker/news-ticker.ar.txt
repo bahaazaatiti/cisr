@@ -1,0 +1,30 @@
+Title: شريط الأخبار المباشر
+
+----
+
+Telegram:
+
+-
+  enabled: 'true'
+  url: 'https://t.me/C_Military1'
+
+----
+
+Twitter:
+
+-
+  enabled: 'true'
+  url: 'https://x.com/AJABreaking'
+
+----
+
+Breaking:
+
+-
+  enabled: 'true'
+  text: 'بيان المنظمة — حول مهام المناضلين الأمميين'
+  url: ''
+-
+  enabled: 'true'
+  text: 'جديد في المكتبة: قراءات بورديغا الكاملة'
+  url: ''

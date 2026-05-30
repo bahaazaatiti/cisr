@@ -640,4 +640,59 @@
   .ui-skeleton .sk-line { width: 100%; }
   .ui-skeleton .w-2\/3 { width: 66%; }
   @keyframes sk { from { opacity: 0.5; } to { opacity: 1; } }
+
+  /* LIVE NEWS TICKER — an accent crawl pinned to the top of the band between
+     the two fixed sidebars. CSS-only marquee: .tk-track carries the items
+     twice and slides exactly one segment, so the loop is seamless. Lives in
+     the persistent shell (footer), so it rides across SPA navs uninterrupted.
+     Opaque background hides content scrolling beneath the fixed bar. */
+  .ticker {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 16rem;   /* clears the left sidebar */
+    inset-inline-end: 18rem;     /* clears the right media aside */
+    z-index: 25;                 /* under sidebar/aside (30) + toggles (40) */
+    height: 1.9rem;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: var(--background);
+    color: var(--accent);
+    border-block: 1px solid var(--accent);
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    /* Feather both ends so lines enter/exit instead of popping at a hard edge. */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+            mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+  }
+  .ticker[hidden] { display: none; }   /* beats the display:flex above when JS finds nothing to show */
+  @media (max-width: 1023px) { .ticker { inset-inline-end: 0; } }
+  @media (max-width: 767px)  { .ticker { inset-inline-start: 0; height: 2.1rem; padding-inline-start: 2.6rem; } }
+
+  .tk-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+  .tk-track { display: flex; flex: 0 0 auto; width: max-content; align-items: center; will-change: transform; animation: tk-crawl var(--ticker-dur, 40s) linear infinite; }
+  /* RTL lays the track out from the right, so its duplicate sits to the LEFT —
+     slide the other way (+50%) to pull it into view. Mirroring -50% here just
+     scrolls everything off-screen and leaves the band blank. */
+  html[dir=rtl] .tk-track { animation-name: tk-crawl-rtl; }
+  .ticker:hover .tk-track, .ticker:focus-within .tk-track { animation-play-state: paused; }
+  @keyframes tk-crawl { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes tk-crawl-rtl { from { transform: translateX(0); } to { transform: translateX(50%); } }
+
+  .tk-seg { display: flex; flex: 0 0 auto; align-items: center; }
+  .tk-item { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; text-decoration: none; color: inherit; padding-inline: 0.85rem; }
+  .tk-item:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .tk-logo { inline-size: 0.95em; block-size: 0.95em; flex: 0 0 auto; }
+  .tk-dot { inline-size: 0.5em; block-size: 0.5em; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+    .tk-track { animation: none; width: 100%; }
+    .tk-seg + .tk-seg { display: none; }
+  }
+
+  /* Reserve the band so the fixed crawl never covers content. Height is fixed,
+     so the offset is deterministic — zero layout shift on first paint. */
+  .has-ticker .main { padding-block-start: 3.4rem; }
+  @media (max-width: 767px) { .has-ticker .main { padding-block-start: 2.7rem; } }
 }

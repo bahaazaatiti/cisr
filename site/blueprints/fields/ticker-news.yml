@@ -1,0 +1,31 @@
+# Hand-written breaking-news lines — the one lane that isn't fetched. Typed by
+# the editor and shown instantly (baked into the page). Per-language.
+type: structure
+translate: true
+empty: No breaking-news lines yet — add one.
+columns:
+  enabled:
+    width: 1/6
+  text:
+    width: 5/6
+fields:
+  enabled:
+    label: On
+    type: toggle
+    default: true
+    width: 1/4
+    icon: power
+    help: Off keeps the line here but hides it from the crawl.
+  text:
+    label: Headline
+    type: text
+    width: 3/4
+    required: true
+    icon: text
+    help: The line shown in the crawl.
+  url:
+    label: Link
+    type: url
+    width: 1/1
+    icon: url
+    help: Optional. Where the line links to — blank for a plain entry.

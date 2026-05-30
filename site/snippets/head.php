@@ -74,4 +74,4 @@
   <link rel="preload" as="style" href="<?= url('assets/css/app.css') ?>">
   <link rel="stylesheet" href="<?= url('assets/css/app.css') ?>">
 </head>
-<body>
+<body<?= (ticker_enabled() && (ticker_feeds() || ticker_news())) ? ' class="has-ticker"' : '' ?>>

@@ -105,6 +105,51 @@ if (!function_exists('tree_build')) {
     }
 }
 
+if (!function_exists('ticker_enabled')) {
+    // The crawl is one global switch on the Home page (not translated) so the
+    // toggle reads identically in every language. Off unless explicitly set —
+    // a fresh fork stays quiet until an editor turns it on.
+    function ticker_enabled(): bool {
+        $home = page('home');
+        return $home ? $home->ticker_on()->toBool() : false;
+    }
+}
+
+if (!function_exists('ticker_feeds')) {
+    // Remote crawl sources the visitor's browser fetches at view time — a kind
+    // plus the editor's pasted link. No text lives here: the posts come from
+    // the live fetch (see assets/js/ticker.js). Enabled, non-empty rows only.
+    function ticker_feeds(): array {
+        $tk = page('news-ticker');
+        if (!$tk) return [];
+        $out = [];
+        foreach (['telegram' => 'tg', 'twitter' => 'x'] as $field => $kind) {
+            foreach ($tk->$field()->toStructure() as $row) {
+                if (!$row->enabled()->toBool()) continue;
+                $url = trim((string) $row->url());
+                if ($url !== '') $out[] = ['kind' => $kind, 'url' => $url];
+            }
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('ticker_news')) {
+    // The one hand-written lane: breaking-news lines typed by the editor.
+    // Rendered server-side so they show instantly and survive a dead proxy.
+    function ticker_news(): array {
+        $tk = page('news-ticker');
+        if (!$tk) return [];
+        $out = [];
+        foreach ($tk->breaking()->toStructure() as $row) {
+            if (!$row->enabled()->toBool()) continue;
+            $text = trim((string) $row->text());
+            if ($text !== '') $out[] = ['text' => $text, 'url' => trim((string) $row->url())];
+        }
+        return $out;
+    }
+}
+
 Kirby::plugin('site/helpers', [
     'pageMethods' => [
         'videoEmbedUrl' => function () {
