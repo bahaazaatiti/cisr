@@ -449,6 +449,19 @@
   .drawer-tabs { display: flex; border-block-end: 1px solid var(--border); }
   .drawer-tabs button { flex: 0 0 auto; font: inherit; border: 0; border-inline-end: 1px solid var(--border); background: transparent; padding: 0.4rem 0.8rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.7rem; }
   .drawer-tabs button.active { background: var(--secondary); font-weight: 700; }
+  /* Unread cue on the CHAT tab when events land while you're on CONF. */
+  /* Hard two-state flicker: accent fill ⇄ resting, so both the word and the
+     box around it pulse. JS strips .comm-alert after ~4 s. */
+  .drawer-tabs button.comm-alert { animation: comm-tab-flash 1.1s steps(1, end) infinite; }
+  @keyframes comm-tab-flash {
+    0%, 100% { background: var(--accent); color: var(--accent-foreground); }
+    50%      { background: transparent; color: var(--accent); }
+  }
+  @media (prefers-reduced-motion: reduce) { .drawer-tabs button.comm-alert { animation: none; background: var(--accent); color: var(--accent-foreground); } }
+  /* Persistent "connected" cue on the COMMS toggle — same colors, slower; runs
+     until refresh so you can see you're in the swarm with the drawer closed. */
+  .drawer-toggle-comm.comm-live { animation: comm-tab-flash 4s steps(1, end) infinite; }
+  @media (prefers-reduced-motion: reduce) { .drawer-toggle-comm.comm-live { animation: none; color: var(--accent); } }
   .drawer-x { margin-inline-start: auto; border-inline-end: 0 !important; border-inline-start: 1px solid var(--border) !important; }
   .drawer-panels { flex: 1; overflow: hidden; position: relative; }
   .drawer-panel { position: absolute; inset: 0; overflow: auto; padding: 0.5rem; }
@@ -476,28 +489,85 @@
   /* COMM panel internals */
   .comm-panel { display: flex; flex-direction: column; height: 100%; gap: 0.4rem; padding: 0.5rem; }
   .comm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem; }
+  .comm-room-tag { text-transform: lowercase; letter-spacing: 0.04em; }
+  /* Connection dot in the tab bar — off (pulsing) until a relay socket is open. */
+  .comm-conn { width: 0.5rem; height: 0.5rem; border-radius: 50%; align-self: center;
+    margin-inline: auto 0.4rem; background: var(--muted-foreground); }
+  .comm-conn[data-state="off"] { animation: comm-pulse 1.1s ease-in-out infinite; }
+  .comm-conn[data-state="on"] { background: var(--accent); animation: none; }
+  @keyframes comm-pulse { 0%,100% { opacity: 0.25; } 50% { opacity: 0.9; } }
+  @media (prefers-reduced-motion: reduce) { .comm-conn[data-state="off"] { animation: none; } }
+
+  /* Roster + room/nick controls live in a collapsible block to keep first
+     paint of the chat clean. */
+  .comm-meta { border: 1px solid var(--border); }
+  .comm-meta > summary { cursor: pointer; padding: 0.25rem 0.4rem; letter-spacing: 0.06em; }
+  .comm-roster { list-style: none; margin: 0; padding: 0.2rem 0.4rem; display: flex; flex-direction: column; gap: 0.15rem; max-height: 7rem; overflow-y: auto; font-size: 0.75rem; }
+  .comm-roster li { display: flex; align-items: center; gap: 0.3rem; }
+  .comm-roster .comm-rn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .comm-roster .comm-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
+  .comm-roster .comm-self .comm-dot { background: var(--muted-foreground); }
+  .comm-b { font-size: 0.7rem; }
+  .comm-lat { color: var(--muted-foreground); font-size: 0.65rem; }
+  .comm-fields { display: flex; gap: 0.3rem; padding: 0.3rem 0.4rem; }
+  .comm-in { flex: 1; min-width: 0; font: inherit; font-size: 0.75rem; color: var(--foreground);
+    background: var(--background); border: 1px solid var(--border); padding: 0.2rem 0.3rem; outline: 0; }
+  .comm-in:focus-visible { border-color: var(--accent); }
+  .comm-room-hint { padding: 0 0.4rem 0.3rem; color: var(--muted-foreground); line-height: 1.35; }
+
   .comm-msgs { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; font-size: 0.8rem; line-height: 1.35; }
-  .comm-msgs li { padding: 0.2rem 0; border-block-end: 1px dashed var(--border); word-break: break-word; }
+  .comm-msgs li { position: relative; padding: 0.2rem 0; border-block-end: 1px dashed var(--border); word-break: break-word; }
   .comm-msgs li:last-child { border-block-end: 0; }
   .comm-peer { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; margin-inline-end: 0.4rem; }
   /* System notice — first-line WebRTC privacy line. Reads as supplementary,
      not alarmist; dashed separator already handled by .comm-msgs li above. */
   .comm-msgs li.comm-system { color: var(--muted-foreground); font-size: 0.7rem; letter-spacing: 0.04em; line-height: 1.4; padding: 0.4rem 0; }
+  /* React affordance: hidden until row hover/focus, pinned to the inline-end. */
+  .comm-react-add { position: absolute; inset-inline-end: 0; inset-block-start: 0.1rem; opacity: 0;
+    border: 1px solid var(--border); background: var(--background); color: var(--muted-foreground);
+    font: inherit; font-size: 0.7rem; line-height: 1; padding: 0.05rem 0.3rem; cursor: pointer; }
+  .comm-msgs li:hover .comm-react-add, .comm-react-add:focus-visible { opacity: 1; }
+  .comm-reacts { display: inline-flex; gap: 0.2rem; margin-inline-start: 0.3rem; vertical-align: middle; }
+  .comm-react { border: 1px solid var(--border); border-radius: 0.6rem; padding: 0 0.25rem; font-size: 0.7rem; }
+  .comm-react i { font-style: normal; color: var(--muted-foreground); margin-inline-start: 0.15rem; }
+  .comm-typing { min-height: 0.9rem; color: var(--muted-foreground); font-size: 0.7rem; font-style: italic; }
+  .comm-typing:empty { min-height: 0; }
+
   .comm-composer { display: flex; gap: 0.3rem; align-items: stretch; }
+  .comm-emoji-btn { font: inherit; border: 1px solid var(--border); background: var(--background);
+    color: var(--foreground); cursor: pointer; padding: 0 0.4rem; }
   .comm-composer textarea {
     flex: 1; font: inherit; color: var(--foreground); background: var(--background);
     border: 1px solid var(--border); padding: 0.3rem 0.4rem; resize: none; outline: 0;
   }
   .comm-composer textarea:focus-visible { border-color: var(--accent); }
   .comm-composer .ui-badge { align-self: stretch; display: flex; align-items: center; }
+  /* Shared emoji popover (composer insert + per-message react). Fixed so it can
+     escape the drawer's overflow clip. */
+  .comm-emoji-pop { position: fixed; z-index: 60; display: flex; flex-wrap: wrap; gap: 0.1rem;
+    max-width: 12rem; padding: 0.2rem; border: 1px solid var(--border); background: var(--background); }
+  .comm-emoji-pop[hidden] { display: none; }
+  .comm-emoji-pop button { font: inherit; font-size: 1rem; line-height: 1; border: 0; background: transparent; cursor: pointer; padding: 0.2rem; }
+  .comm-emoji-pop button:hover { background: var(--secondary); }
+
   .comm-precall { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.3rem; }
   .comm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 0.25rem; flex: 1; min-height: 0; overflow: auto; }
-  .comm-grid video { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #000; border: 1px solid var(--border); }
+  /* Tile = video OR avatar fallback (audio-only peers) + a label strip. */
+  .comm-tile { position: relative; aspect-ratio: 4/3; background: var(--secondary); border: 1px solid var(--border); overflow: hidden; }
+  .comm-tile video { width: 100%; height: 100%; object-fit: cover; background: #000; display: none; }
+  .comm-tile.has-video video { display: block; }
+  .comm-av { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: 700; color: var(--muted-foreground); }
+  .comm-tile.has-video .comm-av { display: none; }
+  .comm-tile.speaking { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+  .comm-tile-lbl { position: absolute; inset-inline: 0; inset-block-end: 0; padding: 0.05rem 0.25rem;
+    font-size: 0.6rem; letter-spacing: 0.03em; color: #fff; background: rgba(0,0,0,0.55);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .comm-controls { display: flex; gap: 0.3rem; flex-wrap: wrap; }
   [data-comm-gum-err]:empty { display: none; }
   [data-comm-gum-err] { color: var(--destructive); }
   /* Muted mic/cam = inactive look; default ON = accent. */
-  [data-comm-mute-mic].active, [data-comm-mute-cam].active { color: var(--accent); border-color: var(--accent); }
+  [data-comm-mute-mic].active, [data-comm-mute-cam].active, [data-comm-screen].active { color: var(--accent); border-color: var(--accent); }
   /* Shared context-menu surface — used by the right-click library menu
      (position:fixed, JS-positioned via inline left/top) and by the mirror
      popover (position overridden under .mirror-popover, see below). */
