@@ -14,16 +14,15 @@
       <div class="ar-tools">
         <button data-mode-set="gui"  class="ar-mode active" type="button" aria-label="<?= t('media.gui',  'GUI')  ?>" title="<?= t('media.gui',  'GUI')  ?>">▦</button>
         <button data-mode-set="list" class="ar-mode"        type="button" aria-label="<?= t('media.list', 'LIST') ?>" title="<?= t('media.list', 'LIST') ?>">≣</button>
-        <button data-mirror-toggle="library" class="ar-mode ar-mirror" type="button"
-                aria-label="<?= esc(t('mirror.title_library', 'Mirror library')) ?>"
-                title="<?= esc(t('mirror.title_library', 'Mirror library — your browser downloads + re-shares items that need help. Stops on refresh.'), 'attr') ?>">↑</button>
+        <button data-xfer-seed-all="library" class="ar-mode ar-seed" type="button"
+                aria-label="<?= esc(t('xfer.seed_library', 'Seed library')) ?>"
+                title="<?= esc(t('xfer.seed_library_hint', 'Seed all library items — adds them to your transfers and re-shares to the swarm. Stops on refresh.'), 'attr') ?>">↑</button>
       </div>
     </header>
     <div class="ar-body">
       <div class="lib-bar">
         <button type="button" class="lib-up" data-lib-up disabled title="<?= t('media.up', 'Up') ?>"><span aria-hidden="true">↑</span></button>
         <span class="lib-cwd" data-lib-cwd>/</span>
-        <span class="ui-sku lib-status" data-p2p-status role="status" aria-live="polite"></span>
       </div>
       <div class="lib-gui"
            data-lib-tree-src="<?= url('library.json') ?>"
@@ -55,9 +54,9 @@
         <span class="ar-title"><?= t('media.video', 'VIDEO') ?></span>
       <?php endif ?>
       <div class="ar-tools">
-        <button data-mirror-toggle="videos" class="ar-mode ar-mirror" type="button"
-                aria-label="<?= esc(t('mirror.title_videos', 'Mirror videos')) ?>"
-                title="<?= esc(t('mirror.title_videos', 'Mirror videos — your browser downloads + re-shares items that need help. Stops on refresh.'), 'attr') ?>">↑</button>
+        <button data-xfer-seed-all="videos" class="ar-mode ar-seed" type="button"
+                aria-label="<?= esc(t('xfer.seed_videos', 'Seed videos')) ?>"
+                title="<?= esc(t('xfer.seed_videos_hint', 'Seed all videos — adds them to your transfers and re-shares to the swarm. Stops on refresh.'), 'attr') ?>">↑</button>
       </div>
     </header>
     <div class="vid-stage">
@@ -111,6 +110,7 @@
 </div>
 
 <?php snippet('aside-comm') ?>
+<?php snippet('aside-xfer') ?>
 
 <div id="ctxmenu" class="ctxmenu" hidden>
   <button type="button" data-ctx="open"><?= t('media.open', 'OPEN') ?></button>

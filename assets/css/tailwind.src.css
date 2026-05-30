@@ -149,33 +149,6 @@
     color: var(--foreground);
   }
 
-  /* Toast stack — anchored bottom-end, slides in then auto-fades after 4s.
-     window.siteToast(text, kind?) appends; the toast removes itself on the
-     animation end event. */
-  .toast-stack {
-    position: fixed;
-    bottom: 1rem;
-    inset-inline-end: 1rem;
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 0.5rem;
-    z-index: 100;
-    pointer-events: none;
-  }
-  .toast {
-    padding: 0.4rem 0.7rem;
-    border: 1px solid var(--border);
-    background: var(--popover);
-    color: var(--popover-foreground);
-    font-size: 0.85em;
-    max-width: 22em;
-    pointer-events: auto;
-    animation: toast-in 0.18s ease-out, toast-out 0.3s 4s ease-in forwards;
-  }
-  .toast[data-kind="success"] { border-color: var(--accent); }
-  .toast[data-kind="error"]   { border-color: var(--destructive); }
-  @keyframes toast-in  { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes toast-out { to { transform: translateY(8px); opacity: 0; } }
   /* Theme toggle sits beside the language chooser; match its inherited size
      and pick up accent on hover, like other interactive controls. */
   [data-theme-toggle] { font-size: inherit; line-height: 1.4; padding: 0 0.4em; }
@@ -377,12 +350,11 @@
   .ar-tools { display: flex; gap: 0.25rem; }
   .ar-mode, .lib-up { font: inherit; border: 1px solid var(--border); background: transparent; padding: 0.15rem 0.45em; cursor: pointer; line-height: 1.4; min-width: 24px; min-height: 24px; }
   .ar-mode.active { background: var(--secondary); }
-  /* Mirror toggle — distinct action button (not a mode toggle). Accent stroke
-     to read as "offer help to the swarm"; filled-accent when actively mirroring. */
-  .ar-mirror { color: var(--accent); border-color: var(--accent); }
-  .ar-mirror:hover { background: var(--secondary); }
-  .ar-mirror.pending { background: var(--secondary); }
-  .ar-mirror.active { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
+  /* Seed-all — distinct action button (not a mode toggle). Accent stroke to
+     read as "offer help to the swarm"; brief filled-accent pulse on click. */
+  .ar-seed { color: var(--accent); border-color: var(--accent); }
+  .ar-seed:hover { background: var(--secondary); }
+  .ar-seed.busy { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
   .lib-up[disabled] { opacity: 0.4; cursor: not-allowed; }
   .ar-body { flex: 1; overflow: auto; padding: 0.4rem 0.5rem; font-size: 0.78rem; line-height: 1.4; }
 
@@ -391,15 +363,11 @@
   /* Sits above both modes; up/cwd hide in LIST so the status keeps the same
      row position with no layout shift between mode toggles. */
   .lib-bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0 0.4rem; border-block-end: 1px dashed var(--border); margin-block-end: 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
-  .lib-status { margin-inline-start: auto; color: var(--accent); text-align: end; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ar-library[data-mode="list"] .lib-up,
   .ar-library[data-mode="list"] .lib-cwd { display: none; }
-  /* In LIST mode, up/cwd are gone — when nothing is downloading either, the
-     dashed bar is just visual noise floating above the table. Collapse it. */
-  .ar-library[data-mode="list"] .lib-bar:has(.lib-status:empty) { display: none; }
-  /* In LIST mode the status is the only visible item, so margin auto can't
-     push it — give it the full row width so text-align:end actually right-aligns. */
-  .ar-library[data-mode="list"] .lib-status { flex: 1; }
+  /* LIST mode hides up/cwd; downloads moved to the transfer drawer, so the
+     dashed bar would just be empty noise above the table. Collapse it. */
+  .ar-library[data-mode="list"] .lib-bar { display: none; }
   .lib-cwd { flex: 1; word-break: break-all; }
   .lib-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; align-content: start; }
   .lib-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; border: 1px solid var(--border); background: transparent; font: inherit; text-decoration: none; padding: 0.4rem 0.5rem; cursor: pointer; text-align: start; color: inherit; min-height: 3.2rem; line-height: 1.25; user-select: none; transition: color 0.1s ease; }
@@ -568,6 +536,75 @@
   [data-comm-gum-err] { color: var(--destructive); }
   /* Muted mic/cam = inactive look; default ON = accent. */
   [data-comm-mute-mic].active, [data-comm-mute-cam].active, [data-comm-screen].active { color: var(--accent); border-color: var(--accent); }
+
+  /* TRANSFER drawer — the download/seed manager. Toggle is a vertical pull-tab
+     centred on the aside's inner edge (desktop) / a bottom button stacked above
+     MEDIA (mobile). Visible at all sizes, like COMMS. */
+  .drawer-toggle-xfer { display: inline-block; inset-inline-end: 11.5rem; }
+  .drawer-toggle-xfer.xfer-live { color: var(--accent); border-color: var(--accent); }
+  .xfer-count { margin-inline-start: 0.3rem; color: var(--accent); }
+  .xfer-count:empty { display: none; }
+  @media (min-width: 1024px) {
+    .drawer-toggle-xfer {
+      inset-block-start: 50%; inset-block-end: auto; inset-inline-end: 18rem;
+      transform: translateY(-50%); border-inline-end: 0; padding: 0.6rem 0.3rem;
+    }
+    /* Rotate only the label — writing-mode on the button itself would remap its
+       logical inset axes and break the edge-hugging position. */
+    .drawer-toggle-xfer .xfer-tab-inner { writing-mode: vertical-rl; }
+    /* Open drawer sits UNDER the aside (z-20), so it can't cover the tab via
+       z-index — hide the handle while open; the drawer has its own close. */
+    .drawer-toggle-xfer[aria-expanded="true"] { display: none; }
+  }
+
+  /* Desktop: floating box that slides in from the aside edge, vertically centred
+     on the pull-tab. Mobile: inherits the base full-width bottom slide-up. */
+  @media (min-width: 1024px) {
+    /* Floating box flush against the aside's inner edge, vertically centred on
+       the pull-tab. z-index sits UNDER the aside-right (z-30) so it slides out
+       from beneath it; the aside-facing edge has no border so the two meet
+       seamlessly. translateX is physical → explicit RTL flip below. */
+    .drawer-xfer {
+      inset: auto; inset-inline-end: 18rem; inset-block-start: 50%;
+      width: 26rem; height: min(70dvh, 30rem);
+      border: 1px solid var(--border); border-inline-end: 0;
+      transform: translate(100%, -50%); transition: transform 0.15s ease;
+      z-index: 20;
+    }
+    .drawer-xfer.open { transform: translate(0, -50%); }
+    html[dir=rtl] .drawer-xfer { transform: translate(-100%, -50%); }
+    html[dir=rtl] .drawer-xfer.open { transform: translate(0, -50%); }
+  }
+
+  .xfer-head { align-items: center; gap: 0.4rem; }
+  .xfer-title { padding: 0.4rem 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.7rem; border-inline-end: 1px solid var(--border); }
+  .xfer-add { font-size: 0.95rem; line-height: 1; padding: 0.05rem 0.4rem; }
+  .xfer-summary { flex: 1; text-align: end; padding-inline-end: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .xfer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+  .xfer-row { border: 1px solid var(--border); padding: 0.3rem 0.4rem; }
+  .xfer-row[data-state="seeding"] { border-color: var(--accent); }
+  .xfer-row[data-state="error"] { border-color: var(--destructive); }
+  .xfer-l1 { display: flex; align-items: center; gap: 0.4rem; }
+  .xfer-kind { flex: 0 0 auto; }
+  .xfer-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; }
+  .xfer-act { flex: 0 0 auto; display: flex; gap: 0.2rem; }
+  .xfer-btn { font: inherit; border: 1px solid var(--border); background: var(--background); color: var(--foreground); cursor: pointer; line-height: 1; padding: 0.1rem 0.35rem; min-width: 22px; }
+  .xfer-btn:hover { background: var(--secondary); color: var(--accent); border-color: var(--accent); }
+  .xfer-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+  .xfer-l2 { margin-block-start: 0.2rem; display: flex; flex-wrap: wrap; align-items: baseline; }
+  .xfer-bar { color: var(--accent); }
+  .xfer-row[data-state="paused"] .xfer-bar { color: var(--muted-foreground); }
+  .xfer-state { text-transform: uppercase; }
+  .xfer-net, .xfer-swarm { margin-inline-start: 0.4rem; white-space: nowrap; }
+  .xfer-empty { padding: 0.6rem 0.2rem; line-height: 1.4; }
+  .xfer-empty[hidden] { display: none; }
+  .xfer-magnet-row { display: flex; gap: 0.3rem; margin-block-end: 0.4rem; }
+  .xfer-magnet-row[hidden] { display: none; }
+  .xfer-in { flex: 1; min-width: 0; font: inherit; font-size: 0.75rem; color: var(--foreground); background: var(--background); border: 1px solid var(--border); padding: 0.2rem 0.3rem; outline: 0; }
+  .xfer-in:focus-visible { border-color: var(--accent); }
+  .xfer-foot { display: block; padding: 0.3rem 0.5rem; border-block-start: 1px solid var(--border); color: var(--muted-foreground); text-decoration: none; }
+  .xfer-foot:hover { color: var(--accent); }
+
   /* Shared context-menu surface — used by the right-click library menu
      (position:fixed, JS-positioned via inline left/top) and by the mirror
      popover (position overridden under .mirror-popover, see below). */

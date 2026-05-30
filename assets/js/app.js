@@ -5,33 +5,6 @@
   const sidebar = () => $('[data-sidebar]');
   const loadbar = () => $('#loadbar');
 
-  // New SW activated (deploy with bumped sw.min.js content): surface a
-  // one-time toast so the user knows a refresh will pick up the new build.
-  // Guard navigator.serviceWorker for non-secure contexts (no toast there).
-  navigator.serviceWorker?.addEventListener?.('controllerchange', () => {
-    window.siteToast?.('new build active — refresh for latest', 'info');
-  });
-
-  // Ephemeral notice. kind = "success" | "info" | "error" | undefined.
-  // Self-cleans on the second animation (slide-out at 4s); stack lives in
-  // <body> because it must survive panel-swap.
-  window.siteToast = (text, kind) => {
-    let stack = $('.toast-stack');
-    if (!stack) {
-      stack = document.createElement('div');
-      stack.className = 'toast-stack';
-      document.body.appendChild(stack);
-    }
-    const t = document.createElement('div');
-    t.className = 'toast';
-    if (kind) t.dataset.kind = kind;
-    t.textContent = text;
-    t.addEventListener('animationend', e => {
-      if (e.animationName === 'toast-out') t.remove();
-    });
-    stack.appendChild(t);
-  };
-
   function syncActive() {
     const cur = location.pathname.replace(/\/+$/, '') || '/';
     $$('[data-sidebar] a[data-link]').forEach(a => {
@@ -301,97 +274,38 @@
     if (tree) paintLibGrid(container, tree);
   }
 
-  // Mirror buttons — two-phase click (scan → confirm), per-section state.
-  // First click runs a tracker scan (~2.5 s) to find magnets with peers waiting,
-  // shows count + size, second click starts mirroring those, third click stops.
-  function fmtSize(n) {
-    if (!n || n < 0) return '0 B';
-    const u = ['B','KB','MB','GB','TB'];
-    let i = 0;
-    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
-    return n.toFixed(n < 10 ? 1 : 0) + ' ' + u[i];
-  }
-  async function collectMirrorMagnets(section) {
+  // Seed-all — collect every magnet in a section and hand them to the transfer
+  // manager as seed jobs (download → re-share). No scan, no confirm: one click
+  // enqueues, the drawer takes it from there. Dedup is the manager's job.
+  async function collectSectionMagnets(section) {
     if (section === 'library') {
       const container = document.querySelector('.ar-library .lib-gui[data-lib-tree-src]');
-      if (!container) return [];
+      if (!container) return { magnets: [], names: [], kinds: [] };
       const tree = await loadLibTree(container.dataset.libTreeSrc);
-      if (!tree) return [];
-      const out = [];
+      if (!tree) return { magnets: [], names: [], kinds: [] };
+      const magnets = [], names = [], kinds = [];
       (function walk(node) {
         (node.folders || []).forEach(walk);
-        (node.files || []).forEach(f => { if (f.magnet) out.push(f.magnet); });
+        (node.files || []).forEach(f => { if (f.magnet) { magnets.push(f.magnet); names.push(f.name || ''); kinds.push(f.kind || 'other'); } });
       })(tree);
-      return out;
+      return { magnets, names, kinds };
     }
     if (section === 'videos') {
-      const seen = new Set();
-      return $$('[data-vid-magnet]')
-        .map(el => el.dataset.vidMagnet)
-        .filter(m => m && !seen.has(m) && seen.add(m));
+      const seen = new Set(), magnets = [], names = [], kinds = [];
+      $$('[data-vid-magnet]').forEach(el => {
+        const m = el.dataset.vidMagnet;
+        if (m && !seen.has(m)) { seen.add(m); magnets.push(m); names.push(el.dataset.vidTitle || ''); kinds.push('video'); }
+      });
+      return { magnets, names, kinds };
     }
-    return [];
+    return { magnets: [], names: [], kinds: [] };
   }
-  function mirrorStatusElFor(section) {
-    if (section === 'library') return document.querySelector('.ar-library [data-p2p-status]');
-    if (section === 'videos')  return document.querySelector('.ar-video [data-ar-p2p-status]');
-    return null;
-  }
-  function syncMirrorButtonsFor(section) {
-    const active = window.siteP2P?.mirrorIsActive?.(section);
-    $$(`[data-mirror-toggle="${section}"]`).forEach(b => {
-      b.classList.toggle('active', !!active);
-      if (active) { b.classList.remove('pending'); delete b.dataset.mirrorPending; }
-    });
-  }
-  async function handleMirrorClick(btn) {
+  async function handleSeedAll(btn) {
     if (!window.siteP2P) return;
-    const section = btn.dataset.mirrorToggle;
-    const statusEl = mirrorStatusElFor(section);
-    // Already mirroring this section → stop.
-    if (window.siteP2P.mirrorIsActive(section)) {
-      window.siteP2P.mirrorStop(section);
-      syncMirrorButtonsFor(section);
-      return;
-    }
-    // Second click after a scan → confirm + start.
-    if (btn.dataset.mirrorPending) {
-      let survivors = [];
-      try { survivors = JSON.parse(btn.dataset.mirrorPending); } catch (_) {}
-      delete btn.dataset.mirrorPending;
-      btn.classList.remove('pending');
-      if (!survivors.length) return;
-      await window.siteP2P.mirrorStart(survivors, statusEl, section);
-      syncMirrorButtonsFor(section);
-      return;
-    }
-    // First click → scan.
-    btn.classList.add('pending');
-    const magnets = await collectMirrorMagnets(section);
-    if (!magnets.length) {
-      btn.classList.remove('pending');
-      if (statusEl) statusEl.textContent = 'nothing to mirror.';
-      return;
-    }
-    const scan = await window.siteP2P.mirrorScan(magnets, statusEl);
-    const inDemand = scan.filter(r => r.numPeers > 0);
-    // Default path: mirror what's actually needed. Fallback when no one is
-    // leeching: mirror everything so the swarm always has a seed available.
-    const targets = inDemand.length ? inDemand : scan;
-    if (!targets.length) {
-      btn.classList.remove('pending');
-      if (statusEl) statusEl.textContent = 'nothing to mirror.';
-      return;
-    }
-    btn.dataset.mirrorPending = JSON.stringify(targets);
-    const totalSize = targets.reduce((a, r) => a + (r.size || 0), 0);
-    if (statusEl) {
-      const noun = targets.length === 1 ? 'item' : 'items';
-      const lead = inDemand.length
-        ? (targets.length + ' ' + (targets.length === 1 ? 'item needs' : 'items need') + ' help')
-        : ('no one needs help right now — mirror all ' + targets.length + ' ' + noun);
-      statusEl.textContent = lead + ' (~' + fmtSize(totalSize) + ') · click again to mirror';
-    }
+    btn.classList.add('busy');
+    const { magnets, names, kinds } = await collectSectionMagnets(btn.dataset.xferSeedAll);
+    window.siteP2P.seedAll?.(magnets, names, kinds);
+    setTimeout(() => btn.classList.remove('busy'), 600);
   }
 
   // Drawer plumbing — name-scoped via data-drawer="<name>" so multiple drawers
@@ -471,8 +385,8 @@
       try { localStorage.theme = dark ? 'dark' : 'light'; } catch (_) {}
       return;
     }
-    const mirror = e.target.closest('[data-mirror-toggle]');
-    if (mirror) { e.preventDefault(); handleMirrorClick(mirror); return; }
+    const seedAll = e.target.closest('[data-xfer-seed-all]');
+    if (seedAll) { e.preventDefault(); handleSeedAll(seedAll); return; }
     const mode = e.target.closest('[data-mode-set]');
     if (mode) { setLibMode(mode.dataset.modeSet); return; }
     const fold = e.target.closest('tr.lib-row-folder');
@@ -528,7 +442,7 @@
       if (!t.magnet) return;
       const status = p2pStatusFor(t.el);
       if (action === 'download') {
-        window.siteP2P?.download?.(t.magnet, status);
+        window.siteP2P?.download?.(t.magnet, { name: (t.el?.textContent || '').trim(), kind: t.kind });
       } else if (action === 'copy') {
         window.siteP2P?.copy?.(t.magnet, status);
       } else if (action === 'open' && t.el?.href) {
@@ -546,7 +460,7 @@
       e.preventDefault();
       const mag = guiFile.dataset.magnet;
       if (mag) {
-        window.siteP2P?.download?.(mag, p2pStatusFor(guiFile));
+        window.siteP2P?.download?.(mag, { name: guiFile.querySelector('.lib-cell-name')?.textContent || '', kind: guiFile.dataset.kind || 'other' });
       } else if (guiFile.href) {
         swap(guiFile.href, true);
       }
@@ -560,7 +474,7 @@
     if (listSpan) {
       e.preventDefault();
       const mag = listSpan.dataset.magnet;
-      if (mag) window.siteP2P?.download?.(mag, p2pStatusFor(listSpan));
+      if (mag) window.siteP2P?.download?.(mag, { name: listSpan.textContent || '', kind: listSpan.dataset.kind || 'other' });
       return;
     }
 
@@ -581,6 +495,10 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { hideCtx(); }
   });
+
+  // p2p.js asks the drawer to open (e.g. on a new download) via this event so
+  // it doesn't need to know the drawer's internals.
+  document.addEventListener('ui:open-drawer', (e) => { const n = e.detail && e.detail.name; if (n) openDrawer(n); });
 
   history.replaceState({ swap: 1 }, '', location.href);
   addEventListener('popstate', () => { swap(location.href, false); });

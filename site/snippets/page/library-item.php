@@ -54,7 +54,7 @@
     <?php if ($isViewable): ?>
       <button type="button" class="ui-badge" data-p2p-action="open" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"><?= t('ui.open_player', 'Open in viewer') ?></button>
     <?php endif ?>
-    <button type="button" class="ui-badge" data-p2p-action="download" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"><?= t('ui.download', 'Download') ?></button>
+    <button type="button" class="ui-badge" data-p2p-action="download" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>" data-title="<?= esc($page->title()) ?>"><?= t('ui.download', 'Download') ?></button>
     <button type="button" class="ui-badge" data-p2p-action="copy" data-magnet="<?= esc($magnet) ?>"><?= t('ui.copy_magnet', 'Copy magnet') ?></button>
   </div>
 
