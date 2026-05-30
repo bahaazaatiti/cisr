@@ -510,6 +510,8 @@
   }
   .comm-composer textarea:focus-visible { border-color: var(--accent); }
   .comm-composer .ui-badge { align-self: stretch; display: flex; align-items: center; }
+  /* Composer is gated until we're on the network (see updateStatus). */
+  .comm-composer textarea:disabled, .comm-composer .ui-badge:disabled { opacity: 0.5; cursor: not-allowed; }
   /* Shared emoji popover (composer insert + per-message react). Fixed so it can
      escape the drawer's overflow clip. */
   .comm-emoji-pop { position: fixed; z-index: 60; display: flex; flex-wrap: wrap; gap: 0.1rem;

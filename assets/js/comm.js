@@ -13,6 +13,10 @@
   let roomName = 'lobby';
   let roomPass = '';
   let relayTimer = null;
+  let networkReady = false;     // we've actually reached the swarm, not just opened a socket
+  let graceTimer = null;        // alone-resolution fallback armed once the relay opens
+  let peerInbound = false;      // the relay forwarded a peer's offer — we're NOT alone
+  let graceTries = 0;           // bounds how long we wait for that inbound peer to finish
 
   // ---- Domain state ----
   const peers = new Map();      // peerId → {nick,mic,cam,screen,lat,typing,stream,analyser,freq}
@@ -99,17 +103,69 @@
   }
 
   // ---- Connection + roster ----
+  // "connected" must mean we've reached the swarm — NOT just that a relay socket
+  // opened (that happens ~0.5s in, well before any peer, so joiners would see
+  // "connected · 0 peers" while peers are still handshaking). Trystero exposes no
+  // announce-ack and getPeers() only populates at onPeerJoin, so we hold
+  // "connecting" until the first peer joins OR a short grace proves we're alone
+  // (first in the room). networkReady is sticky across room hops — hopping stays
+  // instant — while a relay drop still falls back to "connecting" via relayOnline.
+  function connectGraceMs() {
+    return parseInt(document.documentElement.dataset.commGrace, 10) || 4000;
+  }
+  function markReady() {
+    if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
+    if (networkReady) return;
+    networkReady = true;
+    updateStatus();
+  }
+  // The relay forwards a peer's offer the instant someone is in the room — the
+  // earliest "you're not alone" sign, and it lands well before the (slow, cold)
+  // first WebRTC handshake. Sniff it passively (Trystero keeps its own onmessage)
+  // so we don't prematurely flip to "0 peers · alone" while a peer is connecting.
+  function onRelayMessage(ev) {
+    if (networkReady || peerInbound) return;
+    const d = ev && ev.data;
+    if (typeof d !== 'string' || (d.indexOf('"offer"') < 0 && d.indexOf('"answer"') < 0)) return;
+    try { const m = JSON.parse(d); if (m && (m.offer || m.answer)) peerInbound = true; } catch (_) {}
+  }
+  function watchRelayOffers() {
+    try {
+      const s = (T && T.getRelaySockets) ? T.getRelaySockets() : {};
+      Object.values(s).forEach(ws => { if (ws && !ws._commSniff) { ws._commSniff = true; ws.addEventListener('message', onRelayMessage); } });
+    } catch (_) {}
+  }
+  // Resolve "are we alone?" once the relay is up. If a peer's offer has shown up
+  // we're NOT alone — stay "connecting" and re-check, bounded so a stale/foreign
+  // offer can't hang us. onPeerJoin short-circuits the whole thing.
+  function onGrace() {
+    graceTimer = null;
+    if (!networkReady && peerInbound && graceTries < 5) {
+      graceTries++;
+      graceTimer = setTimeout(onGrace, connectGraceMs());
+      return;
+    }
+    markReady();
+  }
+  function armConnectGrace() {
+    if (networkReady || graceTimer) return;
+    graceTimer = setTimeout(onGrace, connectGraceMs());
+  }
   function pollRelays() {
     let tries = 0;
     clearInterval(relayTimer);
     relayTimer = setInterval(() => {
+      watchRelayOffers();
       updateStatus();
-      if (relayOnline() || ++tries > 12) { clearInterval(relayTimer); relayTimer = null; }
+      if (relayOnline()) {
+        armConnectGrace();   // socket up — start resolving alone-vs-peers
+        clearInterval(relayTimer); relayTimer = null;
+      } else if (++tries > 12) { clearInterval(relayTimer); relayTimer = null; }
     }, 1000);
   }
   function updateStatus() {
     const n = peers.size;
-    const on = relayOnline();
+    const on = relayOnline() && networkReady;
     connEls().forEach(el => {
       el.dataset.state = on ? 'on' : 'off';
       el.title = on ? (el.dataset.online || 'connected') : (el.dataset.offline || 'connecting…');
@@ -118,10 +174,13 @@
     // flicker that says "you're in the swarm" even with the drawer closed.
     $$('[data-drawer-toggle="comm"]').forEach(b => b.classList.toggle('comm-live', on));
     peerCountEls().forEach(el => {
-      if (!on && n === 0) { el.textContent = el.dataset.connecting || 'connecting…'; return; }
+      if (!on) { el.textContent = el.dataset.connecting || 'connecting…'; return; }
       const fmt = el.dataset.fmt || '{n} peers';
       el.textContent = fmt.replace('{n}', n);
     });
+    // Block composing until we're actually on the network, not just socket-open.
+    inputEls().forEach(i => { i.disabled = !on; });
+    $$('[data-comm-send]').forEach(b => { b.disabled = !on; });
   }
   function rosterRow(id) {
     const p = id === 'self' ? null : peers.get(id);
@@ -303,6 +362,7 @@
       act.react = mkAction('react', (d) => { if (d && d.mid && d.emoji) applyReact(d.mid, d.emoji); });
 
       room.onPeerJoin = (id) => {
+        markReady();                       // a real peer = definitely on the network
         if (!peers.has(id)) peers.set(id, {});
         if (act.pres) act.pres(myPresence(), { target: id });
         // addStream wants a BARE peer id as 2nd arg (not {target}); the torrent
@@ -328,6 +388,7 @@
       };
 
       pollRelays();
+      watchRelayOffers();   // attach the offer sniff now, not only on the 1s poll
       updateStatus();
       // First render: privacy notice + self-only roster, so the panel reads as
       // "you're in the lobby" immediately rather than blank until a peer shows.
@@ -346,6 +407,9 @@
     peers.clear(); messages.length = 0; reacts.clear();
     myTyping = false; clearTimeout(typingTimer);
     clearInterval(relayTimer); relayTimer = null;
+    if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
+    peerInbound = false; graceTries = 0;
+    // networkReady stays sticky across hops — relayOnline() still gates "on".
     clearChatAlert();
     renderAllMsgs(); renderRoster(); renderTyping(); updateStatus();
   }
@@ -614,6 +678,7 @@
       if (m) roomName = m[1].toLowerCase();
     } catch (_) {}
     reflectRoom();
+    updateStatus();   // start in "connecting" — composer disabled until on the network
 
     document.addEventListener('click', (e) => {
       if (e.target.closest('[data-drawer-toggle="comm"]')) { ensureRoom(); clearChatAlert(); return; }
