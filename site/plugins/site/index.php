@@ -75,6 +75,31 @@ if (!function_exists('mirrors_list')) {
     }
 }
 
+if (!function_exists('trackers_list')) {
+    // Bare-URL entries under `## <Section>` in TRACKERS.md (case-insensitive).
+    // One editable place to curate the flaky public infra the peer/live layer
+    // rides — relays (comms), proxies + nitters (ticker). Empty/missing → []
+    // so callers fall back to a config option, then a JS-baked default.
+    function trackers_list(string $section): array {
+        static $cache = null;
+        if ($cache === null) {
+            $cache = [];
+            $f = repo_root() . '/TRACKERS.md';
+            if (file_exists($f)) {
+                $cur = null;
+                foreach (file($f, FILE_IGNORE_NEW_LINES) as $line) {
+                    if (preg_match('/^\s*##\s+(.+?)\s*$/', $line, $m)) {
+                        $cur = strtolower(trim($m[1])); $cache[$cur] = [];
+                    } elseif ($cur !== null && preg_match('/^\s*-\s+(\S+)/', $line, $m)) {
+                        $cache[$cur][] = $m[1];
+                    }
+                }
+            }
+        }
+        return $cache[strtolower($section)] ?? [];
+    }
+}
+
 if (!function_exists('tree_build')) {
     // Build the nested library tree the aside-right & client-side grid render.
     // Folders = nested `library` pages; files = `library-item` leaves with magnets.
@@ -147,6 +172,16 @@ if (!function_exists('ticker_news')) {
             if ($text !== '') $out[] = ['text' => $text, 'url' => trim((string) $row->url())];
         }
         return $out;
+    }
+}
+
+if (!function_exists('ticker_active')) {
+    // Single source of truth for "the crawl is showing": enabled AND it has
+    // something to show (a live feed source or a hand-written line). Used by the
+    // <body> class, the ticker snippet's render gate, and the script include, so
+    // none of them drift out of sync.
+    function ticker_active(): bool {
+        return ticker_enabled() && (ticker_feeds() || ticker_news());
     }
 }
 

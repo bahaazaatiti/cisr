@@ -21,7 +21,7 @@
     ?>
     <img class="sidebar-sign" src="<?= esc($logoUrl) ?>" alt="" aria-hidden="true" width="200" height="230">
     <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(option('brand.site_id', '')) ?></div>
-    <div class="font-bold uppercase tracking-[0.08em]"><?= esc($site->title()) ?></div>
+    <h2><?= esc($site->title()) ?></h2>
     <?php if ($site->tagline()->isNotEmpty()): ?>
       <div class="text-xs text-muted-foreground mt-1"><?= esc($site->tagline()) ?></div>
     <?php endif ?>

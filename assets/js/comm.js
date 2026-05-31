@@ -23,8 +23,10 @@
   const messages = [];          // {id,peerId,text,ts,self} — ring buffer, cap 200, RAM only
   const reacts = new Map();     // mid → Map(emoji → count)
   let msgSeq = 0;
-  // History-sync gate: a fresh tab asks the first peer it meets for recent
-  // lines exactly once. Replaces the old 6 s "connecting" guess entirely.
+  // History-sync gate: a fresh tab asks each peer it meets for recent lines
+  // until one returns a non-empty backlog (latches on a useful RESPONSE, not on
+  // sending the request — else meeting an empty/equally-fresh peer first would
+  // permanently skip a third peer that does have history).
   let synced = false;
 
   let nick = '';
@@ -47,6 +49,27 @@
   function vendorUrl() {
     const s = $('script[data-comm-vendor]');
     return (s && s.dataset.commVendor) || '/assets/js/vendor/trystero.min.js';
+  }
+  // Signaling trackers. Trystero's torrent build defaults to 4 public WebTorrent
+  // trackers but only dials the first 3 (redundancy 3, no shuffle); these are
+  // volunteer-run and flaky, and offer relay is ASYMMETRIC — one side can see the
+  // peer while the other shows "connected · 0 peers" for up to a minute until its
+  // own offer crosses (root cause of the discovery lag; it self-corrects). We
+  // can't make a slow relay fast, but we widen the pool and dial all of them.
+  // The live list is curated in TRACKERS.md (## Relays) → data-comm-relays;
+  // this hardcoded set is only the last-resort fallback if that's empty. Keep it
+  // to KNOWN-LIVE hosts (verified 2026-05-31; the two Trystero defaults
+  // webtorrent.dev + files.fm were DOWN, so they're intentionally not here).
+  const RELAYS = [
+    'wss://tracker.openwebtorrent.com',
+    'wss://tracker.btorrent.xyz',
+    'wss://tracker.novage.com.ua',
+  ];
+  function relayUrls() {
+    const s = $('script[data-comm-vendor]');
+    const raw = s && s.dataset.commRelays;
+    if (raw) { const list = raw.split(/[\s,]+/).filter(Boolean); if (list.length) return list; }
+    return RELAYS;
   }
   function loadTrystero() {
     if (T) return Promise.resolve(T);
@@ -175,6 +198,10 @@
     $$('[data-drawer-toggle="comm"]').forEach(b => b.classList.toggle('comm-live', on));
     peerCountEls().forEach(el => {
       if (!on) { el.textContent = el.dataset.connecting || 'connecting…'; return; }
+      // On the network but no peers yet reads two ways: genuinely alone, or our
+      // offer hasn't crossed a (slow) tracker yet. Say "searching…" so a relay
+      // lag looks in-progress rather than like an empty room.
+      if (n === 0) { el.textContent = el.dataset.searching || el.dataset.connecting || 'searching for peers…'; return; }
       const fmt = el.dataset.fmt || '{n} peers';
       el.textContent = fmt.replace('{n}', n);
     });
@@ -348,7 +375,14 @@
     joined = true;
     try {
       const t = await loadTrystero();
-      const cfg = { appId: 'cisr' };
+      const relays = relayUrls();
+      // This @trystero-p2p/torrent build reads the relay list + fan-out under
+      // `relayConfig` ({urls, redundancy}) — verified against the bundle's config
+      // resolver `e.relayConfig?.urls || …slice(0, e.relayConfig?.redundancy)`.
+      // (NOT top-level relayUrls/relayRedundancy — those are silently ignored
+      // here.) redundancy = dial all our relays so a peer's offer has the most
+      // chances to cross a healthy tracker promptly.
+      const cfg = { appId: 'cisr', relayConfig: { urls: relays, redundancy: relays.length } };
       if (roomPass) cfg.password = roomPass;
       // appId + room are public (DHT-discoverable). A password additionally
       // encrypts the SDP handshake — that's the private-room knob.
@@ -356,7 +390,7 @@
 
       act.chat  = mkAction('chat',  (d, m) => addMessage({ id: d.id, peerId: m.peerId, text: String(d.text || ''), ts: d.ts || Date.now(), self: false }));
       act.hreq  = mkAction('hreq',  (_, m) => act.hres && act.hres({ msgs: messages.filter(x => !x.sys).slice(-50).map(serialMsg) }, { target: m.peerId }));
-      act.hres  = mkAction('hres',  (d) => mergeHistory(d && d.msgs));
+      act.hres  = mkAction('hres',  (d) => { if (d && d.msgs && d.msgs.length) { synced = true; mergeHistory(d.msgs); } });
       act.pres  = mkAction('pres',  (d, m) => onPresence(m.peerId, d));
       act.type  = mkAction('type',  (d, m) => { const p = peers.get(m.peerId); if (p) { p.typing = !!(d && d.on); renderTyping(); } });
       act.react = mkAction('react', (d) => { if (d && d.mid && d.emoji) applyReact(d.mid, d.emoji); });
@@ -369,7 +403,7 @@
         // build feeds it straight to its peer-list normaliser. {target} here
         // silently targets a phantom peer and nothing is delivered.
         if (inConference && localStream) { try { room.addStream(localStream, id); } catch (_) {} }
-        if (!synced) { synced = true; if (act.hreq) act.hreq(1, { target: id }); }
+        if (!synced && act.hreq) act.hreq(1, { target: id });   // ask each new peer until one returns history (hres latches synced)
         // Join is announced from the first presence packet (see onPresence) so
         // the line carries the peer's name and survives onPeerJoin asymmetry.
         renderRoster(); updateStatus();

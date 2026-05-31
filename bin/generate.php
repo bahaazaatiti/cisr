@@ -25,6 +25,12 @@ $baseUrl = (string) (getenv('BASE_URL') ?: '/');
 if ($baseUrl !== '' && substr($baseUrl, -1) !== '/') $baseUrl .= '/';
 fwrite(STDERR, "baseUrl:  {$baseUrl}\n");
 
+// SITE_URL: absolute origin (scheme+host) for SEO/discovery tags only. CI
+// derives it per-fork; unset locally. Internal links stay relative so the tree
+// stays host-portable — only canonical/hreflang/og/sitemap get absolutized.
+$siteUrl = rtrim((string) getenv('SITE_URL'), '/');
+fwrite(STDERR, "siteUrl:  " . ($siteUrl !== '' ? $siteUrl : '(none — SEO URLs relative)') . "\n");
+
 $kirby = new Kirby\Cms\App();
 
 // Lean leaves render as rows in the parent listing instead of earning a page.
@@ -42,7 +48,7 @@ $pages = $kirby->site()->index()->filter(function ($p) {
 $ssg = new JR\StaticSiteGenerator($kirby, null, $pages);
 $preserve = [
     'CNAME',
-    'README.md', 'MIRROR.md', 'MIRRORS.md',
+    'README.md', 'MIRROR.md', 'MIRRORS.md', 'TRACKERS.md',
     'sw.min.js',
     '_build.json',
     '_headers',
@@ -71,17 +77,20 @@ foreach ($kirby->languages() as $lang) {
 // sitemap.xml — one <url> per page × language, with hreflang alternates.
 // Uses the same isRich filter so the sitemap matches what was deployed.
 $kirby->setCurrentLanguage($kirby->defaultLanguage()->code());
+// Sitemap locs must be absolute. Use the CI origin when set, else fall back to
+// the relative base (renders locally; just not crawl-submittable as-is).
+$sitemapBase = $siteUrl !== '' ? $siteUrl . $baseUrl : $basePrefix . '/';
 $sitemap = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
         . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
-$emitPage = function ($page) use (&$sitemap, $kirby, $basePrefix) {
+$emitPage = function ($page) use (&$sitemap, $kirby, $sitemapBase) {
     foreach ($kirby->languages() as $lang) {
         $kirby->setCurrentLanguage($lang->code());
         if (!$page->translation($lang->code())->exists()) continue;
-        $loc = str_replace(['https://jr-ssg-base-url/', 'https://jr-ssg-base-url'], $basePrefix . '/', $page->url($lang->code()));
+        $loc = str_replace(['https://jr-ssg-base-url/', 'https://jr-ssg-base-url'], $sitemapBase, $page->url($lang->code()));
         $sitemap .= "  <url>\n    <loc>" . htmlspecialchars($loc) . "</loc>\n";
         foreach ($kirby->languages() as $alt) {
             if (!$page->translation($alt->code())->exists()) continue;
-            $altLoc = str_replace(['https://jr-ssg-base-url/', 'https://jr-ssg-base-url'], $basePrefix . '/', $page->url($alt->code()));
+            $altLoc = str_replace(['https://jr-ssg-base-url/', 'https://jr-ssg-base-url'], $sitemapBase, $page->url($alt->code()));
             $sitemap .= '    <xhtml:link rel="alternate" hreflang="' . $alt->code() . '" href="' . htmlspecialchars($altLoc) . '"/>' . "\n";
         }
         $sitemap .= "  </url>\n";
@@ -98,6 +107,7 @@ $copies = [
     'sw.min.js',
     'MIRROR.md',
     'MIRRORS.md',
+    'TRACKERS.md',
     'README.md',
     '_build.json',
     'CNAME',     // optional — present only when a custom domain is set
@@ -112,6 +122,29 @@ foreach ($copies as $name) {
     }
 }
 touch($outputFolder . '/.nojekyll');
+
+// Absolute-ize the discovery tags. Lighthouse rejects relative canonical/
+// hreflang; og:url + JSON-LD read better absolute too. Internal nav/asset links
+// are deliberately left relative (the tree must mirror to any host). No-op
+// locally (siteUrl empty) — SEO URLs only matter on a real deploy.
+if ($siteUrl !== '') {
+    $seoPatterns = [
+        '~(<link rel="canonical" href=")(/[^"]*)"~',
+        '~(<link rel="alternate" hreflang="[A-Za-z-]+" href=")(/[^"]*)"~',
+        '~(<meta property="og:url" content=")(/[^"]*)"~',
+        '~("(?:url|mainEntityOfPage)":")(/[^"]*)"~',   // JSON-LD (slashes unescaped)
+    ];
+    $seoCb = fn ($m) => $m[1] . $siteUrl . $m[2] . '"';
+    $seoCount = 0;
+    $hi = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($outputFolder, RecursiveDirectoryIterator::SKIP_DOTS));
+    foreach ($hi as $hf) {
+        $p = $hf->getPathname();
+        if (!str_ends_with($p, '.html')) continue;
+        file_put_contents($p, preg_replace_callback($seoPatterns, $seoCb, (string) file_get_contents($p)));
+        $seoCount++;
+    }
+    fwrite(STDERR, "seo-abs:  {$seoCount} html files\n");
+}
 
 // Per-route gz size manifest. Lets CI surface byte-budget diffs vs prior
 // build and gives clients a cheap way to read the page weight before navigating.

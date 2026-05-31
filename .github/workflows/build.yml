@@ -62,6 +62,32 @@ jobs:
       - name: Rebuild CSS + minified JS
         run: ./build.sh
 
+      # The built CSS/JS are committed (forkers + local dev read them without the
+      # toolchain). build.sh just regenerated them from source; if that produced
+      # a diff, the committed copies were stale — fail so they're never shipped
+      # out of sync. Tailwind is pinned (TAILWIND_VERSION) so output is stable.
+      - name: Verify committed CSS/JS match source
+        run: |
+          if ! git diff --quiet -- assets/css/app.css assets/js/app.min.js assets/js/p2p.min.js assets/js/comm.min.js assets/js/ticker.min.js; then
+            echo "::error::Committed build artifacts are stale. Run ./build.sh and commit the result."
+            git --no-pager diff --stat -- assets/css/app.css assets/js/*.min.js
+            exit 1
+          fi
+          echo "Build artifacts in sync with source."
+
+      # Guard: committed app.css / *.min.js must match a fresh build from source.
+      # CI rebuilds them above, so the deploy is always correct regardless — this
+      # only catches a commit where tailwind.src.css / *.js changed but the built
+      # artifacts weren't regenerated (stale local dev + dirty tree).
+      - name: Verify build artifacts are in sync with source
+        run: |
+          if ! git diff --quiet -- assets/css/app.css assets/js/*.min.js; then
+            echo "::error::Stale build artifacts. Run ./build.sh and commit assets/css/app.css + assets/js/*.min.js."
+            git --no-pager diff --stat -- assets/css/app.css assets/js/*.min.js
+            exit 1
+          fi
+          echo "Build artifacts in sync."
+
       # Pick the deploy prefix so any forker gets the right base automatically:
       #   - CNAME present              → custom domain, base "/"
       #   - repo is <owner>.github.io  → user/org page, base "/"
@@ -73,19 +99,21 @@ jobs:
           OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
           REPO_LOWER=$(echo "${REPO}" | tr '[:upper:]' '[:lower:]')
           if [ -f CNAME ]; then
-            BASE="/"
+            BASE="/"; SITE="https://$(head -n1 CNAME | tr -d '[:space:]')"
           elif [ "$REPO_LOWER" = "${OWNER_LOWER}.github.io" ]; then
-            BASE="/"
+            BASE="/"; SITE="https://${OWNER_LOWER}.github.io"
           else
-            BASE="/${REPO}/"
+            BASE="/${REPO}/"; SITE="https://${OWNER_LOWER}.github.io"
           fi
           echo "BASE_URL=${BASE}" >> "$GITHUB_ENV"
-          echo "Detected deploy base: ${BASE}"
+          echo "SITE_URL=${SITE}" >> "$GITHUB_ENV"
+          echo "Detected deploy base: ${BASE}  site: ${SITE}"
 
       - name: Generate static site
         run: php bin/generate.php
         env:
           BASE_URL: ${{ env.BASE_URL }}
+          SITE_URL: ${{ env.SITE_URL }}
 
       # Diff per-route gz sizes vs the prior gh-pages deploy. Fails open if
       # gh-pages doesn't exist yet (first deploy) — prior treated as empty.

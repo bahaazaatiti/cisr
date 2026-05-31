@@ -128,17 +128,6 @@
   .ui-badge[data-variant="info"]    { color: var(--muted-foreground); }
   .ui-badge[data-variant="error"]   { color: var(--destructive); }
 
-  /* Inline status pip. Sized to typography baseline; state via data-state. */
-  .status-dot {
-    display: inline-block;
-    width: 0.55em; height: 0.55em;
-    border-radius: 50%;
-    background: var(--muted-foreground);
-    vertical-align: 0.05em;
-  }
-  .status-dot[data-state="on"]  { background: var(--accent); }
-  .status-dot[data-state="off"] { background: var(--destructive); }
-
   /* Keyboard chord — hairline border. The body is already monospace. */
   kbd {
     border: 1px solid var(--border);
@@ -211,7 +200,7 @@
     padding: 0.75rem 1rem;
     overflow-x: auto;
     background: var(--secondary);
-    font-size: 0.8125rem;
+    font-size: 0.8rem;
   }
   .ui-prose code {
     border: 1px solid var(--border);
@@ -283,7 +272,7 @@
     gap: 0.3rem 1rem;
     border: 1px solid var(--border);
     padding: 0.6rem 0.75rem;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
   }
   .org-spec dt {
     text-transform: uppercase;
@@ -298,7 +287,6 @@
   .sidebar-sign { position: absolute; inset-block-start: 0.4rem; inset-inline-end: 0.4rem; width: 2.6rem; height: auto; opacity: 0.85; pointer-events: none; }
   .home-art { display: flex; justify-content: center; margin: 1rem 0; }
   .home-art img { display: block; max-width: 30%; height: auto; }
-  .home-art-place img { max-width: 35%; }
   .dark .home-art img, .dark .sidebar-sign { filter: invert(1); }
   .sidebar-foot-row { display: flex; gap: 0.5rem; align-items: baseline; }
   .sidebar-foot-meta { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.65rem; opacity: 0.85; }
@@ -356,7 +344,7 @@
   .ar-seed:hover { background: var(--secondary); }
   .ar-seed.busy { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
   .lib-up[disabled] { opacity: 0.4; cursor: not-allowed; }
-  .ar-body { flex: 1; overflow: auto; padding: 0.4rem 0.5rem; font-size: 0.78rem; line-height: 1.4; }
+  .ar-body { flex: 1; overflow: auto; padding: 0.4rem 0.5rem; font-size: 0.8rem; line-height: 1.4; }
 
   /* Library GUI grid + flat list */
   .lib-gui { display: flex; flex-direction: column; height: 100%; }
@@ -377,10 +365,10 @@
   .lib-cell-folder { font-weight: 700; }
   .lib-cell-icon { font-family: var(--font-mono); color: var(--muted-foreground); }
   .lib-cell-folder .lib-cell-icon { color: var(--accent); }
-  .lib-cell-name { word-break: break-word; font-size: 0.78rem; line-height: 1.2; }
+  .lib-cell-name { word-break: break-word; font-size: 0.8rem; line-height: 1.2; }
   .lib-cell-meta { font-size: 0.65rem; margin-block-start: auto; }
   .lib-empty-grid { grid-column: 1 / -1; padding: 0.5rem; }
-  .lib-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .lib-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
   .lib-table th, .lib-table td { border-block-end: 1px solid var(--border); padding: 0.2rem 0.3rem; text-align: start; vertical-align: top; }
   .lib-table th { text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
   .lib-table a, .lib-table span[data-file] { text-decoration: none; cursor: pointer; }
@@ -613,7 +601,7 @@
   .ctxmenu[hidden] { display: none; }
   .ctxmenu { position: fixed; z-index: 60; background: var(--background); border: 1px solid var(--border); display: flex; flex-direction: column; min-width: 9rem; list-style: none; margin: 0; padding: 0; }
   .ctxmenu li { display: block; }
-  .ctxmenu button, .ctxmenu a { font: inherit; color: inherit; border: 0; background: transparent; text-align: start; padding: 0.35rem 0.6rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; text-decoration: none; display: block; }
+  .ctxmenu button, .ctxmenu a { font: inherit; color: inherit; border: 0; background: transparent; text-align: start; padding: 0.35rem 0.6rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem; text-decoration: none; display: block; }
   .ctxmenu button:hover, .ctxmenu a:hover { background: var(--secondary); color: var(--accent); }
   .ctxmenu-item-name { display: block; }
   .ctxmenu-item-note { display: block; font-size: 0.65rem; letter-spacing: 0.04em; text-transform: none; color: var(--muted-foreground); margin-block-start: 0.1rem; white-space: normal; }
@@ -659,7 +647,7 @@
     background: var(--background);
     color: var(--accent);
     border-block: 1px solid var(--accent);
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     letter-spacing: 0.02em;
     /* Feather both ends so lines enter/exit instead of popping at a hard edge. */
     -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);

@@ -41,7 +41,7 @@
   <?php endif ?>
   <?php if ($infohash): ?>
     <dt><?= t('label.infohash', 'Infohash') ?></dt>
-    <dd class="break-all" style="font-size:0.75rem"><?= esc($infohash) ?></dd>
+    <dd class="break-all text-xs"><?= esc($infohash) ?></dd>
   <?php endif ?>
 </dl>
 

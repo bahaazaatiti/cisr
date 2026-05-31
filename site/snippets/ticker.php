@@ -6,9 +6,9 @@
   // browser by assets/js/ticker.js and merged in. Rendered once in the
   // persistent shell (footer) so it rides across SPA navs. CSS-only marquee —
   // see .ticker in tailwind.src.css.
+  if (!ticker_active()) return;
   $news  = ticker_news();
   $feeds = ticker_feeds();
-  if (!ticker_enabled() || (empty($news) && empty($feeds))) return;
 
   // Config the browser fetcher reads. The proxy + nitter fallback lists are
   // overridable via config.php so a fork can curate its own when a public host
@@ -18,11 +18,13 @@
     'max'     => 5,
     'cap'     => 160,
     'ttl'     => (int) option('ticker.ttl', 180),
-    'proxies' => array_values((array) option('ticker.proxies', [
+    // Precedence: TRACKERS.md (curated, editable without touching code) →
+    // config option → the JS-baked default (in ticker.js, if both are empty).
+    'proxies' => array_values(trackers_list('proxies') ?: (array) option('ticker.proxies', [
       'https://api.allorigins.win/raw?url=',
       'https://api.codetabs.com/v1/proxy/?quest=',
     ])),
-    'nitters' => array_values((array) option('ticker.nitters', [
+    'nitters' => array_values(trackers_list('nitters') ?: (array) option('ticker.nitters', [
       'https://nitter.net',
       'https://nitter.poast.org',
       'https://lightbrd.com',
@@ -46,7 +48,10 @@
   <?php endforeach;
   };
 ?>
-<div class="ticker" data-ticker aria-label="<?= esc(t('ticker.region', 'Live news'), 'attr') ?>">
+<?php /* role=marquee: a scrolling live-news region. Gives the aria-label a valid
+         host (aria-label on a role-less div is prohibited) and tells AT this is a
+         non-urgent live region, not silent decoration. */ ?>
+<div class="ticker" data-ticker role="marquee" aria-label="<?= esc(t('ticker.region', 'Live news'), 'attr') ?>">
   <script type="application/json" class="tk-config"><?= json_encode($cfg, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
   <svg class="tk-defs" aria-hidden="true" focusable="false"><defs>
     <symbol id="tk-x" viewBox="0 0 24 24"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></symbol>
@@ -54,6 +59,9 @@
   </defs></svg>
   <div class="tk-track" style="--ticker-dur:<?= $dur ?>s">
     <div class="tk-seg"><?php $seg() ?></div>
-    <div class="tk-seg" aria-hidden="true"><?php $seg() ?></div>
+    <?php /* Duplicate is decoration for the seamless loop: inert keeps its links
+             out of the tab order so keyboard users don't land on invisible copies
+             (aria-hidden alone leaves them focusable — fails axe aria-hidden-focus). */ ?>
+    <div class="tk-seg" aria-hidden="true" inert><?php $seg() ?></div>
   </div>
 </div>

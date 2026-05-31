@@ -27,8 +27,10 @@
   var feeds = Array.isArray(cfg.feeds) ? cfg.feeds : [];
   if (!feeds.length || !track) { window.siteTicker = { teardown: function () {} }; return; }
 
-  // Fallback chains — first host that returns usable data wins. Overridable
-  // from config.php so a fork curates its own; nothing host-specific in the JS.
+  // Fallback chains — first host that returns usable data wins. The live lists
+  // come from cfg (curated in TRACKERS.md → config option, resolved server-side
+  // in ticker.php); these literals are only the last-resort default if cfg is
+  // empty, so nothing host-specific is hardcoded as the source of truth.
   var PROXIES = (cfg.proxies && cfg.proxies.length) ? cfg.proxies : ['https://api.allorigins.win/raw?url='];
   var NITTERS = (cfg.nitters && cfg.nitters.length) ? cfg.nitters : ['https://nitter.net'];
   var MAX    = cfg.max || 5;
@@ -45,6 +47,18 @@
     return null;
   }
   function cacheSet(k, v) { try { sessionStorage.setItem(k, JSON.stringify({ t: Date.now(), v: v })); } catch (e) {} }
+  // Shared cache wrapper for a source lane: serve a fresh cache hit, else run
+  // produce(). Only NON-EMPTY results are cached (an empty/failed lane retries
+  // next view rather than caching darkness for the TTL); any rejection → [].
+  function cachedSource(key, produce) {
+    var hit = cacheGet(key);
+    if (hit) return Promise.resolve(hit);
+    return produce().then(function (v) {
+      if (!v || !v.length) return [];
+      cacheSet(key, v);
+      return v;
+    }).catch(function () { return []; });
+  }
 
   function fetchText(url, ms) {
     var ctrl = new AbortController();
@@ -89,22 +103,21 @@
   function getTelegramRaw(input) {
     var h = input.replace(/^@/, '').replace(/^https?:\/\/(?:t|telegram)\.me\/(?:s\/)?/i, '').replace(/[/?#].*$/, '').trim();
     if (!h) return Promise.resolve([]);
-    var key = 'tk:tg:' + h, hit = cacheGet(key);
-    if (hit) return Promise.resolve(hit);
-    return fetchVia('https://t.me/s/' + h).then(function (html) {
-      var doc = new DOMParser().parseFromString(html, 'text/html');
-      var msgs = Array.prototype.slice.call(doc.querySelectorAll('.tgme_widget_message')).slice(-MAX).reverse();
-      var out = [];
-      msgs.forEach(function (m) {
-        var el = m.querySelector('.tgme_widget_message_text');
-        var txt = el ? clean(el.textContent) : '';
-        if (!txt) return;
-        var date = m.querySelector('a.tgme_widget_message_date');
-        out.push({ kind: 'tg', text: trunc(txt), url: (date && date.href) || ('https://t.me/' + h) });
+    return cachedSource('tk:tg:' + h, function () {
+      return fetchVia('https://t.me/s/' + h).then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var msgs = Array.prototype.slice.call(doc.querySelectorAll('.tgme_widget_message')).slice(-MAX).reverse();
+        var out = [];
+        msgs.forEach(function (m) {
+          var el = m.querySelector('.tgme_widget_message_text');
+          var txt = el ? clean(el.textContent) : '';
+          if (!txt) return;
+          var date = m.querySelector('a.tgme_widget_message_date');
+          out.push({ kind: 'tg', text: trunc(txt), url: (date && date.href) || ('https://t.me/' + h) });
+        });
+        return out;
       });
-      cacheSet(key, out);
-      return out;
-    }).catch(function () { return []; });
+    });
   }
 
   // X: read a nitter mirror's RSS for the handle. Walk the instance list (each
@@ -113,19 +126,20 @@
   function getTwitterRaw(input) {
     var h = input.replace(/^@/, '').replace(/^https?:\/\/(?:www\.)?(?:x|twitter|nitter)\.[^/]+\//i, '').replace(/[/?#].*$/, '').trim();
     if (!h) return Promise.resolve([]);
-    var key = 'tk:x:' + h, hit = cacheGet(key);
-    if (hit) return Promise.resolve(hit);
-    var i = 0;
-    return (function next() {
-      if (i >= NITTERS.length) return [];
-      var base = NITTERS[i++].replace(/\/+$/, '');
-      return fetchVia(base + '/' + h + '/rss').then(function (xml) {
-        var v = parseRss(xml, 'x', 'https://x.com/' + h);
-        if (!v.length) throw new Error('empty');
-        cacheSet(key, v);
-        return v;
-      }).catch(next);
-    })();
+    // Walk the nitter list (each via the proxy chain); first non-empty wins. The
+    // shared wrapper handles the cache + the all-failed → [] fallback.
+    return cachedSource('tk:x:' + h, function () {
+      var i = 0;
+      return (function next() {
+        if (i >= NITTERS.length) return [];
+        var base = NITTERS[i++].replace(/\/+$/, '');
+        return fetchVia(base + '/' + h + '/rss').then(function (xml) {
+          var v = parseRss(xml, 'x', 'https://x.com/' + h);
+          if (!v.length) throw new Error('empty');
+          return v;
+        }).catch(next);
+      })();
+    });
   }
 
   // The field decides the source kind, so routing is just kind → fetcher.
@@ -181,7 +195,10 @@
     function makeSeg(hidden) {
       var seg = document.createElement('div');
       seg.className = 'tk-seg';
-      if (hidden) seg.setAttribute('aria-hidden', 'true');
+      // The duplicate is decoration for the seamless loop: aria-hidden hides it
+      // from AT, inert keeps its links out of the tab order (focusable copies
+      // under aria-hidden fail axe's aria-hidden-focus rule).
+      if (hidden) { seg.setAttribute('aria-hidden', 'true'); seg.inert = true; }
       merged.forEach(function (n) { seg.appendChild(n.cloneNode(true)); });
       return seg;
     }

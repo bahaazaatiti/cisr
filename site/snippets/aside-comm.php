@@ -26,7 +26,8 @@
         <span class="ui-sku comm-room-tag" data-comm-room-label>lobby</span>
         <span class="ui-sku" data-comm-peer-count
               data-fmt="<?= esc(t('comm.peers_n', '{n} peers'), 'attr') ?>"
-              data-connecting="<?= esc(t('comm.connecting', 'connecting…'), 'attr') ?>"></span>
+              data-connecting="<?= esc(t('comm.connecting', 'connecting…'), 'attr') ?>"
+              data-searching="<?= esc(t('comm.searching', 'searching for peers…'), 'attr') ?>"></span>
       </div>
 
       <details class="comm-meta">
