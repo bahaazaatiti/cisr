@@ -5,7 +5,7 @@ Title: Live News Ticker
 Telegram:
 
 - 
-  enabled: 'false'
+  enabled: 'true'
   url: https://t.me/mmirlb
 
 ----

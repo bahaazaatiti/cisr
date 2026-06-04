@@ -1,9 +1,1 @@
 Title: Accueil
-
-----
-
-Body: [{"content":{"location":"kirby","image":["file://t3tdein9myxvymye"],"src":"","alt":"","caption":"","link":"","ratio":"","crop":"false"},"id":"c0873311-2a8e-49c7-9405-cc7a17e01159","isHidden":false,"type":"image"},{"content":{"text":"<p><strong>La Brigade Communiste Arabe Internationale</strong> Nous sommes un groupe ou une organisation <em>C.I.S.R</em>, et non un parti. Ce bulletin est un projet de militants communistes internationalistes visant à diffuser la théorie et le programme marxistes authentiques, notamment les textes de la « Gauche Communiste Italienne », également connue sous le nom de « partis bordiguistes ». Ces pages sont notre façon de participer à la lutte pour la reconstruction du Parti Communiste International, qui sera capable de guider et de diriger le prolétariat mondial vers son objectif ultime: <em>la révolution prolétarienne communiste</em>, et l'abolition de l'exploitation des hommes et de la nature, du travail salarié et de toute forme d'économie fondée sur l'argent.</p><p>Notre plateforme cherche à partager nos analyses politiques, et avant tout, à fournir le matériel théorique et les orientations politiques permettant la formation et l'organisation des avant-gardes de la lutte révolutionnaire dans l'ensemble du monde arabe, du Moyen-Orient au Maghreb.</p><p>Notre objectif est clair: <strong>Nous voulons nous positionner dans la fenêtre historique qui permet de transformer la lutte de résistance transnationale — dans le contexte de cette guerre régionale — en une lutte révolutionnaire internationaliste.</strong></p>"},"id":"home-intro","isHidden":false,"type":"text"},{"content":{"location":"kirby","image":["file://ujbpq9gvnke2lcs9"],"src":"","alt":"","caption":"","link":"","ratio":"","crop":"false"},"id":"51f3ad61-1be4-4726-98f6-1143aa0ab71c","isHidden":false,"type":"image"}]
-
-----
-
-Featured: - page://ohmijxm2sh4x7rur

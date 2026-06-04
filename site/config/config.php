@@ -34,6 +34,24 @@ return [
             'users',
             'system',
             '-',
+            // Page navigation — moved out of the Site view into the menu.
+            'articles' => [
+                'icon'  => 'pen',
+                'label' => 'Articles',
+                'link'  => 'pages/articles',
+            ],
+            'library' => [
+                'icon'  => 'file',
+                'label' => 'Library',
+                'link'  => 'pages/library',
+            ],
+            'fraternals' => [
+                'icon'  => 'users',
+                'label' => 'Fraternals',
+                'link'  => 'pages/fraternals',
+            ],
+            '-',
+            // Panel-only config pages.
             'news-ticker' => [
                 'icon'  => 'bell',
                 'label' => 'News ticker',
@@ -44,6 +62,8 @@ return [
                 'label' => 'Live broadcast',
                 'link'  => 'pages/broadcast',
             ],
+            '-',
+            // Quick-add buttons — open Kirby's create dialog pre-targeted.
             'quick-article' => [
                 'icon'  => 'pen',
                 'label' => 'New article',
@@ -63,6 +83,13 @@ return [
                 'icon'  => 'video',
                 'label' => 'New video',
                 'link'  => 'dialogs/pages/create?parent=pages/videos&template=video',
+            ],
+            '-',
+            // All-media overview — view + delete files across the whole site.
+            'media' => [
+                'icon'  => 'image',
+                'label' => 'Media',
+                'link'  => 'pages/media',
             ],
         ],
     ],

@@ -6,8 +6,10 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
-  // Runs once when the container is first created
-  "postCreateCommand": "bash .devcontainer/setup.sh",
+  // onCreate (not postCreate) so this bakes into Codespaces prebuilds —
+  // composer deps, the Tailwind binary and built assets ship in the prebuilt
+  // image. (Prebuilds run onCreate/updateContent; postCreate is skipped.)
+  "onCreateCommand": "bash .devcontainer/setup.sh",
 
   // Runs every time the Codespace starts — boots the dev server via the
   // canonical `composer start` (root router.php + port 8765 + no process

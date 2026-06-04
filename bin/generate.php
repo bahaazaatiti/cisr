@@ -40,6 +40,7 @@ $pages = $kirby->site()->index()->filter(function ($p) {
     // front-end (ticker crawl / live broadcast), read while other pages render.
     if ($tpl === 'news-ticker') return false;
     if ($tpl === 'broadcast') return false;
+    if ($tpl === 'media') return false;
     if (in_array($tpl, ['library-item', 'video', 'fraternal'], true)) {
         return $p->isRich();
     }

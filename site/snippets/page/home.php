@@ -1,10 +1,8 @@
 <?php
   /** @var \Kirby\Cms\Page $page */
   $articles = page('articles');
-  $allCount = $articles ? $articles->children()->listed()->count() : 0;
-  $list = $articles
-    ? $articles->children()->listed()->sortBy('date', 'desc')->limit(5)
-    : new \Kirby\Cms\Pages();
+  $list = collection('articles')->limit(5);
+  $allCount = collection('articles')->count();
 ?>
 <header class="mb-6">
   <div class="ui-sku"><?= esc(strtoupper($page->kirby()->language()->code())) ?> / HOME</div>
@@ -14,7 +12,7 @@
 <?php /* Live broadcast hero — renders only when a broadcast is on. */ ?>
 <?php snippet('page/broadcast-hero') ?>
 
-<?php foreach ($page->body()->toBlocks() as $block): ?>
+<?php foreach ($page->site()->body()->toBlocks() as $block): ?>
   <?php if ($block->type() === 'image'):
     $image = $block->image()->toFile();
     if (!$image) continue;
@@ -31,7 +29,7 @@
   <?php endif ?>
 <?php endforeach ?>
 
-<?php $featured = $page->featured()->toPages(); ?>
+<?php $featured = $page->site()->featured()->toPages(); ?>
 <?php if (count($featured)): ?>
   <section class="featured mb-8">
     <div class="flex items-baseline justify-between mb-2">

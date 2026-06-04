@@ -131,12 +131,11 @@ if (!function_exists('tree_build')) {
 }
 
 if (!function_exists('ticker_enabled')) {
-    // The crawl is one global switch on the Home page (not translated) so the
-    // toggle reads identically in every language. Off unless explicitly set —
+    // The crawl is one global switch on the Site dashboard (not translated) so
+    // the toggle reads identically in every language. Off unless explicitly set —
     // a fresh fork stays quiet until an editor turns it on.
     function ticker_enabled(): bool {
-        $home = page('home');
-        return $home ? $home->ticker_on()->toBool() : false;
+        return site()->ticker_on()->toBool();
     }
 }
 
@@ -211,9 +210,10 @@ if (!function_exists('ticker_active')) {
 // a BREAKING-LIVE player that auto-joins the room receive-only and features the
 // editor's signed conference camera. Browser-only (Trystero/WebRTC), no backend.
 if (!function_exists('broadcast_on')) {
+    // The on/off switch now lives on the Site dashboard; room/relay/pubkey stay
+    // on the broadcast page. broadcast_active() still ANDs all three.
     function broadcast_on(): bool {
-        $b = page('broadcast');
-        return $b ? $b->broadcast_on()->toBool() : false;
+        return site()->broadcast_on()->toBool();
     }
 }
 if (!function_exists('broadcast_room')) {

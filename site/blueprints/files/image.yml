@@ -2,7 +2,7 @@ title: Image
 
 accept:
   mime: image/jpeg, image/png, image/webp, image/svg+xml, image/gif
-  maxsize: 8M
+  maxsize: 8388608   # 8 MB — Kirby wants bytes (an integer), not "8M"
 
 options:
   changeName: true

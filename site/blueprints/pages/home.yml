@@ -1,4 +1,9 @@
+# Thin shell — the homepage's content lives on the Site dashboard (site model).
+# content/home/home.*.txt must EXIST even though it's near-empty: Kirby derives a
+# page's template from its content filename, so deleting it drops home to the
+# default template. Locked from panel deletion below.
 title: Home
+icon: home
 
 options:
   changeSlug: false
@@ -7,101 +12,12 @@ options:
   delete: false
   preview: true
 
-icon: home
-
-columns:
-  # Dashboard strip — counts + a magnet health warning that lights up if any
-  # library-item or magnet-video has a tracker browsers can't reach.
-  dashboard:
-    width: 1/1
-    sections:
-      stats:
-        type: stats
-        reports:
-          - label: Articles
-            value: "{{ site.find('articles').children.listed.count }}"
-            icon: pen
-            link: pages/articles
-          - label: Library items
-            value: "{{ site.libraryItemCount }}"
-            icon: file
-            link: pages/library
-          - label: Fraternals
-            value: "{{ site.fraternalCount }}"
-            icon: users
-            link: pages/fraternals
-          - label: Videos
-            value: "{{ site.videoCount }}"
-            icon: video
-            link: pages/videos
-          - label: Broken magnets
-            value: "{{ site.brokenMagnetCount }}"
-            info: missing wss:// tracker
-            icon: alert
-            theme: negative
-
-  main:
-    width: 1/2
-    sections:
-      ticker:
-        type: fields
-        fields:
-          ticker_on:
-            label: Live news ticker
-            type: toggle
-            text:
-              - "Off — no crawl"
-              - "On — crawl shows site-wide"
-            default: false
-            translate: false
-            icon: bell
-            help: Scrolling news crawl pinned to the top of every page.
-          ticker_link:
-            label: Sources
-            type: info
-            theme: passive
-            text: "[→ Manage the four crawl sources](/panel/pages/news-ticker)"
-          broadcast_link:
-            label: Live broadcast
-            type: info
-            theme: passive
-            text: "[→ Go live / manage the broadcast](/panel/pages/broadcast)"
-      meta:
-        type: fields
-        fields:
-          body:
-            label: Content
-            type: blocks
-            translate: true
-            help: Intro paragraph + optional images. Renders above the featured list.
-            fieldsets:
-              - text
-              - image
-          featured:
-            label: Featured articles (up to 5)
-            type: pages
-            query: site.find("articles").children.listed
-            multiple: true
-            max: 5
-            layout: list
-            info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
-            help: Hand-picked. Leave empty to auto-show the latest articles.
-      home_files:
-        extends: sections/files-with-meta
-        headline: Page files
-        info: "{{ file.dimensions }} · {{ file.niceSize }}"
-        empty: Upload images here, then pick them inside an image block.
-
-  side:
-    width: 1/2
-    sections:
-      latest:
-        extends: sections/pages-by-status
-        headline: Latest articles
-        parent: site.find("articles")
-        template: article
-        status: listed
-        sortBy: date desc
-        limit: 5
-        info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
-        empty: No published articles yet.
+sections:
+  moved:
+    type: info
+    label: Home content lives on the Site dashboard
+    theme: info
+    text: |
+      The homepage's content — intro text, featured articles, and the live
+      news-ticker / broadcast switches — is now edited on the **[Site
+      dashboard](/panel/site)**. This page itself has no settings.

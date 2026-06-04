@@ -16,11 +16,11 @@ columns:
         label: How a live broadcast works
         theme: info
         text: |
-          Flip **On**, set a **room name**, click **Generate broadcast identity**,
-          then **Save** and let the site rebuild. To go live: open the site, open
-          **COMMS**, join that same room, load your downloaded key file, and turn
-          your camera on — visitors see you in a BREAKING·LIVE player on the home
-          page.
+          Set a **room name**, click **Generate broadcast identity**, then **Save**.
+          Turn the broadcast **On** from the **[Site dashboard](/panel/site)** and let
+          the site rebuild. To go live: open the site, open **COMMS**, join that same
+          room, load your downloaded key file, and turn your camera on — visitors see
+          you in a BREAKING·LIVE player on the home page.
 
           It is **peer-to-peer (WebRTC)**: best for a small audience (a handful of
           viewers). Anyone can watch — the key only guarantees viewers see *your*
@@ -31,16 +31,6 @@ columns:
       switch:
         type: fields
         fields:
-          broadcast_on:
-            label: Live broadcast
-            type: toggle
-            text:
-              - "Off — no broadcast"
-              - "On — player shows on home"
-            default: false
-            translate: false
-            icon: video
-            help: Master switch. The player only appears after a rebuild.
           broadcast_room:
             label: Room name
             type: text

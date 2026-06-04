@@ -41,7 +41,7 @@
     </ul>
 
     <?php
-      $featured = page('home')?->featured()?->toPages() ?? new \Kirby\Cms\Pages();
+      $featured = $site->featured()->toPages();
     ?>
     <?php if (count($featured)): ?>
       <div class="group-label mt-3"><?= t('nav.featured', 'Featured') ?></div>

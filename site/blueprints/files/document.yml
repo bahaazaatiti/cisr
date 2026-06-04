@@ -2,7 +2,7 @@ title: Document
 
 accept:
   mime: application/pdf, text/plain, text/markdown
-  maxsize: 50M
+  maxsize: 52428800   # 50 MB — Kirby wants bytes (an integer), not "50M"
 
 options:
   changeName: true

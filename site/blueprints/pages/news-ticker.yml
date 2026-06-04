@@ -16,8 +16,8 @@ columns:
         label: How the crawl works
         theme: info
         text: |
-          Turn the crawl on or off from the **Home** page. It scrolls across the
-          top of every page.
+          Turn the crawl on or off from the **[Site dashboard](/panel/site)**. It
+          scrolls across the top of every page.
 
           **Telegram** and **Twitter / X** are fetched **live in the visitor's
           browser** — just paste the channel's `t.me` link or the profile's

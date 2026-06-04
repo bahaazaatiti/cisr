@@ -2,10 +2,6 @@ Title: Live Broadcast
 
 ----
 
-Broadcast-on: false
-
-----
-
 Broadcast-room: c
 
 ----

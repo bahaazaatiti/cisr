@@ -7,7 +7,7 @@ Title:
 Telegram:
 
 - 
-  enabled: 'false'
+  enabled: 'true'
   url: https://t.me/C_Military1
 
 ----
