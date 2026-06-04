@@ -39,6 +39,24 @@
                  placeholder="<?= esc(t('comm.nick_ph', 'nickname (optional)'), 'attr') ?>">
           <button type="submit" class="ui-badge" data-comm-nick-set><?= t('comm.nick_set', 'SET') ?></button>
         </form>
+        <?php /* Signing identity: load the private key (downloaded from the panel)
+                 to sign your stream + chat, so the home-page broadcast player or
+                 the live-news crawl features you. Pasted or dropped here, held in
+                 memory only — never stored. Harmless to everyone else. Lives next
+                 to your name because one identity now covers broadcast + live news. */ ?>
+        <div class="comm-bcast" data-comm-bcast>
+          <p class="ui-sku comm-bcast-head"><?= t('comm.bcast_load', 'LOAD BROADCAST KEY') ?></p>
+          <div class="comm-fields">
+            <button type="button" class="ui-badge" data-comm-bcast-load><?= t('comm.bcast_file', 'KEY FILE') ?></button>
+            <input type="file" data-comm-bcast-file accept=".txt,.pem" hidden aria-hidden="true">
+          </div>
+          <textarea class="comm-in" data-comm-bcast-paste rows="2"
+                    placeholder="<?= esc(t('comm.bcast_hint', 'or paste the key, then Ctrl+Enter'), 'attr') ?>"
+                    aria-label="<?= esc(t('comm.bcast_load', 'Load broadcast key'), 'attr') ?>"></textarea>
+          <p class="ui-sku comm-bcast-status" data-comm-bcast-status aria-live="polite"
+             data-loaded="<?= esc(t('comm.bcast_loaded', 'broadcast key loaded ✓'), 'attr') ?>"
+             data-bad="<?= esc(t('comm.bcast_bad', 'invalid key'), 'attr') ?>"></p>
+        </div>
         <form class="comm-fields" onsubmit="return false">
           <input class="comm-in" data-comm-room name="comm-room" autocomplete="off" maxlength="32"
                  aria-label="<?= t('comm.room', 'Room') ?>"

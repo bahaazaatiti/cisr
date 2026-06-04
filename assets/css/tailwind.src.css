@@ -469,6 +469,12 @@
   .comm-in { flex: 1; min-width: 0; font: inherit; font-size: 0.75rem; color: var(--foreground);
     background: var(--background); border: 1px solid var(--border); padding: 0.2rem 0.3rem; outline: 0; }
   .comm-in:focus-visible { border-color: var(--accent); }
+  /* Signing-identity loader, tucked under WHO'S HERE next to the self row; a
+     dashed rule sets it apart from the nick/room forms. */
+  .comm-bcast { margin: 0.4rem 0.4rem 0; padding-block-start: 0.4rem; border-block-start: 1px dashed var(--border);
+    display: flex; flex-direction: column; gap: 0.35rem; }
+  .comm-bcast .comm-fields { padding: 0; }
+  .comm-bcast-head { letter-spacing: 0.06em; }
   .comm-room-hint { padding: 0 0.4rem 0.3rem; color: var(--muted-foreground); line-height: 1.35; }
 
   .comm-msgs { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; font-size: 0.8rem; line-height: 1.35; }
@@ -672,15 +678,108 @@
   .tk-item:hover { text-decoration: underline; text-underline-offset: 2px; }
   .tk-logo { inline-size: 0.95em; block-size: 0.95em; flex: 0 0 auto; }
   .tk-dot { inline-size: 0.5em; block-size: 0.5em; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+  /* Live-news lane: a signed editor's chat surfaces here, marked by the same
+     accent dot but FLICKERING, so live lines stand out from fetched ones. */
+  .tk-dot-live { animation: tk-flick 1.1s steps(1, end) infinite; }
+  @keyframes tk-flick { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.15; } }
 
   @media (prefers-reduced-motion: reduce) {
     .ticker { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
     .tk-track { animation: none; width: 100%; }
     .tk-seg + .tk-seg { display: none; }
+    .tk-dot-live { animation: none; opacity: 1; }
   }
 
   /* Reserve the band so the fixed crawl never covers content. Height is fixed,
      so the offset is deterministic — zero layout shift on first paint. */
   .has-ticker .main { padding-block-start: 3.4rem; }
   @media (max-width: 767px) { .has-ticker .main { padding-block-start: 2.7rem; } }
+
+  /* LIVE BROADCAST hero — a 16:9 P2P player wrapped by a single accent marquee
+     that travels AROUND all four edges (top →, right ↓, bottom ←, left ↑), so the
+     text appears to orbit the player. CSS-only, reusing the ticker's crawl
+     (.tk-track/.tk-seg/.tk-item). Shown on home only while a broadcast is live.
+     Mobile-first; RTL handled by logical grid + per-edge direction. */
+  .bc {
+    --bc-edge: 1.6rem;           /* thickness of the marquee band on every side */
+    margin-block-end: 1.5rem;
+    position: relative;          /* anchor for the absolutely-placed side edges */
+    /* The player's aspect-ratio sets the whole height. Top/bottom bands sit above
+       and below it via padding; the side bands overlay the padding columns. This
+       avoids a grid where vertical-text edges would balloon the row height. */
+    padding-block: var(--bc-edge);
+    padding-inline: var(--bc-edge);
+    background: var(--accent);   /* the band fill; corners show through */
+  }
+  /* One marquee edge — an absolutely-placed strip along one side of .bc. The
+     player (normal flow) sets the box height; the edges overlay the padding so
+     vertical-text length can never balloon the layout. */
+  .bc-edge {
+    position: absolute;
+    overflow: hidden;
+    background: var(--accent);
+    color: var(--accent-foreground);
+    display: flex;
+    align-items: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    z-index: 1;
+  }
+  .bc-edge .tk-track { animation-duration: 22s; }
+  .bc-edge .tk-item { padding-inline: 0.6rem; }
+  /* Horizontal crawl (reverse) for top/bottom; vertical crawl for the sides.
+     writing-mode only lays the TEXT vertically — it does NOT change the animation
+     axis, so the side strips need their own translateY keyframes to actually
+     move. Each track carries the text twice, so 50% = one full segment. */
+  @keyframes bc-crawl-rev   { from { transform: translateX(0); } to { transform: translateX(50%); } }
+  @keyframes bc-crawl-v     { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+  @keyframes bc-crawl-v-rev { from { transform: translateY(0); } to { transform: translateY(50%); } }
+  /* Top/bottom span full width; bottom scrolls the opposite way so the loop reads
+     as travelling around the player. */
+  .bc-edge-top, .bc-edge-bottom { inset-inline: 0; block-size: var(--bc-edge); }
+  .bc-edge-top    { inset-block-start: 0; }
+  .bc-edge-bottom { inset-block-end: 0; }
+  .bc-edge-bottom .tk-track { animation-name: bc-crawl-rev; }
+  /* Left/right span between the two horizontal bands. PHYSICAL props (top/bottom/
+     left/right/width) here on purpose: writing-mode:vertical-rl swaps the logical
+     axes, so logical inset-block/inline-size would render a horizontal bar. The
+     writing-mode lays the text vertically; the translateY keyframes scroll it.
+     (Frame is symmetric, so physical L/R is RTL-safe.) */
+  .bc-edge-left, .bc-edge-right {
+    top: var(--bc-edge); bottom: var(--bc-edge);
+    width: var(--bc-edge);
+    writing-mode: vertical-rl;
+  }
+  .bc-edge-left  { left: 0; }
+  .bc-edge-right { right: 0; }
+  /* Right flows down, left flows up — so text travels clockwise around the loop. */
+  .bc-edge-right .tk-track { animation-name: bc-crawl-v; }
+  .bc-edge-left  .tk-track { animation-name: bc-crawl-v-rev; }
+  /* The player — normal flow inside the .bc padding box. */
+  .bc-stage {
+    position: relative;
+    display: block;
+    inline-size: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border: 0;
+  }
+  .bc-video { inline-size: 100%; block-size: 100%; object-fit: contain; background: #000; display: block; }
+  /* Placeholder centred until a verified stream attaches; hidden once live. */
+  .bc-wait {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); background: var(--secondary);
+    letter-spacing: 0.12em;
+  }
+  .bc[data-state="live"] .bc-wait { display: none; }
+  .bc[data-state="error"] .bc-wait { color: var(--destructive); }
+  .bc-unmute {
+    position: absolute;
+    inset-block-end: 0.6rem; inset-inline-end: 0.6rem;
+    background: var(--background);
+    z-index: 1;
+  }
 }

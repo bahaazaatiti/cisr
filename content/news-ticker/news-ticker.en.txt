@@ -5,7 +5,7 @@ Title: Live News Ticker
 Telegram:
 
 - 
-  enabled: 'true'
+  enabled: 'false'
   url: https://t.me/mmirlb
 
 ----
@@ -19,6 +19,20 @@ Twitter:
 ----
 
 Breaking: 
+
+----
+
+Livenews:
+
+- 
+  enabled: 'false'
+  room: arslan
+  label: ""
+  pubkey: |
+    -----BEGIN PUBLIC KEY-----
+    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgcmSq0oZnjIuari0UiMW9mkLutl5
+    TAq4USlsLjDxaVERaD1lbhcEJgCITZbfstu0VCkAQzHJcGGW77UILvwFZQ==
+    -----END PUBLIC KEY-----
 
 ----
 

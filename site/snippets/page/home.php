@@ -11,6 +11,9 @@
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
+<?php /* Live broadcast hero — renders only when a broadcast is on. */ ?>
+<?php snippet('page/broadcast-hero') ?>
+
 <?php foreach ($page->body()->toBlocks() as $block): ?>
   <?php if ($block->type() === 'image'):
     $image = $block->image()->toFile();

@@ -68,7 +68,7 @@ jobs:
       # out of sync. Tailwind is pinned (TAILWIND_VERSION) so output is stable.
       - name: Verify committed CSS/JS match source
         run: |
-          if ! git diff --quiet -- assets/css/app.css assets/js/app.min.js assets/js/p2p.min.js assets/js/comm.min.js assets/js/ticker.min.js; then
+          if ! git diff --quiet -- assets/css/app.css assets/js/app.min.js assets/js/p2p.min.js assets/js/comm.min.js assets/js/ticker.min.js assets/js/broadcast.min.js; then
             echo "::error::Committed build artifacts are stale. Run ./build.sh and commit the result."
             git --no-pager diff --stat -- assets/css/app.css assets/js/*.min.js
             exit 1

@@ -1,0 +1,43 @@
+# Live-news rooms — a signed editor types straight into the crawl, live. Each
+# row is a Trystero room plus the PUBLIC key its lines must be signed with; the
+# visitor's browser joins the room (assets/js/ticker.js → siteComm.signedReceiver)
+# and shows only chat verified against that key. Global (not per-language) like
+# the broadcast, so one identity reaches every language's crawl.
+type: structure
+translate: false
+empty: No live-news rooms yet — add one and generate an identity above.
+columns:
+  enabled:
+    width: 1/6
+  room:
+    width: 2/6
+  label:
+    width: 3/6
+fields:
+  enabled:
+    label: On
+    type: toggle
+    default: true
+    icon: power
+    help: Off keeps the row here but stops watching the room.
+  room:
+    label: Room name
+    type: text
+    icon: key
+    required: true
+    help: >
+      The Trystero room the signed editor types in. Pick a non-obvious name and
+      change it per session — anyone with the name can join the room.
+  label:
+    label: Label
+    type: text
+    icon: tag
+    help: Short prefix shown before each live line in the crawl (e.g. CISR LIVE).
+  pubkey:
+    label: Public key (paste from “Generate live-news identity”)
+    type: textarea
+    font: monospace
+    buttons: false
+    help: >
+      Paste the public key from Generate live-news identity. Only chat signed by
+      the matching private key (loaded on the site in WHO’S HERE) is shown.

@@ -24,8 +24,9 @@
 
   var cfg = {};
   try { cfg = JSON.parse(cfgEl.textContent); } catch (e) {}
-  var feeds = Array.isArray(cfg.feeds) ? cfg.feeds : [];
-  if (!feeds.length || !track) { window.siteTicker = { teardown: function () {} }; return; }
+  var feeds    = Array.isArray(cfg.feeds) ? cfg.feeds : [];
+  var livenews = Array.isArray(cfg.livenews) ? cfg.livenews : [];
+  if ((!feeds.length && !livenews.length) || !track) { window.siteTicker = { teardown: function () {} }; return; }
 
   // Fallback chains — first host that returns usable data wins. The live lists
   // come from cfg (curated in TRACKERS.md → config option, resolved server-side
@@ -41,6 +42,8 @@
   // Hand-written lines already in the DOM = the always-present base layer.
   var baseSeg = track.querySelector('.tk-seg');
   var nativeNodes = baseSeg ? Array.prototype.map.call(baseSeg.children, function (n) { return n.cloneNode(true); }) : [];
+  var remoteLanes = [];   // fetched feed lanes (filled by run())
+  var liveItems   = [];   // live-news lines, newest first (filled live), capped
 
   function cacheGet(k) {
     try { var r = JSON.parse(sessionStorage.getItem(k)); if (r && Date.now() - r.t < TTL) return r.v; } catch (e) {}
@@ -186,7 +189,14 @@
 
   function paint(lanes) {
     var merged = interleave(lanes);
-    if (!merged.length) { ticker.hidden = true; document.body.classList.remove('has-ticker'); return; }
+    if (!merged.length) {
+      // Nothing to show. If live-news rooms are configured, keep the band
+      // reserved (lines may still arrive) instead of hiding it — hiding drops
+      // has-ticker and shifts the layout. Otherwise fall back to the legacy hide.
+      if (!livenews.length) { ticker.hidden = true; document.body.classList.remove('has-ticker'); }
+      return;
+    }
+    ticker.hidden = false;
 
     var chars = 0;
     merged.forEach(function (n) { chars += (n.textContent || '').length + 4; });
@@ -205,17 +215,71 @@
     track.replaceChildren(makeSeg(false), makeSeg(true));
   }
 
+  // Rebuild the crawl from every current lane: server-rendered native lines,
+  // fetched feed lanes, then the live-news lane.
+  function repaint() {
+    var lanes = [nativeNodes].concat(remoteLanes);
+    if (liveItems.length) lanes.push(liveItems);
+    paint(lanes);
+  }
+
   function run() {
     Promise.allSettled(feeds.map(getSource)).then(function (results) {
-      var remoteLanes = [];
       results.forEach(function (r) {
         if (r.status === 'fulfilled' && r.value && r.value.length) remoteLanes.push(r.value.map(itemNode));
       });
-      if (!remoteLanes.length) return;   // nothing fetched — keep the server-rendered native crawl
-      paint([nativeNodes].concat(remoteLanes));
+      if (remoteLanes.length) repaint();   // merge fetched lanes; else keep native
     });
   }
 
-  window.siteTicker = { teardown: function () {} };
-  run();
+  // ---- Live news: a signed editor's chat, straight into the crawl ----
+  // Each row is an independent receiver — comm.js owns the room join + per-message
+  // signature verification (siteComm.signedReceiver); we only render the verified
+  // lines, marked with a flickering dot. CAP at 1 room for now (receivers are
+  // independent, so lifting the cap is a one-line change).
+  var LIVE_CAP = 8;                       // most live lines kept in the crawl
+  var rooms = livenews.slice(0, 1);       // cap at 1 room for now
+  var liveHandles = [];
+
+  function liveItemNode(label, text) {
+    var el = document.createElement('span');
+    el.className = 'tk-item';
+    var dot = document.createElement('span');
+    dot.className = 'tk-dot tk-dot-live';   // flickering = live
+    dot.setAttribute('aria-hidden', 'true');
+    el.appendChild(dot);
+    var span = document.createElement('span');
+    span.className = 'tk-text';
+    span.textContent = (label ? label + ' · ' : '') + text;   // untrusted → textContent
+    el.appendChild(span);
+    return el;
+  }
+
+  function startLiveNews() {
+    if (!window.siteComm || !window.siteComm.signedReceiver) return false;
+    rooms.forEach(function (r) {
+      if (!r || !r.room || !r.pubkey) return;
+      window.siteComm.signedReceiver(r.room, r.pubkey, {
+        onLine: function (text) {
+          var t = trunc(clean(String(text)));
+          if (!t) return;
+          liveItems.unshift(liveItemNode(r.label || '', t));
+          if (liveItems.length > LIVE_CAP) liveItems.length = LIVE_CAP;
+          repaint();
+        }
+      }).then(function (h) { if (h) liveHandles.push(h); });
+    });
+    return true;
+  }
+
+  window.siteTicker = { teardown: function () {
+    liveHandles.forEach(function (h) { try { h.teardown(); } catch (e) {} });
+  } };
+
+  if (feeds.length) run();
+  if (rooms.length && !startLiveNews()) {
+    // comm.js loads deferred too; poll briefly for its API like broadcast.js.
+    var tries = 0;
+    var lt = setInterval(function () { if (startLiveNews() || ++tries > 50) clearInterval(lt); }, 100);
+  }
 })();

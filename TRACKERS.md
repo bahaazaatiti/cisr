@@ -1,4 +1,4 @@
-# Live endpoints — comms relays · ticker proxies · ticker nitters
+# Live endpoints — comms relays · ticker proxies · ticker nitters · broadcast TURN
 
 The peer/live-news layer leans on **public, volunteer-run infrastructure that
 comes and goes**. This is the one place to curate it without touching JS: edit a
@@ -6,9 +6,10 @@ section, rebuild, redeploy. Order matters — put the most reliable host first
 (each list is tried top-down; the first that answers wins).
 
 If this file is missing or a section is empty, the code falls back to
-`option('comm.relays' | 'ticker.proxies' | 'ticker.nitters')` in
-`site/config/config.php`, then to a hardcoded default baked into the JS — so a
-fork that deletes this never breaks, it just loses the curation.
+`option('comm.relays' | 'ticker.proxies' | 'ticker.nitters' | 'broadcast.turn')`
+in `site/config/config.php`, then to a hardcoded default baked into the JS — so a
+fork that deletes this never breaks, it just loses the curation. (The `## Turn`
+section is the exception: empty there simply disables broadcast relay mode.)
 
 Format in every section: `- <url>` (one per line; blank lines and `<!-- … -->`
 comments ignored). Liveness last checked **2026-05-31**.
@@ -39,3 +40,13 @@ comments ignored). Liveness last checked **2026-05-31**.
 - https://nitter.net
 - https://nitter.poast.org
 - https://lightbrd.com
+
+## Turn
+
+<!-- TURN relay(s) for the live broadcast's "Hide viewer IPs" mode. Only used
+     when the broadcast page's relay toggle is on. Format per line:
+     `- turn:host:port|username|credential`  (STUN needs no creds: `- stun:host`).
+     Free TURN is bandwidth-limited (e.g. openrelay ~5GB/mo) — fine for a small
+     broadcast, not a crowd. Leave empty to disable relay mode entirely. -->
+- stun:stun.cloudflare.com:3478
+- turn:openrelay.metered.ca:80|openrelayproject|openrelayproject

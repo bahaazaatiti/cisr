@@ -175,13 +175,75 @@ if (!function_exists('ticker_news')) {
     }
 }
 
+if (!function_exists('ticker_livenews')) {
+    // Live-news rooms: a signed editor's chat in a Trystero room surfaces in the
+    // crawl, verified browser-side against the row's public key. Global (not
+    // per-language) like the broadcast, so one identity reaches every language.
+    // Enabled rows that carry both a room and a public key.
+    function ticker_livenews(): array {
+        $tk = page('news-ticker');
+        if (!$tk) return [];
+        $out = [];
+        foreach ($tk->livenews()->toStructure() as $row) {
+            if (!$row->enabled()->toBool()) continue;
+            $room = trim((string) $row->room());
+            $pub  = trim((string) $row->pubkey());
+            if ($room !== '' && $pub !== '') {
+                $out[] = ['room' => $room, 'label' => trim((string) $row->label()), 'pubkey' => $pub];
+            }
+        }
+        return $out;
+    }
+}
+
 if (!function_exists('ticker_active')) {
     // Single source of truth for "the crawl is showing": enabled AND it has
-    // something to show (a live feed source or a hand-written line). Used by the
-    // <body> class, the ticker snippet's render gate, and the script include, so
-    // none of them drift out of sync.
+    // something to show (a live feed source, a hand-written line, or a live-news
+    // room). Used by the <body> class, the ticker snippet's render gate, and the
+    // script include, so none of them drift out of sync.
     function ticker_active(): bool {
-        return ticker_enabled() && (ticker_feeds() || ticker_news());
+        return ticker_enabled() && (ticker_feeds() || ticker_news() || ticker_livenews());
+    }
+}
+
+// ---- Live broadcast (panel-only `broadcast` page) ----
+// One global switch: when on + a room + a public key are set, the homepage shows
+// a BREAKING-LIVE player that auto-joins the room receive-only and features the
+// editor's signed conference camera. Browser-only (Trystero/WebRTC), no backend.
+if (!function_exists('broadcast_on')) {
+    function broadcast_on(): bool {
+        $b = page('broadcast');
+        return $b ? $b->broadcast_on()->toBool() : false;
+    }
+}
+if (!function_exists('broadcast_room')) {
+    function broadcast_room(): string {
+        $b = page('broadcast');
+        return $b ? trim((string) $b->broadcast_room()) : '';
+    }
+}
+if (!function_exists('broadcast_relay')) {
+    // TURN-relay mode: when on, viewers connect relay-only so their IP is hidden
+    // behind the TURN server (honest privacy, at the cost of free-TURN limits).
+    function broadcast_relay(): bool {
+        $b = page('broadcast');
+        return $b ? $b->broadcast_relay()->toBool() : false;
+    }
+}
+if (!function_exists('broadcast_pubkey')) {
+    // The signing public key (PEM), baked into the build so viewers verify which
+    // stream is the real broadcaster. Public by design — safe to publish.
+    function broadcast_pubkey(): string {
+        $b = page('broadcast');
+        return $b ? trim((string) $b->broadcast_pubkey()) : '';
+    }
+}
+if (!function_exists('broadcast_active')) {
+    // Single source of truth for "a broadcast is live": on AND a room AND a
+    // verification key are set. Gates the homepage hero render AND the
+    // broadcast.min.js include, so a non-live build ships none of it.
+    function broadcast_active(): bool {
+        return broadcast_on() && broadcast_room() !== '' && broadcast_pubkey() !== '';
     }
 }
 

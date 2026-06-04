@@ -42,6 +42,19 @@
   let levelTimer = null, pingTimer = null;
   let typingTimer = null, myTyping = false;
 
+  // ---- Broadcast signing (editor side) ----
+  // The home page features only a peer whose presence is signed by the broadcast
+  // private key (verified against the baked public key). The editor loads that
+  // key here per session — pasted or drag-dropped, held IN MEMORY only, never
+  // persisted — and we sign {id,ts} into presence while in the live room with
+  // camera on. broadcastRoom is baked at build (data-comm-broadcast-room).
+  let bcastKey = null;            // imported CryptoKey (ECDSA P-256 private), or null
+  let bcastSig = null;            // { sig, ts } cached for the current peer id
+  const bcastRoom = () => {
+    const s = $('script[data-comm-vendor]');
+    return (s && s.dataset.commBroadcastRoom) || '';
+  };
+
   const EMOJI = ['👍','❤️','🔥','😂','🎉','✊','👀','😀'];
   const SPEAK_TH = 14;          // mean FFT magnitude above which a tile "speaks"
 
@@ -326,8 +339,185 @@
     renderAllMsgs();
   }
 
+  // ---- Broadcast key load + signing ----
+  // base64 → ArrayBuffer (raw bytes, e.g. a signature) and PEM → ArrayBuffer
+  // (strip the armor first). Shared by the editor's private-key import (pkcs8),
+  // the receiver's public-key import (spki), and signature decode.
+  function b64ToBuf(b64) {
+    const bin = atob(String(b64));
+    const u = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return u.buffer;
+  }
+  function pemToDer(pem) {
+    return b64ToBuf(String(pem).replace(/-----[^-]+-----/g, '').replace(/\s+/g, ''));
+  }
+  async function loadBroadcastKey(pem) {
+    if (!pem || !window.crypto || !crypto.subtle) return false;
+    try {
+      bcastKey = await crypto.subtle.importKey(
+        'pkcs8', pemToDer(pem),
+        { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']
+      );
+      bcastSig = null;            // re-sign on next presence
+      reflectBroadcastKey(true);
+      broadcastPresence();        // push broadcaster:true immediately if eligible
+      return true;
+    } catch (e) {
+      bcastKey = null;
+      reflectBroadcastKey(false, (e && e.message) || 'invalid key');
+      return false;
+    }
+  }
+  function reflectBroadcastKey(ok, err) {
+    $$('[data-comm-bcast-status]').forEach(el => {
+      el.textContent = ok ? (el.dataset.loaded || 'broadcast key loaded ✓')
+                          : (err ? (el.dataset.bad || 'invalid key') + ' — ' + err : '');
+      el.dataset.state = ok ? 'on' : 'off';
+    });
+  }
+  // Am I the live broadcaster right now? In the baked room, camera on, key loaded.
+  function amBroadcaster() {
+    return !!bcastKey && camOn() && roomName === bcastRoom() && bcastRoom() !== '';
+  }
+  // Sign {id, ts} so a viewer can verify this stream is the real broadcaster and
+  // the signature isn't replayable under a different peer id. base64(sig).
+  async function signBroadcast() {
+    if (!bcastKey || !selfId) return null;
+    const ts = Date.now();
+    const data = new TextEncoder().encode(selfId + '|' + ts);
+    try {
+      const raw = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, bcastKey, data);
+      const b = new Uint8Array(raw); let s = '';
+      for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+      bcastSig = { sig: btoa(s), ts };
+      return bcastSig;
+    } catch (_) { return null; }
+  }
+  // Sign a chat line over (selfId|ts|text) with the loaded identity key, so a
+  // signedReceiver (broadcast hero / live-news ticker) can prove the line is
+  // genuinely us. Same key + curve as the presence signature; the canonical
+  // string is shared with verifyLine() in signedReceiver.
+  async function signChat(text, ts) {
+    if (!bcastKey || !selfId) return null;
+    const data = new TextEncoder().encode(selfId + '|' + ts + '|' + text);
+    try {
+      const raw = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, bcastKey, data);
+      const b = new Uint8Array(raw); let s = '';
+      for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+      return { sig: btoa(s), ts };
+    } catch (_) { return null; }
+  }
+
   // ---- Presence ----
-  function myPresence() { return { nick, conf: inConference, mic: micOn(), cam: camOn(), screen: screenFlag }; }
+  function myPresence() {
+    const p = { nick, conf: inConference, mic: micOn(), cam: camOn(), screen: screenFlag };
+    // Attach the broadcaster proof when eligible. bcastSig is refreshed lazily by
+    // refreshBroadcastSig() (presence is sync; signing is async).
+    if (amBroadcaster() && bcastSig) { p.broadcaster = true; p.bsig = bcastSig.sig; p.bts = bcastSig.ts; }
+    return p;
+  }
+
+  // ---- Independent signed receiver ----
+  // A standalone watcher for a signed room — the homepage broadcast hero and the
+  // live-news ticker both use it. It joins its OWN Trystero room (separate peers
+  // map, separate actions, no shared room/roomName/location.hash), so watching
+  // never touches the comms drawer and any number of rooms can be watched at once.
+  //
+  // Receiving needs nothing but being a connected peer: the broadcaster addStreams
+  // to every peer in its OWN onPeerJoin, and Trystero connects any two peers in a
+  // room, so the handshake fires on both sides and the stream arrives. We send NO
+  // media and NO presence — we only listen, verify the broadcaster's signature
+  // against `pubkey`, and surface that one peer's stream (onStream) and/or its
+  // signed chat lines (onLine). Unverified peers are never surfaced.
+  async function signedReceiver(roomId, pubkeyPem, opts) {
+    opts = opts || {};
+    const onStream = typeof opts.onStream === 'function' ? opts.onStream : null;
+    const onLine   = typeof opts.onLine   === 'function' ? opts.onLine   : null;
+    if (!roomId || !pubkeyPem || !window.crypto || !crypto.subtle) return null;
+
+    let key;
+    try { key = await crypto.subtle.importKey('spki', pemToDer(pubkeyPem), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']); }
+    catch (_) { return null; }            // bad key → refuse (never surface unverified media)
+
+    const t = await loadTrystero();
+    const relays = relayUrls();
+    const rm = t.joinRoom({ appId: 'cisr', relayConfig: { urls: relays, redundancy: relays.length } }, roomId);
+
+    const rpeers = new Map();             // id → { stream, broadcaster, bsig, bts }
+    let featured = null;                  // id currently surfaced (latching)
+
+    // A peer's signed presence: claims broadcaster, carries a fresh sig over
+    // (peerId|ts) that verifies against the baked key. Fresh window blocks replay.
+    function verifyPresence(id) {
+      const p = rpeers.get(id);
+      if (!p || !p.broadcaster || !p.bsig || !p.bts) return Promise.resolve(false);
+      if (Math.abs(Date.now() - p.bts) > 120000) return Promise.resolve(false);
+      const data = new TextEncoder().encode(id + '|' + p.bts);
+      return crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64ToBuf(p.bsig), data)
+        .then(ok => !!ok).catch(() => false);
+    }
+    // Each chat line carries its own sig over (peerId|ts|text); verify + freshness.
+    function verifyLine(id, d) {
+      if (!d || !d.text || !d.csig || !d.cts) return Promise.resolve(false);
+      if (Math.abs(Date.now() - d.cts) > 120000) return Promise.resolve(false);
+      const data = new TextEncoder().encode(id + '|' + d.cts + '|' + String(d.text));
+      return crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64ToBuf(d.csig), data)
+        .then(ok => !!ok).catch(() => false);
+    }
+    // Surface the verified broadcaster's stream. Idempotent + LATCHING: once a peer
+    // is featured keep showing it until it LEAVES — never re-verify-then-clear on
+    // every presence packet (that made the hero flap feature→clear→feature).
+    function reconsider() {
+      if (!onStream) return;
+      if (featured) {
+        const fp = rpeers.get(featured);
+        if (fp && fp.stream) { onStream(fp.stream); return; }
+        featured = null;                  // the peer vanished without a leave event
+      }
+      const ids = Array.from(rpeers.keys());
+      (function next(i) {
+        if (i >= ids.length) { if (!featured) onStream(null); return; }
+        const p = rpeers.get(ids[i]);
+        if (!p || !p.stream) return next(i + 1);
+        verifyPresence(ids[i]).then(ok => {
+          if (featured) return;           // someone else won the race
+          if (ok) { featured = ids[i]; onStream(p.stream); }
+          else next(i + 1);
+        });
+      })(0);
+    }
+
+    // Action onMessage hands us (data, meta) — meta.peerId is the sender (mirrors
+    // the comms drawer's action handlers). Room handlers below get the id directly.
+    const presAct = rm.makeAction('pres');
+    presAct.onMessage = (d, m) => {
+      const id = m && m.peerId; if (!id) return;
+      const p = rpeers.get(id) || {};
+      p.broadcaster = !!(d && d.broadcaster); p.bsig = d && d.bsig; p.bts = d && d.bts;
+      rpeers.set(id, p);
+      reconsider();
+    };
+    const chatAct = rm.makeAction('chat');
+    chatAct.onMessage = (d, m) => {
+      const id = m && m.peerId; if (!onLine || !id) return;
+      verifyLine(id, d).then(ok => { if (ok) onLine(String(d.text)); });
+    };
+    // Absorb the broadcaster's other comms channels so Trystero doesn't warn about
+    // unregistered actions (we're a silent peer inside a full comms room).
+    ['type', 'react', 'hreq', 'hres'].forEach(id => { try { rm.makeAction(id); } catch (_) {} });
+
+    rm.onPeerJoin  = (id) => { if (!rpeers.has(id)) rpeers.set(id, {}); };
+    rm.onPeerLeave = (id) => {
+      rpeers.delete(id);
+      if (featured === id) { featured = null; if (onStream) onStream(null); reconsider(); }
+    };
+    rm.onPeerStream = (s, id)        => { const p = rpeers.get(id) || {}; p.stream = s; rpeers.set(id, p); reconsider(); };
+    rm.onPeerTrack  = (track, s, id) => { const p = rpeers.get(id) || {}; p.stream = s; rpeers.set(id, p); reconsider(); };
+
+    return { teardown() { try { rm.leave(); } catch (_) {} rpeers.clear(); if (onStream) onStream(null); } };
+  }
+
   function onPresence(id, d) {
     const p = peers.get(id) || {};
     const seen = p._seen;                 // first presence after join?
@@ -352,6 +542,21 @@
     renderRoster(); updateTile(id);
   }
   function broadcastPresence() { if (act.pres) act.pres(myPresence()); }
+  // Re-sign (presence is sync, signing is async) then re-broadcast so the
+  // broadcaster:true proof rides the next presence packet. Also kept fresh on a
+  // timer so the {ts} stays within the viewer's replay window while live.
+  let bcastSigTimer = null;
+  async function refreshBroadcastSig() {
+    if (!amBroadcaster()) {
+      bcastSig = null;
+      if (bcastSigTimer) { clearInterval(bcastSigTimer); bcastSigTimer = null; }
+      broadcastPresence();
+      return;
+    }
+    await signBroadcast();
+    broadcastPresence();
+    if (!bcastSigTimer) bcastSigTimer = setInterval(refreshBroadcastSig, 60000);
+  }
   function setNick(v) {
     const prev = nick;
     nick = String(v || '').trim().slice(0, 24);
@@ -399,6 +604,15 @@
         markReady();                       // a real peer = definitely on the network
         if (!peers.has(id)) peers.set(id, {});
         if (act.pres) act.pres(myPresence(), { target: id });
+        // The presence above may lack the broadcaster proof: signing is async, so
+        // bcastSig can still be null at join time. If we're the broadcaster, sign
+        // (if needed) and RE-SEND targeted presence to this peer so the viewer
+        // gets the signature — otherwise a late joiner never verifies us.
+        if (amBroadcaster()) {
+          (bcastSig ? Promise.resolve() : signBroadcast()).then(() => {
+            if (act.pres) act.pres(myPresence(), { target: id });
+          });
+        }
         // addStream wants a BARE peer id as 2nd arg (not {target}); the torrent
         // build feeds it straight to its peer-list normaliser. {target} here
         // silently targets a phantom peer and nothing is delivered.
@@ -466,9 +680,18 @@
     const t = String(text || '').trim();
     if (!t) return;
     if (!joined) await ensureRoom();
-    const m = { id: (selfId.slice(0, 4) || 'me') + '-' + (msgSeq++), peerId: selfId, text: t, ts: Date.now(), self: true };
+    const ts = Date.now();
+    const m = { id: (selfId.slice(0, 4) || 'me') + '-' + (msgSeq++), peerId: selfId, text: t, ts, self: true };
     addMessage(m);
-    if (act.chat) act.chat({ id: m.id, text: t, ts: m.ts });
+    if (act.chat) {
+      // Sign each line when an identity key is loaded, so a signedReceiver (the
+      // broadcast hero / live-news ticker) can verify it's genuinely us. Plain
+      // peers ignore csig/cts; unsigned chat (no key) is unchanged.
+      const payload = { id: m.id, text: t, ts };
+      const sig = bcastKey ? await signChat(t, ts) : null;
+      if (sig) { payload.csig = sig.sig; payload.cts = sig.ts; }
+      act.chat(payload);
+    }
     stopTyping();
   }
   function onComposerInput() {
@@ -524,7 +747,7 @@
   }
 
   async function joinConference(wantVideo) {
-    if (inConference) return;
+    if (inConference) return;             // already a participant
     showGumError('');
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !!wantVideo });
@@ -550,6 +773,7 @@
     startLevels(); startPings();
     syncMediaBtns();
     broadcastPresence();
+    refreshBroadcastSig();   // sign if this is the live broadcast room + key loaded
   }
   function stopLocalStream() {
     if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
@@ -568,6 +792,7 @@
     flipConfView(false);
     syncMediaBtns();
     broadcastPresence();
+    refreshBroadcastSig();   // left conf → no longer broadcaster
     renderRoster();
   }
   function toggleTrack(kind) {
@@ -577,6 +802,7 @@
     const next = !tr[0].enabled;
     tr.forEach(t => t.enabled = next);
     broadcastPresence(); updateTile('self'); renderRoster();
+    if (kind === 'video') refreshBroadcastSig();   // cam on/off flips broadcaster eligibility
     return next;
   }
   async function shareScreen() {
@@ -737,6 +963,9 @@
       if (e.target.closest('[data-comm-nick-set]')) { e.preventDefault(); const i = $('[data-comm-nick]'); if (i) setNick(i.value); return; }
       if (e.target.closest('[data-comm-room-go]')) { e.preventDefault(); const i = $('[data-comm-room]'); const pw = $('[data-comm-pass]'); switchRoom(i ? i.value : 'lobby', pw ? pw.value : ''); if (pw) pw.value = ''; return; }
 
+      // Broadcast key: button opens the file picker; paste/drag handled below.
+      if (e.target.closest('[data-comm-bcast-load]')) { e.preventDefault(); const f = $('[data-comm-bcast-file]'); if (f) f.click(); return; }
+
       if (e.target.closest('[data-comm-join-av]'))    { e.preventDefault(); joinConference(true); return; }
       if (e.target.closest('[data-comm-join-audio]')) { e.preventDefault(); joinConference(false); return; }
       if (e.target.closest('[data-comm-leave-conf]')) { e.preventDefault(); leaveConference(); return; }
@@ -748,6 +977,26 @@
     });
 
     document.addEventListener('input', (e) => { if (e.target.closest('[data-comm-msg-input]')) onComposerInput(); });
+
+    // Broadcast key load — file picker, paste, or drag-drop. In-memory only.
+    document.addEventListener('change', (e) => {
+      const f = e.target.closest('[data-comm-bcast-file]');
+      if (!f || !f.files || !f.files[0]) return;
+      f.files[0].text().then(loadBroadcastKey).catch(() => {});
+      f.value = '';
+    });
+    document.addEventListener('keydown', (e) => {
+      const ta = e.target.closest('[data-comm-bcast-paste]');
+      if (ta && (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); loadBroadcastKey(ta.value); ta.value = ''; }
+    });
+    const bcastDnd = (e) => {
+      if (!e.target.closest('[data-comm-bcast]')) return;
+      e.preventDefault();
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) file.text().then(loadBroadcastKey).catch(() => {});
+    };
+    document.addEventListener('dragover', (e) => { if (e.target.closest('[data-comm-bcast]')) e.preventDefault(); });
+    document.addEventListener('drop', bcastDnd);
 
     // Enter inside the nick / room mini-forms submits them (the forms carry
     // onsubmit="return false" so the page never reloads).
@@ -771,6 +1020,6 @@
     addEventListener('beforeunload', teardown);
   }
 
-  window.siteComm = { init, teardown, ensureRoom, sendChat, switchRoom, setNick, joinConference, leaveConference };
+  window.siteComm = { init, teardown, ensureRoom, sendChat, switchRoom, setNick, joinConference, leaveConference, signedReceiver };
   init();
 })();

@@ -15,6 +15,9 @@
   // dies — nothing site-specific is hardcoded in the JS.
   $cfg = [
     'feeds'   => $feeds,
+    // Live-news rooms (room + label + PUBLIC key, all safe to publish). The
+    // browser joins each and shows only chat signed by the matching private key.
+    'livenews' => ticker_livenews(),
     'max'     => 5,
     'cap'     => 160,
     'ttl'     => (int) option('ticker.ttl', 180),

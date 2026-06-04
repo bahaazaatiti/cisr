@@ -39,6 +39,11 @@ return [
                 'label' => 'News ticker',
                 'link'  => 'pages/news-ticker',
             ],
+            'broadcast' => [
+                'icon'  => 'video',
+                'label' => 'Live broadcast',
+                'link'  => 'pages/broadcast',
+            ],
             'quick-article' => [
                 'icon'  => 'pen',
                 'label' => 'New article',

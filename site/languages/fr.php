@@ -178,5 +178,21 @@ return [
 
         // live news ticker
         'ticker.region'         => 'Actualités en direct',
+
+        // comms: broadcast key
+        'comm.bcast_load'       => 'CHARGER LA CLÉ DE DIFFUSION',
+        'comm.bcast_file'       => 'FICHIER CLÉ',
+        'comm.bcast_hint'       => 'ou collez la clé, puis Ctrl+Entrée',
+        'comm.bcast_loaded'     => 'clé de diffusion chargée ✓',
+        'comm.bcast_bad'        => 'clé invalide',
+
+        // live broadcast hero
+        'bc.region'             => 'Diffusion en direct',
+        'bc.live_broadcast'     => 'URGENT · DIFFUSION EN DIRECT',
+        'bc.ip_visible'         => 'VOTRE IP EST VISIBLE VIA WEBRTC',
+        'bc.relayed'            => 'CONNEXION RELAYÉE · IP MASQUÉE',
+        'bc.waiting'            => 'EN ATTENTE DU SIGNAL',
+        'bc.unmute'             => 'TOUCHEZ POUR ACTIVER LE SON',
+        'bc.relay_unavailable'  => 'Relais indisponible — diffusion masquée.',
     ],
 ];

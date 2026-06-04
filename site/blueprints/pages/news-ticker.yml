@@ -54,3 +54,26 @@ columns:
             extends: fields/ticker-news
             label: Breaking news (hand-written)
             empty: No breaking-news lines yet — add one.
+
+  - width: 1/1
+    sections:
+      livenews_info:
+        type: info
+        label: Live news (signed P2P chat)
+        theme: positive
+        text: |
+          A trusted editor can type lines **straight into the crawl, live** — no
+          rebuild. Add a room below, click **Generate live-news identity**, paste
+          the public key into the row, and **Save**. To write: open the site, open
+          **COMMS**, load your key in **WHO’S HERE**, join that room, and type —
+          your lines appear in the crawl with a flickering dot.
+
+          **[⤓ Generate live-news identity](/panel/ticker/genkey)** — mints a key
+          pair: copy the **public** key into a row’s field; the **private** key
+          downloads as a .txt (keep it safe — it is never stored on the server).
+      livenews:
+        type: fields
+        fields:
+          livenews:
+            extends: fields/ticker-livenews
+            label: Live-news rooms

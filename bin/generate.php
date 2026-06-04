@@ -36,9 +36,10 @@ $kirby = new Kirby\Cms\App();
 // Lean leaves render as rows in the parent listing instead of earning a page.
 $pages = $kirby->site()->index()->filter(function ($p) {
     $tpl = $p->intendedTemplate()->name();
-    // Panel-only config page — never a public route. Its fields feed the
-    // front-end crawl, read live while every other page renders.
+    // Panel-only config pages — never public routes. Their fields feed the
+    // front-end (ticker crawl / live broadcast), read while other pages render.
     if ($tpl === 'news-ticker') return false;
+    if ($tpl === 'broadcast') return false;
     if (in_array($tpl, ['library-item', 'video', 'fraternal'], true)) {
         return $p->isRich();
     }

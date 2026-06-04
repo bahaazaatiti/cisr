@@ -178,5 +178,21 @@ return [
 
         // live news ticker
         'ticker.region'         => 'شريط الأخبار',
+
+        // comms: broadcast key
+        'comm.bcast_load'       => 'تحميل مفتاح البث',
+        'comm.bcast_file'       => 'ملف المفتاح',
+        'comm.bcast_hint'       => 'أو الصق المفتاح ثم اضغط Ctrl+Enter',
+        'comm.bcast_loaded'     => 'تم تحميل مفتاح البث ✓',
+        'comm.bcast_bad'        => 'مفتاح غير صالح',
+
+        // live broadcast hero
+        'bc.region'             => 'بث مباشر',
+        'bc.live_broadcast'     => 'عاجل · بث مباشر',
+        'bc.ip_visible'         => 'عنوان IP الخاص بك مرئي عبر WebRTC',
+        'bc.relayed'            => 'اتصال مُرحَّل · العنوان مخفي',
+        'bc.waiting'            => 'بانتظار الإشارة',
+        'bc.unmute'             => 'اضغط لتشغيل الصوت',
+        'bc.relay_unavailable'  => 'المُرحِّل غير متاح — البث مخفي.',
     ],
 ];

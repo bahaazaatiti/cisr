@@ -1,0 +1,88 @@
+title: Live Broadcast
+icon: video
+
+options:
+  changeSlug: false
+  changeStatus: false
+  changeTemplate: false
+  delete: false
+  preview: false
+
+columns:
+  - width: 1/1
+    sections:
+      intro:
+        type: info
+        label: How a live broadcast works
+        theme: info
+        text: |
+          Flip **On**, set a **room name**, click **Generate broadcast identity**,
+          then **Save** and let the site rebuild. To go live: open the site, open
+          **COMMS**, join that same room, load your downloaded key file, and turn
+          your camera on — visitors see you in a BREAKING·LIVE player on the home
+          page.
+
+          It is **peer-to-peer (WebRTC)**: best for a small audience (a handful of
+          viewers). Anyone can watch — the key only guarantees viewers see *your*
+          stream and not an impostor's. Turn **Off** + rebuild when you're done.
+
+  - width: 1/2
+    sections:
+      switch:
+        type: fields
+        fields:
+          broadcast_on:
+            label: Live broadcast
+            type: toggle
+            text:
+              - "Off — no broadcast"
+              - "On — player shows on home"
+            default: false
+            translate: false
+            icon: video
+            help: Master switch. The player only appears after a rebuild.
+          broadcast_room:
+            label: Room name
+            type: text
+            translate: false
+            icon: key
+            placeholder: e.g. cisr-live-7fq2
+            help: >
+              Pick a non-obvious name and change it per broadcast. Viewers join
+              this room automatically; you join the same name in COMMS.
+          broadcast_relay:
+            label: Hide viewer IPs (TURN relay)
+            type: toggle
+            text:
+              - "Off — direct (viewer IP visible)"
+              - "On — relayed (viewer IP hidden)"
+            default: false
+            translate: false
+            icon: lock
+            help: >
+              On routes viewers through a TURN relay so their IP is hidden from
+              peers. Needs a TURN server in TRACKERS.md (## Turn). Free relays are
+              limited, so this lowers the viewer ceiling further.
+
+  - width: 1/2
+    sections:
+      identity:
+        type: fields
+        fields:
+          genkey:
+            label: Broadcast identity
+            type: info
+            theme: positive
+            text: >
+              **[⤓ Generate broadcast identity](/panel/broadcast/genkey)** —
+              creates a key pair: the public key is saved below automatically, and
+              your **private key downloads as a .txt**. Keep that file safe — you
+              load it on the site to go live, and it is never stored on the server.
+              Generating again replaces the old identity.
+          broadcast_pubkey:
+            label: Public key (auto-filled — do not edit)
+            type: textarea
+            translate: false
+            font: monospace
+            buttons: false
+            help: Filled by Generate. Viewers verify your stream against this.

@@ -61,6 +61,11 @@ columns:
             type: info
             theme: passive
             text: "[→ Manage the four crawl sources](/panel/pages/news-ticker)"
+          broadcast_link:
+            label: Live broadcast
+            type: info
+            theme: passive
+            text: "[→ Go live / manage the broadcast](/panel/pages/broadcast)"
       meta:
         type: fields
         fields:

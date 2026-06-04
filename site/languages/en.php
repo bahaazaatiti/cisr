@@ -179,5 +179,21 @@ return [
 
         // live news ticker
         'ticker.region'         => 'Live news',
+
+        // comms: broadcast key (editor loads private key to sign the stream)
+        'comm.bcast_load'       => 'LOAD BROADCAST KEY',
+        'comm.bcast_file'       => 'KEY FILE',
+        'comm.bcast_hint'       => 'or paste the key, then Ctrl+Enter',
+        'comm.bcast_loaded'     => 'broadcast key loaded ✓',
+        'comm.bcast_bad'        => 'invalid key',
+
+        // live broadcast hero
+        'bc.region'             => 'Live broadcast',
+        'bc.live_broadcast'     => 'BREAKING · LIVE BROADCAST',
+        'bc.ip_visible'         => 'YOUR IP IS VISIBLE VIA WEBRTC',
+        'bc.relayed'            => 'CONNECTION RELAYED · IP HIDDEN',
+        'bc.waiting'            => 'WAITING FOR SIGNAL',
+        'bc.unmute'             => 'TAP TO UNMUTE',
+        'bc.relay_unavailable'  => 'Relay unavailable — broadcast hidden.',
     ],
 ];
