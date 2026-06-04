@@ -23,6 +23,7 @@ return [
         'section.featured' => 'Featured',
         'label.entries'    => 'entries',
         'label.view_all'   => 'View all',
+        'label.edit_codespaces' => 'Edit this site',
 
         // table headers
         'th.date'     => 'Date',

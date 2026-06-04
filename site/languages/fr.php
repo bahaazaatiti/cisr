@@ -22,6 +22,7 @@ return [
         'section.featured' => 'En vedette',
         'label.entries'    => 'entrées',
         'label.view_all'   => 'Tout voir',
+        'label.edit_codespaces' => 'Éditer ce site',
 
         // table headers
         'th.date'     => 'Date',

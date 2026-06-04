@@ -86,3 +86,10 @@
 </section>
 
 <p class="text-center my-10 ui-sku">* * *</p>
+
+<?php /* Colophon: open (newcomers) or resume (editors) the full editing env in
+         a browser Codespace — quickstart=1 does both. External: no data-link. */ ?>
+<p class="text-center mb-10 ui-sku">
+  <a href="https://codespaces.new/bahaazaatiti/cisr?quickstart=1"
+     target="_blank" rel="noopener"><?= t('label.edit_codespaces', 'Edit this site') ?> →</a>
+</p>

@@ -22,6 +22,7 @@ return [
         'section.featured' => 'مختارة',
         'label.entries'    => 'مدخلات',
         'label.view_all'   => 'عرض الكل',
+        'label.edit_codespaces' => 'حرّر هذا الموقع',
 
         // table headers
         'th.date'     => 'التاريخ',
