@@ -1,0 +1,48 @@
+title: Document
+
+accept:
+  mime: application/pdf, text/plain, text/markdown
+  maxsize: 52428800   # 50 MB — Kirby wants bytes (an integer), not "50M"
+
+options:
+  changeName: true
+  delete: true
+  download: true
+  replace: true
+  update: true
+
+columns:
+  - width: 2/3
+    fields:
+      description:
+        label: Description
+        type: textarea
+        size: medium
+        translate: true
+        help: One paragraph describing what this document is.
+
+  - width: 1/3
+    fields:
+      source:
+        label: Source
+        type: text
+        translate: false
+        placeholder: Original publisher, archive, etc.
+      source_url:
+        label: Source URL
+        type: url
+        translate: false
+        placeholder: https://...
+      license:
+        label: License
+        type: select
+        translate: false
+        default: own
+        options:
+          own:     Our own / unrestricted
+          cc-by:   CC BY 4.0
+          cc-by-sa: CC BY-SA 4.0
+          cc-by-nc: CC BY-NC 4.0
+          cc0:     CC0 / Public domain
+          fair:    Fair use
+          unknown: Unknown — verify before publishing

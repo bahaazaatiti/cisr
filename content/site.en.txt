@@ -3,3 +3,83 @@ Title: CISR
 ----
 
 Tagline: the Communist International for Revolutionary Uprising
+
+----
+
+Logo: 
+
+----
+
+Featured: - page://ohmijxm2sh4x7rur
+
+----
+
+Broadcast-on: false
+
+----
+
+Ticker-on: false
+
+----
+
+Body: [{"content":{"location":"kirby","image":["file://zhc8mkrdaztlzqj2"],"src":"","alt":"","caption":"","link":"","ratio":"","crop":"false"},"id":"3cb62845-2a7b-49f4-a250-7863810cbff4","isHidden":false,"type":"image"},{"content":{"text":"<p><strong>The International Arab Communist Brigade<br></strong>We are a group or organization <strong>C.I.S.R</strong>, not a party. This bulletin is a project by internationalist communist militants aimed at disseminating authentic Marxist theory and program, including texts of the <em>\"Italian Communist Left,\"</em> also known as the <em>\"Bordigist parties.\"</em> These pages are our way of participating in the struggle to rebuild the International Communist Party, which will be capable of guiding and leading the world proletariat toward its ultimate goal: <strong><em>The Communist Proletarian Revolution</em></strong>, and the abolition of the exploitation of men and nature, wage labor, and any form of economy based on money.</p><p>Our platform seeks to share our political analyses, and above all, to provide the theoretical material and political guidance that enables the formation and organization of the vanguards of revolutionary struggle across the entire Arab world, from the Middle East to the Maghreb.</p><p>Our goal is clear: <u><strong>We want to position ourselves within the historical window that allows the transformation of cross-border resistance struggles — in the context of this regional war — into an internationalist revolutionary struggle.</strong></u></p>"},"id":"6c417ff7-b25a-41fd-988f-2435dcd4d140","isHidden":false,"type":"text"},{"content":{"location":"kirby","image":["file://sv6ft9u18ttifxs6"],"src":"","alt":"","caption":"","link":"","ratio":"","crop":"false"},"id":"4c2e5815-bf8e-47c2-8e98-2db95fdc94ae","isHidden":false,"type":"image"}]
+
+----
+
+Broadcast-room: new
+
+----
+
+Broadcast-relay: true
+
+----
+
+Broadcast-pubkey:
+
+\-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEn929vmywVnhdDSSG9BotovCfbd8b
+5mykX4uoqT3TXCty/zxlYVMutE3xdl7Ez2+iRB1EwLJfhPEGgJMEk5z5HA==
+\-----END PUBLIC KEY-----
+
+----
+
+Telegram:
+
+- 
+  enabled: 'true'
+  url: https://t.me/mmirlb
+  id: "0"
+
+----
+
+Twitter:
+
+- 
+  enabled: 'false'
+  url: https://x.com/AJENews
+  id: "0"
+
+----
+
+Breaking: 
+
+----
+
+Livenews-on: false
+
+----
+
+Livenews-room: arslan
+
+----
+
+Livenews-label: 
+
+----
+
+Livenews-pubkey:
+
+\-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgcmSq0oZnjIuari0UiMW9mkLutl5
+TAq4USlsLjDxaVERaD1lbhcEJgCITZbfstu0VCkAQzHJcGGW77UILvwFZQ==
+\-----END PUBLIC KEY-----

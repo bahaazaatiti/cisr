@@ -7,7 +7,7 @@
   $code = $lang ? $lang->code() : 'en';
 ?>
 <!doctype html>
-<html lang="<?= esc($code) ?>" dir="<?= esc($dir) ?>">
+<html lang="<?= esc($code) ?>" dir="<?= esc($dir) ?>" data-mirror-cap="3">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -74,4 +74,4 @@
   <link rel="preload" as="style" href="<?= url('assets/css/app.css') ?>">
   <link rel="stylesheet" href="<?= url('assets/css/app.css') ?>">
 </head>
-<body>
+<body<?= ticker_active() ? ' class="has-ticker"' : '' ?>>

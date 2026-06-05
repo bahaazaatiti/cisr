@@ -1,31 +1,35 @@
 <?php
   /** @var \Kirby\Cms\Page $page */
   $articles = page('articles');
-  $allCount = $articles ? $articles->children()->listed()->count() : 0;
-  $list = $articles
-    ? $articles->children()->listed()->sortBy('date', 'desc')->limit(5)
-    : new \Kirby\Cms\Pages();
+  $list = collection('articles')->limit(5);
+  $allCount = collection('articles')->count();
 ?>
 <header class="mb-6">
   <div class="ui-sku"><?= esc(strtoupper($page->kirby()->language()->code())) ?> / HOME</div>
   <h1 class="text-xl"><?= esc($page->title()) ?></h1>
 </header>
 
-<figure class="home-art home-art-signal" aria-hidden="true">
-  <img src="<?= url('assets/img/signal.svg') ?>" alt="" width="233" height="126">
-</figure>
+<?php /* Live broadcast hero — renders only when a broadcast is on. */ ?>
+<?php snippet('page/broadcast-hero') ?>
 
-<?php if ($page->intro()->isNotEmpty()): ?>
-  <section class="ui-prose mb-8">
-    <?= $page->intro()->kt() ?>
-  </section>
-<?php endif ?>
+<?php foreach ($page->site()->body()->toBlocks() as $block): ?>
+  <?php if ($block->type() === 'image'):
+    $image = $block->image()->toFile();
+    if (!$image) continue;
+    $alt = (string) $block->alt();
+  ?>
+    <figure class="home-art">
+      <img src="<?= esc($image->url()) ?>" alt="<?= esc($alt) ?>"
+           <?php if ($image->width() && $image->height()): ?>width="<?= $image->width() ?>" height="<?= $image->height() ?>"<?php endif ?>
+           loading="lazy" decoding="async"
+           <?= $alt === '' ? 'aria-hidden="true"' : '' ?>>
+    </figure>
+  <?php elseif ($block->type() === 'text'): ?>
+    <section class="ui-prose mb-8"><?= $block->text() ?></section>
+  <?php endif ?>
+<?php endforeach ?>
 
-<figure class="home-art home-art-place" aria-hidden="true">
-  <img src="<?= url('assets/img/place.svg') ?>" alt="" width="326" height="197">
-</figure>
-
-<?php $featured = $page->featured()->toPages(); ?>
+<?php $featured = $page->site()->featured()->toPages(); ?>
 <?php if (count($featured)): ?>
   <section class="featured mb-8">
     <div class="flex items-baseline justify-between mb-2">
@@ -80,3 +84,10 @@
 </section>
 
 <p class="text-center my-10 ui-sku">* * *</p>
+
+<?php /* Colophon: open (newcomers) or resume (editors) the full editing env in
+         a browser Codespace — quickstart=1 does both. External: no data-link. */ ?>
+<p class="text-center mb-10 ui-sku">
+  <a href="https://codespaces.new/bahaazaatiti/cisr?quickstart=1"
+     target="_blank" rel="noopener"><?= t('label.edit_codespaces', 'Edit this site') ?> →</a>
+</p>

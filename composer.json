@@ -22,8 +22,9 @@
   },
   "require": {
     "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
-    "getkirby/cms": "^5.2",
-    "jreisdorf/kirby-static-site-generator": "^2.4"
+    "getkirby/cms": "^5.4.3",
+    "jreisdorf/kirby-static-site-generator": "^2.4",
+    "tedivm/jshrink": "^1.8"
   },
   "config": {
     "allow-plugins": {
@@ -36,5 +37,8 @@
       "Composer\\Config::disableProcessTimeout",
       "@php -S localhost:8765 router.php"
     ]
+  },
+  "require-dev": {
+    "thathoff/kirby-git-content": "^5.4"
   }
 }

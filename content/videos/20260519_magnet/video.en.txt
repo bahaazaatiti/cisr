@@ -6,7 +6,7 @@ Source-type: magnet
 
 ----
 
-Youtube-url:
+Youtube-url: 
 
 ----
 
@@ -23,6 +23,10 @@ Date: 2026-05-19
 ----
 
 Duration: 14:48
+
+----
+
+Notes: test
 
 ----
 

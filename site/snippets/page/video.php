@@ -33,12 +33,16 @@
 </div>
 
 <?php if ($hasMagnet): ?>
-  <div class="p2p-status ui-sku mb-2" data-p2p-status></div>
+  <div class="p2p-status ui-sku mb-2" data-p2p-status role="status" aria-live="polite"></div>
   <p class="text-xs text-muted-foreground mb-4"><?= t('ui.privacy_note', 'This viewer uses WebRTC. Your IP is visible to other peers while connected; your browser shares bandwidth.') ?></p>
 <?php endif ?>
 
 <?php if ($page->summary()->isNotEmpty()): ?>
-  <p class="text-sm"><?= esc($page->summary()) ?></p>
+  <p class="text-sm text-muted-foreground"><?= esc($page->summary()) ?></p>
+<?php endif ?>
+
+<?php if ($page->notes()->isNotEmpty()): ?>
+  <div class="ui-prose mt-6"><?= $page->notes()->kt() ?></div>
 <?php endif ?>
 
 <p class="text-center my-10 ui-sku">* * *</p>

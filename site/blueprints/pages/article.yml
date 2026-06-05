@@ -4,36 +4,87 @@ options:
   changeTemplate: false
   preview: true
 
-columns:
-  - width: 2/3
+icon: pen
+
+# On-disk filename gets date-prefixed (e.g. 20260503_phosphor-aging) so the
+# rendered listing order is stable across forks and mirror diffs stay small.
+num: '{{ page.date.toDate("Ymd") }}'
+
+status:
+  draft:
+    label: Draft
+    text: Visible only inside the panel. Not exported to the static site.
+  unlisted:
+    label: Unlisted
+    text: Exported to static but hidden from listings. Reachable by direct URL.
+  listed:
+    label: Published
+    text: Exported to static and shown in the article index + featured + RSS.
+
+tabs:
+  content:
+    label: Content
+    icon: text
+    columns:
+      - width: 2/3
+        fields:
+          body:
+            label: Body
+            type: blocks
+            translate: true
+            help: Mix headings, paragraphs, lists, quotes, code, images, lines, and raw markdown.
+            fieldsets:
+              - heading
+              - text
+              - list
+              - quote
+              - code
+              - image
+              - line
+              - markdown
+      - width: 1/3
+        fields:
+          summary:
+            label: Summary
+            type: textarea
+            size: medium
+            translate: true
+            help: One or two sentences. Shown in listings and as the meta description.
+
+  meta:
+    label: Meta
+    icon: settings
+    columns:
+      - width: 1/2
+        fields:
+          date:
+            label: Date
+            type: date
+            default: today
+            time: false
+            translate: false
+            help: Publication date. Drives the on-disk filename and the listing sort.
+          sku:
+            label: SKU
+            type: text
+            placeholder: SKU-XXX
+            translate: false
+            help: Stable per-article badge. Shared across languages.
+      - width: 1/2
+        sections:
+          files:
+            extends: sections/files-with-meta
+            headline: Article files
+
+  audit:
+    label: Audit
+    icon: search
     fields:
-      body:
-        label: Body
-        type: blocks
-        translate: true
-        fieldsets:
-          - heading
-          - text
-          - list
-          - quote
-          - code
-          - image
-          - line
-          - markdown
-  - width: 1/3
-    fields:
-      date:
-        label: Date
-        type: date
-        default: today
-        time: false
-      sku:
-        label: SKU
-        type: text
-        placeholder: SKU-XXX
-        translate: false
-      summary:
-        label: Summary
-        type: textarea
-        size: small
-        translate: true
+      info:
+        type: info
+        label: Quick checks
+        text: |
+          - Did you set a **Summary**? It drives the meta description and listings.
+          - Did you set a **Date**? Drafts without dates sort badly.
+          - Translated all the languages this article should ship in?
+          - Images have `alt` text + license?

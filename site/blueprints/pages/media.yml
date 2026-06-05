@@ -1,0 +1,75 @@
+title: Media
+icon: image
+
+options:
+  changeSlug: false
+  changeStatus: false
+  changeTemplate: false
+  delete: false
+  preview: false
+
+# Read-only overview of every file across the whole site. `site.index.files`
+# resolves to all page files — FilesCollector runs the query against the model
+# and `site` is a global query root; `site.files` covers site-level files.
+# Rename / replace / download / delete act on the real file via its row's menu.
+columns:
+  - width: 1/1
+    sections:
+      pagefiles:
+        type: files
+        headline: All page files
+        query: site.index.files
+        layout: table
+        sortBy: filename asc
+        search: true
+        create: false
+        columns:
+          location:
+            label: Location
+            value: "{{ file.parent.title }}"
+            width: 1/6
+          type:
+            label: Type
+            value: "{{ file.template }}"
+            width: 1/12
+          alt:
+            label: Alt text
+            value: "{{ file.alt }}"
+          caption:
+            label: Caption
+            value: "{{ file.caption }}"
+            mobile: false
+          dimensions:
+            label: Dimensions
+            value: "{{ file.dimensions }}"
+            width: 1/12
+            mobile: false
+          size:
+            label: Size
+            value: "{{ file.niceSize }}"
+            width: 1/12
+        empty: No files attached to any page yet.
+      sitefiles:
+        type: files
+        headline: Site files
+        query: site.files
+        layout: table
+        sortBy: filename asc
+        create: false
+        columns:
+          type:
+            label: Type
+            value: "{{ file.template }}"
+            width: 1/12
+          alt:
+            label: Alt text
+            value: "{{ file.alt }}"
+          caption:
+            label: Caption
+            value: "{{ file.caption }}"
+            mobile: false
+          size:
+            label: Size
+            value: "{{ file.niceSize }}"
+            width: 1/12
+        empty: No site-level files.

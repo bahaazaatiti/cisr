@@ -10,3 +10,5 @@ echo "built: assets/css/app.css — $(wc -c < assets/css/app.css) bytes raw, $(g
 php build-js.php assets/js/app.js assets/js/app.min.js
 php build-js.php assets/js/p2p.js assets/js/p2p.min.js
 php build-js.php assets/js/comm.js assets/js/comm.min.js
+php build-js.php assets/js/ticker.js assets/js/ticker.min.js
+php build-js.php assets/js/broadcast.js assets/js/broadcast.min.js

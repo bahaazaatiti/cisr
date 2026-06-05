@@ -41,7 +41,7 @@
   <?php endif ?>
   <?php if ($infohash): ?>
     <dt><?= t('label.infohash', 'Infohash') ?></dt>
-    <dd class="break-all" style="font-size:0.75rem"><?= esc($infohash) ?></dd>
+    <dd class="break-all text-xs"><?= esc($infohash) ?></dd>
   <?php endif ?>
 </dl>
 
@@ -54,11 +54,11 @@
     <?php if ($isViewable): ?>
       <button type="button" class="ui-badge" data-p2p-action="open" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"><?= t('ui.open_player', 'Open in viewer') ?></button>
     <?php endif ?>
-    <button type="button" class="ui-badge" data-p2p-action="download" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"><?= t('ui.download', 'Download') ?></button>
+    <button type="button" class="ui-badge" data-p2p-action="download" data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>" data-title="<?= esc($page->title()) ?>"><?= t('ui.download', 'Download') ?></button>
     <button type="button" class="ui-badge" data-p2p-action="copy" data-magnet="<?= esc($magnet) ?>"><?= t('ui.copy_magnet', 'Copy magnet') ?></button>
   </div>
 
-  <div class="p2p-status ui-sku mb-2" data-p2p-status></div>
+  <div class="p2p-status ui-sku mb-2" data-p2p-status role="status" aria-live="polite"></div>
 
   <?php if ($isViewable): ?>
     <div class="p2p-stage mb-4" data-p2p-stage data-magnet="<?= esc($magnet) ?>" data-kind="<?= esc($kind) ?>"></div>

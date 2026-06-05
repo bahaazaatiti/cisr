@@ -16,24 +16,21 @@ columns:
         type: textarea
         size: medium
         translate: true
+        help: Optional intro paragraph shown above the listing.
   - width: 2/3
     sections:
       drafts:
-        type: pages
+        extends: sections/pages-by-status
         headline: Drafts
         status: draft
         template: fraternal
         info: "{{ page.affinity }} · {{ page.region }}"
-        create:
-          template: fraternal
-          redirect: true
+        empty: No drafts yet.
       published:
-        type: pages
+        extends: sections/pages-by-status
         headline: Published
         status: listed
         template: fraternal
         sortBy: sku asc
         info: "{{ page.affinity }} · {{ page.region }} · {{ page.homepage }}"
-        create:
-          template: fraternal
-          redirect: true
+        empty: Nothing published yet.

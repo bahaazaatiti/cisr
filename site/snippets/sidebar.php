@@ -13,9 +13,15 @@
 ?>
 <aside class="sidebar" data-sidebar>
   <div class="sidebar-head">
-    <img class="sidebar-sign" src="<?= url('assets/img/sign.svg') ?>" alt="" aria-hidden="true" width="200" height="230">
+    <?php
+      // Sidebar mark: panel-managed via site.yml's `logo` field. Falls back to
+      // the bundled sign.svg so the slot is always populated.
+      $logoFile = $site->logo()->toFile();
+      $logoUrl  = $logoFile ? $logoFile->url() : url('assets/img/logo.svg');
+    ?>
+    <img class="sidebar-sign" src="<?= esc($logoUrl) ?>" alt="" aria-hidden="true" width="200" height="230">
     <div class="ui-sku"><?= esc(option('brand.sku', site()->title())) ?> / <?= esc(option('brand.site_id', '')) ?></div>
-    <div class="font-bold uppercase tracking-[0.08em]"><?= esc($site->title()) ?></div>
+    <h2><?= esc($site->title()) ?></h2>
     <?php if ($site->tagline()->isNotEmpty()): ?>
       <div class="text-xs text-muted-foreground mt-1"><?= esc($site->tagline()) ?></div>
     <?php endif ?>
@@ -35,7 +41,7 @@
     </ul>
 
     <?php
-      $featured = page('home')?->featured()?->toPages() ?? new \Kirby\Cms\Pages();
+      $featured = $site->featured()->toPages();
     ?>
     <?php if (count($featured)): ?>
       <div class="group-label mt-3"><?= t('nav.featured', 'Featured') ?></div>

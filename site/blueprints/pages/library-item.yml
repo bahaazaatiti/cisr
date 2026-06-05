@@ -6,74 +6,107 @@ options:
 
 icon: file
 
-columns:
-  - width: 2/3
+# Date-prefixed filenames so listings/mirror diffs are deterministic.
+num: '{{ page.added.toDate("Ymd") }}'
+
+status:
+  draft:
+    label: Draft
+    text: Hidden everywhere. Not exported to the static index.
+  unlisted:
+    label: Unlisted
+    text: Reachable by direct URL but hidden from the parent listing.
+  listed:
+    label: Listed
+    text: |
+      Shown in the parent library listing. Whether it gets its own
+      standalone page is automatic: fill the Notes body and it becomes
+      a "rich leaf" (own page). Leave Notes empty and it stays "lean"
+      (just a row in the parent).
+
+tabs:
+  magnet:
+    label: Magnet
+    icon: download
+    columns:
+      - width: 2/3
+        fields:
+          magnet:
+            label: Magnet link
+            type: text
+            required: true
+            translate: false
+            placeholder: "magnet:?xt=urn:btih:..."
+            help: >
+              Paste a BitTorrent magnet URI. Must include at least one `wss://`
+              (WebSocket) tracker — browsers can't reach UDP/HTTP trackers.
+              See .claude/howto-seeders.md.
+          summary:
+            label: Summary
+            type: textarea
+            size: small
+            translate: true
+            help: One or two sentences describing the file. Shown in the listing.
+      - width: 1/3
+        fields:
+          kind:
+            label: Kind
+            type: select
+            required: true
+            translate: false
+            default: pdf
+            options:
+              pdf:     PDF
+              epub:    EPUB
+              audio:   Audio
+              video:   Video
+              image:   Image
+              archive: Archive
+              other:   Other
+            help: Drives the icon and player choice in the grid view.
+          size_human:
+            label: Size
+            type: text
+            translate: false
+            placeholder: e.g. 12 MB
+            help: Display string only — not validated.
+          language:
+            label: Language(s)
+            type: tags
+            translate: false
+            accept: options
+            options:
+              ar: AR
+              en: EN
+              fr: FR
+              it: IT
+              es: ES
+              pt: PT
+              de: DE
+              ru: RU
+              tr: TR
+              fa: FA
+              ku: KU
+            help: Tag any languages of the file content.
+          added:
+            label: Added
+            type: date
+            time: false
+            translate: false
+            default: today
+            help: When this item was added. Drives the on-disk filename + listing sort.
+
+  notes:
+    label: Notes
+    icon: text
     fields:
-      magnet:
-        label: Magnet link
-        type: text
-        required: true
-        translate: false
-        placeholder: "magnet:?xt=urn:btih:..."
-        help: >
-          Paste a BitTorrent magnet URI. It must include at least one `wss://`
-          (WebSocket) tracker — browsers can't reach UDP/HTTP trackers. See
-          .claude/howto-seeders.md.
-      summary:
-        label: Summary
-        type: textarea
-        size: small
-        translate: true
-        help: One or two sentences describing the file.
       notes:
         label: Notes (optional)
         type: textarea
-        size: medium
+        size: huge
         translate: true
-        help: Longer description, table of contents, source, etc.
-  - width: 1/3
-    fields:
-      kind:
-        label: Kind
-        type: select
-        required: true
-        translate: false
-        default: pdf
-        options:
-          pdf:     PDF
-          epub:    EPUB
-          audio:   Audio
-          video:   Video
-          image:   Image
-          archive: Archive
-          other:   Other
-        help: Drives the icon and player choice.
-      size_human:
-        label: Size
-        type: text
-        translate: false
-        placeholder: e.g. 12 MB
-        help: Display string only — not validated.
-      language:
-        label: Language(s)
-        type: tags
-        translate: false
-        accept: options
-        options:
-          ar: AR
-          en: EN
-          fr: FR
-          it: IT
-          es: ES
-          pt: PT
-          de: DE
-          ru: RU
-          tr: TR
-          fa: FA
-          ku: KU
-      added:
-        label: Added
-        type: date
-        time: false
-        translate: false
-        default: today
+        help: >
+          Longer description, table of contents, source, etc. **Filling this
+          turns the item into a "rich leaf"** — Kirby renders a standalone
+          static page for it (otherwise it's just a row in the parent
+          listing).

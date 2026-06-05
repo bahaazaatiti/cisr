@@ -18,10 +18,16 @@ columns:
   - width: 2/3
     sections:
       children:
-        type: pages
+        extends: sections/pages-by-status
         headline: Contents
+        # Library is a tree browser, not a publish queue — show every child
+        # regardless of draft/unlisted/listed.
+        status: all
+        # Two templates: Kirby auto-shows a folder-vs-file picker on +.
+        # Do NOT set `create:` here — that pins a single template.
         templates:
           - library
           - library-item
         sortBy: title asc
-        info: "{{ page.intendedTemplate }}"
+        info: "{{ page.kind.or(page.intendedTemplate) }}"
+        empty: Empty folder. Add a subfolder or a file.

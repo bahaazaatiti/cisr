@@ -1,0 +1,8 @@
+# Shared files section with the image blueprint's metadata fields visible
+# in card info lines. Consumers extend and may override template/min/max.
+type: files
+template: image
+layout: cards
+size: small
+info: "{{ file.dimensions }} · {{ file.license }}"
+empty: Drop images here or use + to upload.

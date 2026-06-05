@@ -1,0 +1,43 @@
+{
+  "name": "Kirby Static Site",
+  "image": "mcr.microsoft.com/devcontainers/php:8.3",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  // onCreate (not postCreate) so this bakes into Codespaces prebuilds —
+  // composer deps, the Tailwind binary and built assets ship in the prebuilt
+  // image. (Prebuilds run onCreate/updateContent; postCreate is skipped.)
+  "onCreateCommand": "bash .devcontainer/setup.sh",
+
+  // Runs every time the Codespace starts — boots the dev server via the
+  // canonical `composer start` (root router.php + port 8765 + no process
+  // timeout). nohup so it survives the postStart shell exiting.
+  "postStartCommand": "nohup composer start > /tmp/kirby.log 2>&1 &",
+
+  // Forward the dev server port (matches `composer start`). Auto-forward opens
+  // the site root — append /panel for the Kirby admin.
+  "forwardPorts": [8765],
+  "portsAttributes": {
+    "8765": {
+      "label": "Kirby (append /panel for admin)",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",  // PHP intellisense
+        "bradlc.vscode-tailwindcss",            // Tailwind CSS
+        "kokororin.vscode-phpfmt"               // PHP formatter
+      ],
+      "settings": {
+        // No formatOnSave — the source uses a deliberately terse, hand-tuned
+        // style (Linux-kernel comments) an opinionated formatter would churn.
+        "php.validate.executablePath": "/usr/local/bin/php"
+      }
+    }
+  }
+}

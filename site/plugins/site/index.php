@@ -26,6 +26,9 @@ if (!function_exists('magnet_parse')) {
 }
 
 if (!function_exists('magnet_has_wss')) {
+    // True iff the magnet declares at least one wss:// tracker. Browsers can
+    // only reach WebSocket trackers — UDP/HTTP-only magnets are dead-on-arrival.
+    // Used by isBroken() page method + the dashboard stats audit.
     function magnet_has_wss(?string $magnet): bool {
         $p = magnet_parse($magnet);
         if (!$p) return false;
@@ -72,6 +75,31 @@ if (!function_exists('mirrors_list')) {
     }
 }
 
+if (!function_exists('trackers_list')) {
+    // Bare-URL entries under `## <Section>` in TRACKERS.md (case-insensitive).
+    // One editable place to curate the flaky public infra the peer/live layer
+    // rides — relays (comms), proxies + nitters (ticker). Empty/missing → []
+    // so callers fall back to a config option, then a JS-baked default.
+    function trackers_list(string $section): array {
+        static $cache = null;
+        if ($cache === null) {
+            $cache = [];
+            $f = repo_root() . '/TRACKERS.md';
+            if (file_exists($f)) {
+                $cur = null;
+                foreach (file($f, FILE_IGNORE_NEW_LINES) as $line) {
+                    if (preg_match('/^\s*##\s+(.+?)\s*$/', $line, $m)) {
+                        $cur = strtolower(trim($m[1])); $cache[$cur] = [];
+                    } elseif ($cur !== null && preg_match('/^\s*-\s+(\S+)/', $line, $m)) {
+                        $cache[$cur][] = $m[1];
+                    }
+                }
+            }
+        }
+        return $cache[strtolower($section)] ?? [];
+    }
+}
+
 if (!function_exists('tree_build')) {
     // Build the nested library tree the aside-right & client-side grid render.
     // Folders = nested `library` pages; files = `library-item` leaves with magnets.
@@ -102,21 +130,106 @@ if (!function_exists('tree_build')) {
     }
 }
 
-if (!function_exists('file_kind')) {
-    function file_kind(\Kirby\Cms\File $file): string {
-        static $map = [
-            'pdf'  => 'pdf',
-            'jpg'  => 'img', 'jpeg' => 'img', 'png' => 'img', 'gif' => 'img', 'webp' => 'img', 'svg' => 'img',
-            'mp4'  => 'mp4', 'webm' => 'mp4', 'mov' => 'mp4', 'ogg' => 'mp4',
-            'mp3'  => 'snd', 'wav' => 'snd', 'flac' => 'snd', 'm4a' => 'snd',
-            'doc'  => 'doc', 'docx' => 'doc', 'odt' => 'doc', 'rtf' => 'doc',
-            'xls'  => 'xls', 'xlsx' => 'xls', 'csv' => 'xls', 'tsv' => 'xls', 'ods' => 'xls',
-            'ppt'  => 'ppt', 'pptx' => 'ppt', 'odp' => 'ppt', 'key' => 'ppt',
-            'zip'  => 'zip', 'tar' => 'zip', 'gz' => 'zip', '7z' => 'zip', 'rar' => 'zip',
-            'txt'  => 'txt', 'md' => 'txt', 'log' => 'txt',
-            'json' => 'dat', 'xml' => 'dat', 'yaml' => 'dat', 'yml' => 'dat',
-        ];
-        return $map[strtolower($file->extension())] ?? '...';
+if (!function_exists('ticker_enabled')) {
+    // The crawl is one global switch on the Site dashboard (not translated) so
+    // the toggle reads identically in every language. Off unless explicitly set —
+    // a fresh fork stays quiet until an editor turns it on.
+    function ticker_enabled(): bool {
+        return site()->ticker_on()->toBool();
+    }
+}
+
+if (!function_exists('ticker_feeds')) {
+    // Remote crawl sources the visitor's browser fetches at view time — a kind
+    // plus the editor's pasted link. No text lives here: the posts come from
+    // the live fetch (see assets/js/ticker.js). Enabled, non-empty rows only.
+    function ticker_feeds(): array {
+        $out = [];
+        foreach (['telegram' => 'tg', 'twitter' => 'x'] as $field => $kind) {
+            foreach (site()->$field()->toStructure() as $row) {
+                if (!$row->enabled()->toBool()) continue;
+                $url = trim((string) $row->url());
+                if ($url !== '') $out[] = ['kind' => $kind, 'url' => $url];
+            }
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('ticker_news')) {
+    // The one hand-written lane: breaking-news lines typed by the editor.
+    // Rendered server-side so they show instantly and survive a dead proxy.
+    function ticker_news(): array {
+        $out = [];
+        foreach (site()->breaking()->toStructure() as $row) {
+            if (!$row->enabled()->toBool()) continue;
+            $text = trim((string) $row->text());
+            if ($text !== '') $out[] = ['text' => $text, 'url' => trim((string) $row->url())];
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('ticker_livenews')) {
+    // Live-news identity: a signed editor's chat in a Trystero room surfaces in
+    // the crawl, verified browser-side against the public key. Single identity
+    // (a twin of the broadcast), global (not per-language). Returns a 0-or-1
+    // element list (keeps ticker.php/.js iterating a list) when on + room + key set.
+    function ticker_livenews(): array {
+        if (!site()->livenews_on()->toBool()) return [];
+        $room = trim((string) site()->livenews_room());
+        $pub  = trim((string) site()->livenews_pubkey());
+        if ($room === '' || $pub === '') return [];
+        return [['room' => $room, 'label' => trim((string) site()->livenews_label()), 'pubkey' => $pub]];
+    }
+}
+
+if (!function_exists('ticker_active')) {
+    // Single source of truth for "the crawl is showing": enabled AND it has
+    // something to show (a live feed source, a hand-written line, or a live-news
+    // room). Used by the <body> class, the ticker snippet's render gate, and the
+    // script include, so none of them drift out of sync.
+    function ticker_active(): bool {
+        return ticker_enabled() && (ticker_feeds() || ticker_news() || ticker_livenews());
+    }
+}
+
+// ---- Live broadcast ----
+// One global switch: when on + a room + a public key are set, the homepage shows
+// a BREAKING-LIVE player that auto-joins the room receive-only and features the
+// editor's signed conference camera. Browser-only (Trystero/WebRTC), no backend.
+// All config lives on the site model (the Broadcast tab); broadcast_active()
+// ANDs the on toggle + room + pubkey.
+if (!function_exists('broadcast_on')) {
+    function broadcast_on(): bool {
+        return site()->broadcast_on()->toBool();
+    }
+}
+if (!function_exists('broadcast_room')) {
+    function broadcast_room(): string {
+        return trim((string) site()->broadcast_room());
+    }
+}
+if (!function_exists('broadcast_relay')) {
+    // TURN-relay mode: when on, viewers connect relay-only so their IP is hidden
+    // behind the TURN server (honest privacy, at the cost of free-TURN limits).
+    function broadcast_relay(): bool {
+        return site()->broadcast_relay()->toBool();
+    }
+}
+if (!function_exists('broadcast_pubkey')) {
+    // The signing public key (PEM), baked into the build so viewers verify which
+    // stream is the real broadcaster. Public by design — safe to publish.
+    function broadcast_pubkey(): string {
+        return trim((string) site()->broadcast_pubkey());
+    }
+}
+if (!function_exists('broadcast_active')) {
+    // Single source of truth for "a broadcast is live": on AND a room AND a
+    // verification key are set. Gates the homepage hero render AND the
+    // broadcast.min.js include, so a non-live build ships none of it.
+    function broadcast_active(): bool {
+        return broadcast_on() && broadcast_room() !== '' && broadcast_pubkey() !== '';
     }
 }
 
@@ -174,10 +287,41 @@ Kirby::plugin('site/helpers', [
         // plain rows in the parent listing and skip per-item generation.
         'isRich' => function () {
             $tpl = $this->intendedTemplate()->name();
-            if ($tpl === 'library-item') return $this->notes()->isNotEmpty();
-            if ($tpl === 'video')        return $this->summary()->isNotEmpty();
-            if ($tpl === 'fraternal')    return $this->notes()->isNotEmpty();
+            // Uniform contract across rich-able templates: a non-empty Notes
+            // body earns a standalone static page. Summary stays the short
+            // listing/meta blurb regardless.
+            if (in_array($tpl, ['library-item', 'video', 'fraternal'], true)) {
+                return $this->notes()->isNotEmpty();
+            }
             return true;
+        },
+        // True when a magnet-bearing page (library-item or magnet-mode video)
+        // has a magnet without any wss:// tracker — i.e. unreachable from a
+        // browser. Drives the dashboard "broken magnets" stat.
+        'isBroken' => function () {
+            if (!$this->hasMagnetSource()) return false;
+            return !magnet_has_wss((string) $this->magnet());
+        },
+    ],
+    'siteMethods' => [
+        // Count of library-items + videos whose magnet is unreachable from a
+        // browser (no wss:// tracker). Cheap enough to call on every panel
+        // dashboard render thanks to the page cache.
+        'brokenMagnetCount' => function (): int {
+            $n = 0;
+            foreach ($this->index() as $p) {
+                if ($p->isBroken()) $n++;
+            }
+            return $n;
+        },
+        'libraryItemCount' => function (): int {
+            return $this->index()->filterBy('intendedTemplate', 'library-item')->count();
+        },
+        'fraternalCount' => function (): int {
+            return $this->index()->filterBy('intendedTemplate', 'fraternal')->count();
+        },
+        'videoCount' => function (): int {
+            return $this->index()->filterBy('intendedTemplate', 'video')->count();
         },
     ],
 ]);

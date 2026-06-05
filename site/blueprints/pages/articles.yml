@@ -6,23 +6,21 @@ options:
   delete: false
   preview: true
 
+icon: book
+
 sections:
   drafts:
-    type: pages
+    extends: sections/pages-by-status
     headline: Drafts
     status: draft
     template: article
     info: "{{ page.date.toDate('Y-m-d') }}"
-    create:
-      template: article
-      redirect: true
+    empty: No drafts yet. Use + to start one.
   published:
-    type: pages
+    extends: sections/pages-by-status
     headline: Published
     status: listed
     template: article
     sortBy: date desc
     info: "{{ page.date.toDate('Y-m-d') }} · {{ page.sku }}"
-    create:
-      template: article
-      redirect: true
+    empty: Nothing published yet.

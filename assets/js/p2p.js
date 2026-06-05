@@ -1,6 +1,8 @@
 (() => {
   if (window.siteP2P) return;
 
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
   let client = null;
   let viewerTorrent = null;
   let viewerStatusTimer = null;
@@ -9,14 +11,12 @@
   let swPromise = null;
   let serverStarted = false;
 
-  // Mirror is a separate pool — opt-in, persists across SPA nav, runs alongside
-  // any viewer torrent without disturbing it. Tracks status sinks per active
-  // section (library / videos) so the aggregate line appears in each.
-  const mirrorTorrents = new Map();   // magnet → torrent (includes both downloading + seeding)
-  const mirrorInFlight = new Set();   // subset still downloading; gates concurrency cap
-  const mirrorSections = new Map();   // magnet → section label ('library' | 'videos')
-  const mirrorStatusEls = new Map();  // section → status element
-  let mirrorStatusTimer = null;
+  // Transfer manager — the persistent download/seed list painted into the
+  // #drawer-xfer drawer. Like the comm drawer it owns its own DOM and survives
+  // SPA nav; the full client is torn down only on beforeunload.
+  const transfers = new Map();   // id → entry {id,magnet,name,kind,mode,torrent,paused,done,saved,error,dom,els}
+  let xferSeq = 0;
+  let xferTimer = null;
 
   function vendorUrl() {
     const s = document.querySelector('script[data-vendor]');
@@ -62,7 +62,8 @@
     return swPromise;
   }
 
-  // Prefer #panel-local status/stage so detail-page actions don't write into the aside.
+  // Viewer status sink — the inline line under the video / on the item page.
+  // Downloads no longer write here; they live in the transfer drawer.
   function defaultStatus() {
     return document.querySelector('#panel [data-p2p-status]')
         || document.querySelector('[data-p2p-status]');
@@ -84,8 +85,8 @@
     return n.toFixed(n < 10 ? 1 : 0) + ' ' + u[i];
   }
 
-  // Viewer-only status painter — independent of the mirror's painter so the
-  // two don't fight when a viewer download runs while a mirror is active.
+  // Viewer-only status painter — independent of the transfer rows so a stream
+  // and a download can run at once without fighting over a status element.
   function watchViewer(t) {
     if (viewerStatusTimer) clearInterval(viewerStatusTimer);
     viewerStatusTimer = setInterval(() => {
@@ -173,9 +174,27 @@
     throw new Error('no blob API on file');
   }
 
+  function infoHashOf(magnet) {
+    const m = /xt=urn:btih:([a-z0-9]+)/i.exec(magnet || '');
+    return m ? m[1].toLowerCase() : '';
+  }
+  function sameMagnet(t, magnet) {
+    try { return !!(t && t.infoHash && t.infoHash.toLowerCase() === infoHashOf(magnet)); }
+    catch (_) { return false; }
+  }
+  // A torrent is the manager's iff some transfer references it. The viewer is a
+  // borrower: it never destroys a torrent the manager owns.
+  function managerOwns(t) {
+    if (!t) return false;
+    for (const e of transfers.values()) if (e.torrent === t) return true;
+    return false;
+  }
+
   /**
    * Start a magnet and render its largest file into `stage`. SW path uses
    * streamURL for progressive playback; blob fallback waits for full download.
+   * Reuses an already-added torrent (e.g. one the manager is downloading) so we
+   * never double-add the same infohash.
    */
   async function open(magnet, kind, stage, statusEl) {
     activeStatusEl = statusEl || null;
@@ -183,9 +202,10 @@
     const target = stage || defaultStage();
     try {
       const c = await ensureClient();
-      if (viewerTorrent) { try { viewerTorrent.destroy(); } catch (_) {} viewerTorrent = null; }
+      if (viewerTorrent && !managerOwns(viewerTorrent)) { try { viewerTorrent.destroy(); } catch (_) {} }
+      viewerTorrent = null;
       clearEl(target);
-      c.add(magnet, async (t) => {
+      const onReady = (t) => {
         viewerTorrent = t;
         watchViewer(t);
         const file = pickFile(t);
@@ -194,44 +214,14 @@
           if (target) target.appendChild(buildRenderEl(kind, file.streamURL, file.name));
           return;
         }
-        // Fallback: no SW available — wait for the full file, then blob URL.
-        try {
-          const url = await fileBlobURL(file);
-          if (!target) return;
-          target.appendChild(buildRenderEl(kind, url, file.name));
-        } catch (e) {
-          setStatus('render: ' + (e.message || e));
-        }
-      });
-    } catch (e) {
-      setStatus('error: ' + (e.message || e));
-    }
-  }
-
-  async function download(magnet, statusEl) {
-    activeStatusEl = statusEl || null;
-    setStatus('connecting…');
-    try {
-      const c = await ensureClient();
-      if (viewerTorrent) { try { viewerTorrent.destroy(); } catch (_) {} viewerTorrent = null; }
-      c.add(magnet, async (t) => {
-        viewerTorrent = t;
-        watchViewer(t);
-        const file = pickFile(t);
-        if (!file) { setStatus('no files in torrent'); return; }
-        try {
-          const url = await fileBlobURL(file);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = file.name;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setStatus('saved ' + file.name);
-        } catch (e) {
-          setStatus('blob: ' + (e.message || e));
-        }
-      });
+        fileBlobURL(file)
+          .then(url => { if (target) target.appendChild(buildRenderEl(kind, url, file.name)); })
+          .catch(e => setStatus('render: ' + (e.message || e)));
+      };
+      let existing = null;
+      try { const g = c.get(magnet); existing = (g && g.then) ? await g : g; } catch (_) {}
+      if (existing) onReady(existing);
+      else c.add(magnet, onReady);
     } catch (e) {
       setStatus('error: ' + (e.message || e));
     }
@@ -246,158 +236,347 @@
     );
   }
 
-  // ---- Mirror ----
+  // ---- Transfer manager ----
 
-  function paintMirrorStatus() {
-    if (!mirrorStatusEls.size) return;
-    mirrorStatusEls.forEach((el, section) => {
-      const tors = sectionTorrents(section);
-      if (!tors.length) { el.textContent = ''; return; }
-      let done = 0, upSpeed = 0, dl = 0, len = 0;
-      tors.forEach(t => {
-        if (t.done) done++;
-        upSpeed += t.uploadSpeed || 0;
-        dl += t.downloaded || 0;
-        len += t.length || 0;
-      });
-      if (done === tors.length) {
-        el.textContent = 'mirroring ' + tors.length + ' · ↑ ' + fmtBytes(upSpeed) + '/s';
-      } else {
-        const pct = len ? Math.floor((dl / len) * 100) : 0;
-        el.textContent = 'mirroring ' + done + '/' + tors.length + ' · ' + pct + '% · ↑ ' + fmtBytes(upSpeed) + '/s';
-      }
-    });
-  }
-  function sectionTorrents(section) {
-    const out = [];
-    mirrorSections.forEach((sec, magnet) => {
-      if (sec === section) {
-        const t = mirrorTorrents.get(magnet);
-        if (t) out.push(t);
-      }
-    });
-    return out;
+  // Localised row strings come off the list element's data-* (see aside-xfer).
+  function xt(key, fallback) {
+    const el = document.querySelector('[data-xfer-list]');
+    return (el && el.dataset[key]) || fallback;
   }
 
-  // Scan a list of magnets to see which actually have peers in the swarm right
-  // now. Adds each torrent briefly with all pieces deselected (so we don't
-  // accidentally start a download), waits for the tracker to report peers,
-  // then destroys the probe torrents. Returns survivors sorted by demand.
-  async function mirrorScan(magnets, statusEl) {
-    if (statusEl) statusEl.textContent = 'scanning swarm…';
+  const KIND = { pdf:'PDF', epub:'EPB', audio:'AUD', video:'VID', image:'IMG', archive:'ZIP', other:'OTH' };
+  function kindTag(k) { return '[' + (KIND[k] || 'OTH') + ']'; }
+  // Guess kind from a local file's extension (for the [KIND] tag on seeds).
+  function kindFromName(name) {
+    const ext = (String(name).split('.').pop() || '').toLowerCase();
+    if (ext === 'pdf') return 'pdf';
+    if (ext === 'epub') return 'epub';
+    if (['mp4','mkv','webm','mov','avi','m4v'].includes(ext)) return 'video';
+    if (['mp3','wav','flac','ogg','m4a','aac'].includes(ext)) return 'audio';
+    if (['jpg','jpeg','png','gif','webp','svg','avif'].includes(ext)) return 'image';
+    if (['zip','tar','gz','7z','rar','xz'].includes(ext)) return 'archive';
+    return 'other';
+  }
+  // Trackers baked into magnets we create: WSS for browser peers, UDP so desktop
+  // clients (qBittorrent, Transmission, …) discover the same swarm.
+  const CREATE_TRACKERS = [
+    'udp://tracker.opentrackr.org:1337/announce',
+    'udp://open.tracker.cl:1337/announce',
+    'udp://tracker.openbittorrent.com:6969/announce',
+    'udp://exodus.desync.com:6969/announce',
+    'udp://tracker.torrent.eu.org:451/announce',
+    'wss://tracker.openwebtorrent.com',
+    'wss://tracker.webtorrent.dev',
+    'wss://tracker.btorrent.xyz',
+  ];
+
+  const BAR_W = 16;
+  function bar(p) {
+    const f = Math.max(0, Math.min(BAR_W, Math.round((p || 0) * BAR_W)));
+    return '[' + '█'.repeat(f) + '░'.repeat(BAR_W - f) + ']';
+  }
+
+  // Best-effort seed/leecher split. peers = connected wires; a wire whose
+  // peerPieces covers every piece (incl. web seeds) is counted a seed.
+  function swarm(t) {
+    if (!t) return { s: '—', p: 0, l: 0 };
+    const p = t.numPeers || 0;
+    let s = 0;
     try {
-      await ensureClient();
-    } catch (e) {
-      if (statusEl) statusEl.textContent = 'scan failed: ' + (e.message || e);
-      return [];
+      const n = t.pieces ? t.pieces.length : 0;
+      if (n && n <= 6000 && t.wires) {
+        t.wires.forEach(w => {
+          const pp = w && w.peerPieces;
+          if (!pp) return;
+          let all = true;
+          for (let i = 0; i < n; i++) { if (!pp.get(i)) { all = false; break; } }
+          if (all) s++;
+        });
+      } else { return { s: '—', p: p, l: '—' }; }
+    } catch (_) { return { s: '—', p: p, l: '—' }; }
+    return { s: s, p: p, l: Math.max(0, p - s) };
+  }
+
+  function announceOpen() {
+    document.dispatchEvent(new CustomEvent('ui:open-drawer', { detail: { name: 'xfer' } }));
+  }
+  function ensureXferTimer() { if (!xferTimer) xferTimer = setInterval(paintAll, 800); }
+  function setEmpty() {
+    const empty = document.querySelector('[data-xfer-empty]');
+    if (empty) empty.hidden = transfers.size > 0;
+  }
+
+  function renderRow(entry) {
+    const list = document.querySelector('[data-xfer-list]');
+    if (!list) return;
+    const li = document.createElement('li');
+    li.className = 'xfer-row';
+    li.dataset.xferId = entry.id;
+    li.innerHTML =
+        '<div class="xfer-l1">'
+      +   '<span class="xfer-kind ui-sku"></span>'
+      +   '<span class="xfer-name"></span>'
+      +   '<span class="xfer-act">'
+      +     '<button type="button" class="xfer-btn" data-xfer-pause></button>'
+      +     '<button type="button" class="xfer-btn" data-xfer-copy>↗</button>'
+      +     '<button type="button" class="xfer-btn" data-xfer-remove>✕</button>'
+      +   '</span>'
+      + '</div>'
+      + '<div class="xfer-l2 ui-sku">'
+      +   '<span class="xfer-bar" aria-hidden="true"></span> '
+      +   '<span class="xfer-pct"></span> · '
+      +   '<span class="xfer-state"></span>'
+      +   '<span class="xfer-net"></span>'
+      +   '<span class="xfer-swarm"></span>'
+      + '</div>';
+    entry.dom = li;
+    entry.els = {
+      kind:  li.querySelector('.xfer-kind'),
+      name:  li.querySelector('.xfer-name'),
+      bar:   li.querySelector('.xfer-bar'),
+      pct:   li.querySelector('.xfer-pct'),
+      state: li.querySelector('.xfer-state'),
+      net:   li.querySelector('.xfer-net'),
+      swarm: li.querySelector('.xfer-swarm'),
+      pause: li.querySelector('[data-xfer-pause]'),
+      copy:  li.querySelector('[data-xfer-copy]'),
+      remove:li.querySelector('[data-xfer-remove]'),
+    };
+    entry.els.remove.setAttribute('aria-label', xt('lblRemove', 'Remove'));
+    entry.els.copy.setAttribute('aria-label', xt('lblCopy', 'Copy magnet'));
+    list.appendChild(li);
+    setEmpty();
+    paintRow(entry);
+  }
+
+  function paintRow(entry) {
+    if (!entry.els) return;
+    const t = entry.torrent;
+    const done = !!(entry.done || (t && t.done));
+    const prog = done ? 1 : (t ? t.progress : 0);
+    let state;
+    if (entry.error) state = 'error';
+    else if (entry.paused) state = xt('stPaused', 'paused');
+    else if (!t) state = xt('stConnecting', 'connecting…');
+    else if (done) state = (entry.mode === 'download' && entry.saved && !entry.savedAck) ? xt('stSaved', 'saved') : xt('stSeeding', 'seeding');
+    else state = xt('stDownloading', 'downloading');
+
+    entry.els.kind.textContent = kindTag(entry.kind);
+    entry.els.name.textContent = entry.name || '…';
+    entry.els.name.title = entry.name || '';
+    entry.els.bar.textContent = bar(prog);
+    entry.els.pct.textContent = Math.round(prog * 100) + '%';
+    entry.els.state.textContent = state;
+    entry.els.net.textContent = ' ↓' + fmtBytes(t ? t.downloadSpeed : 0) + '/s ↑' + fmtBytes(t ? t.uploadSpeed : 0) + '/s';
+    const sw = swarm(t);
+    entry.els.swarm.textContent = ' S' + sw.s + ' P' + sw.p + ' L' + sw.l;
+    entry.els.pause.textContent = entry.paused ? '▶' : '▮▮';
+    entry.els.pause.setAttribute('aria-label', entry.paused ? xt('lblResume', 'Resume') : xt('lblPause', 'Pause'));
+    entry.els.pause.disabled = !t;
+    entry.els.copy.disabled = !entry.magnet;
+    entry.dom.dataset.state = entry.error ? 'error' : entry.paused ? 'paused' : done ? 'seeding' : t ? 'downloading' : 'connecting';
+  }
+
+  function paintAll() {
+    transfers.forEach(paintRow);
+    paintSummary();
+  }
+  function paintSummary() {
+    let dn = 0, up = 0;
+    transfers.forEach(e => { const t = e.torrent; if (t) { dn += t.downloadSpeed || 0; up += t.uploadSpeed || 0; } });
+    const n = transfers.size;
+    $$('[data-xfer-summary]').forEach(el => { el.textContent = n ? ('↓' + fmtBytes(dn) + '/s ↑' + fmtBytes(up) + '/s') : ''; });
+    $$('[data-drawer-toggle="xfer"]').forEach(b => {
+      b.classList.toggle('xfer-live', n > 0);
+      const c = b.querySelector('[data-xfer-count]');
+      if (c) c.textContent = n ? String(n) : '';
+    });
+    setEmpty();
+  }
+
+  function onDone(entry) {
+    if (entry.done) return;
+    entry.done = true;
+    // Download mode: let saveEntry paint "saved" once the blob lands, so we
+    // don't flash "seeding" in the gap before the save resolves.
+    if (entry.mode === 'download' && !entry.saved) { saveEntry(entry); return; }
+    paintRow(entry);
+  }
+  function saveEntry(entry) {
+    const t = entry.torrent;
+    const file = t && pickFile(t);
+    if (!file) return;
+    fileBlobURL(file).then(url => {
+      const a = document.createElement('a');
+      a.href = url; a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      entry.saved = true; paintRow(entry);
+      // Flash "saved" once the file lands, then settle into its true ongoing
+      // state — it keeps seeding to the swarm like everything else.
+      setTimeout(() => { entry.savedAck = true; paintRow(entry); }, 2500);
+    }).catch(() => {});
+  }
+
+  function bindTorrent(entry, t) {
+    entry.torrent = t;
+    if (!entry.name) entry.name = (pickFile(t) && pickFile(t).name) || t.name || '';
+    t.on('error', () => { entry.error = 'error'; paintRow(entry); });
+    t.on('warning', () => {});
+    t.on('done', () => onDone(entry));
+    if (t.done) onDone(entry);
+    ensureXferTimer();
+    paintRow(entry);
+  }
+
+  async function attachTorrent(entry) {
+    let c;
+    try { c = await ensureClient(); }
+    catch (e) { entry.error = String(e.message || e); paintRow(entry); return; }
+    // Reuse a torrent already in the client (e.g. one the viewer added) rather
+    // than throwing on a duplicate infohash.
+    if (viewerTorrent && sameMagnet(viewerTorrent, entry.magnet)) { bindTorrent(entry, viewerTorrent); return; }
+    let existing = null;
+    try { const g = c.get(entry.magnet); existing = (g && g.then) ? await g : g; } catch (_) {}
+    if (existing) { bindTorrent(entry, existing); return; }
+    try { c.add(entry.magnet, t => bindTorrent(entry, t)); }
+    catch (e) {
+      try { const g = c.get(entry.magnet); const t = (g && g.then) ? await g : g; if (t) { bindTorrent(entry, t); return; } } catch (_) {}
+      entry.error = String(e.message || e); paintRow(entry);
     }
-    const probes = magnets.map(magnet => new Promise(resolve => {
-      let t;
-      try {
-        t = client.add(magnet);
-      } catch (_) { resolve(null); return; }
-      const onMeta = () => {
-        try { t.deselect(0, t.pieces.length - 1, true); } catch (_) {}
+  }
+
+  function addTransfer(magnet, opts) {
+    if (!magnet) return null;
+    opts = opts || {};
+    for (const e of transfers.values()) {
+      if (e.magnet === magnet) { announceOpen(); return e.id; }   // dedupe → focus
+    }
+    const id = 'x' + (xferSeq++);
+    const entry = {
+      id, magnet, name: opts.name || '', kind: opts.kind || 'other',
+      mode: opts.mode === 'seed' ? 'seed' : 'download',
+      torrent: null, paused: false, done: false, saved: false, error: '',
+    };
+    transfers.set(id, entry);
+    renderRow(entry);     // immediate "connecting…" row
+    announceOpen();       // auto-open the drawer
+    paintSummary();
+    attachTorrent(entry);
+    return id;
+  }
+
+  function download(magnet, opts) { return addTransfer(magnet, Object.assign({ mode: 'download' }, opts || {})); }
+  function seedAll(magnets, names, kinds) {
+    if (!magnets || !magnets.length) return;
+    magnets.forEach((m, i) => addTransfer(m, { mode: 'seed', name: names && names[i], kind: kinds && kinds[i] }));
+  }
+
+  // Create a torrent from local file(s) and seed it. Each file becomes its own
+  // transfer/row with an independent, shareable magnet (trackers embedded).
+  async function seedFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    let c;
+    try { c = await ensureClient(); }
+    catch (_) { return; }
+    files.forEach(file => {
+      const id = 'x' + (xferSeq++);
+      const entry = {
+        id, magnet: '', name: file.name, kind: kindFromName(file.name),
+        mode: 'seed', torrent: null, paused: false, done: false, saved: false, error: '',
       };
-      t.on('metadata', onMeta);
-      t.on('error', () => {});
-      t.on('warning', () => {});
-      setTimeout(() => {
-        const result = { magnet, numPeers: t.numPeers || 0, size: t.length || 0 };
-        try { t.destroy(); } catch (_) {}
-        resolve(result);
-      }, 2500);
-    }));
-    const results = (await Promise.all(probes)).filter(Boolean);
-    // Return every probe; the caller decides whether to mirror only those with
-    // peers waiting, or fall back to mirroring everything when no one's around.
-    // Sort by numPeers desc so the most-demanded items naturally come first.
-    return results.sort((a, b) => b.numPeers - a.numPeers);
+      transfers.set(id, entry);
+      renderRow(entry);
+      announceOpen();
+      paintSummary();
+      try {
+        c.seed(file, { announce: CREATE_TRACKERS }, (torrent) => {
+          entry.torrent = torrent;
+          entry.magnet = torrent.magnetURI;   // carries CREATE_TRACKERS
+          entry.done = true;                   // a fresh seed already has the file
+          torrent.on('error', () => { entry.error = 'error'; paintRow(entry); });
+          torrent.on('warning', () => {});
+          ensureXferTimer();
+          paintRow(entry);
+        });
+      } catch (e) { entry.error = String(e.message || e); paintRow(entry); }
+    });
   }
 
-  async function mirrorStart(targets, statusEl, section) {
-    if (!targets || !targets.length) return;
-    const sec = section || 'default';
-    try {
-      await ensureClient();
-    } catch (e) {
-      if (statusEl) statusEl.textContent = 'mirror failed: ' + (e.message || e);
-      return;
-    }
-    if (statusEl) mirrorStatusEls.set(sec, statusEl);
-    const queue = targets.slice();
-    function spawn() {
-      // Cap counts ACTIVELY downloading torrents (mirrorInFlight), not the
-      // total mirror pool — completed ones stay seeding but no longer occupy
-      // a download slot. Global cap across all sections.
-      while (mirrorInFlight.size < 3 && queue.length) {
-        const item = queue.shift();
-        const magnet = item.magnet || item;
-        if (mirrorTorrents.has(magnet)) continue;
-        let t;
-        try { t = client.add(magnet); } catch (_) { continue; }
-        mirrorTorrents.set(magnet, t);
-        mirrorSections.set(magnet, sec);
-        if (!t.done) mirrorInFlight.add(t);
-        t.on('error', () => { mirrorInFlight.delete(t); spawn(); });
-        t.on('warning', () => {});
-        t.on('done', () => { mirrorInFlight.delete(t); spawn(); });
-      }
-    }
-    spawn();
-    if (!mirrorStatusTimer) {
-      mirrorStatusTimer = setInterval(paintMirrorStatus, 800);
-    }
-    paintMirrorStatus();
+  // Paste-a-magnet box (the ∩ button toggles it). Accepts a full magnet URI or a
+  // bare 40-hex infohash; anything else is ignored.
+  function addMagnetFromInput() {
+    const inp = document.querySelector('[data-xfer-magnet-input]');
+    if (!inp) return;
+    const v = (inp.value || '').trim();
+    let magnet = '';
+    if (/^magnet:\?/i.test(v)) magnet = v;
+    else { const m = v.match(/\b([a-f0-9]{40})\b/i); if (m) magnet = 'magnet:?xt=urn:btih:' + m[1]; }
+    if (!magnet) { inp.focus(); return; }
+    const dn = (magnet.match(/[?&]dn=([^&]+)/i) || [])[1];
+    download(magnet, { name: dn ? decodeURIComponent(dn.replace(/\+/g, ' ')) : '' });
+    inp.value = '';
+    const row = document.querySelector('[data-xfer-magnet-row]');
+    if (row) row.hidden = true;
   }
 
-  function mirrorStop(section) {
-    if (section) {
-      // Destroy only this section's torrents.
-      const sec = section;
-      const dead = [];
-      mirrorSections.forEach((s, magnet) => { if (s === sec) dead.push(magnet); });
-      dead.forEach(magnet => {
-        const t = mirrorTorrents.get(magnet);
-        if (t) { mirrorInFlight.delete(t); try { t.destroy(); } catch (_) {} }
-        mirrorTorrents.delete(magnet);
-        mirrorSections.delete(magnet);
-      });
-      const el = mirrorStatusEls.get(sec);
-      if (el) el.textContent = '';
-      mirrorStatusEls.delete(sec);
-      if (!mirrorTorrents.size && mirrorStatusTimer) {
-        clearInterval(mirrorStatusTimer); mirrorStatusTimer = null;
-      }
-      return;
+  function pause(id)  { const e = transfers.get(id); if (!e || !e.torrent) return; try { e.torrent.pause(); } catch (_) {} e.paused = true; paintRow(e); }
+  function resume(id) { const e = transfers.get(id); if (!e || !e.torrent) return; try { e.torrent.resume(); } catch (_) {} e.paused = false; paintRow(e); }
+  function remove(id) {
+    const e = transfers.get(id);
+    if (!e) return;
+    transfers.delete(id);
+    if (e.dom) e.dom.remove();
+    if (e.torrent) {
+      if (viewerTorrent === e.torrent) viewerTorrent = null;
+      try { e.torrent.destroy(); } catch (_) {}
     }
-    // Full stop — every section.
-    if (mirrorStatusTimer) { clearInterval(mirrorStatusTimer); mirrorStatusTimer = null; }
-    mirrorTorrents.forEach(t => { try { t.destroy(); } catch (_) {} });
-    mirrorTorrents.clear();
-    mirrorInFlight.clear();
-    mirrorSections.clear();
-    mirrorStatusEls.forEach(el => { el.textContent = ''; });
-    mirrorStatusEls.clear();
+    if (!transfers.size && xferTimer) { clearInterval(xferTimer); xferTimer = null; }
+    paintSummary();
   }
 
-  function mirrorIsActive(section) {
-    if (!section) return mirrorTorrents.size > 0;
-    let n = 0;
-    mirrorSections.forEach(s => { if (s === section) n++; });
-    return n > 0;
-  }
-
-  // SPA-scope teardown: only the viewer torrent, never the client or mirror.
-  // The full client + mirror are torn down by the beforeunload handler.
+  // SPA-scope teardown: only a viewer torrent the manager doesn't own. The full
+  // client + transfers are torn down by the beforeunload handler.
   function teardown() {
     if (viewerStatusTimer) { clearInterval(viewerStatusTimer); viewerStatusTimer = null; }
-    if (viewerTorrent) { try { viewerTorrent.destroy(); } catch (_) {} viewerTorrent = null; }
+    if (viewerTorrent && !managerOwns(viewerTorrent)) { try { viewerTorrent.destroy(); } catch (_) {} }
+    viewerTorrent = null;
     activeStatusEl = null;
   }
 
   function init() {
     document.addEventListener('click', (e) => {
+      const pz = e.target.closest('[data-xfer-pause]');
+      if (pz) {
+        const row = pz.closest('[data-xfer-id]');
+        const en = row && transfers.get(row.dataset.xferId);
+        if (en) (en.paused ? resume : pause)(en.id);
+        return;
+      }
+      const cp = e.target.closest('[data-xfer-copy]');
+      if (cp) {
+        const row = cp.closest('[data-xfer-id]');
+        const en = row && transfers.get(row.dataset.xferId);
+        if (en && en.magnet && navigator.clipboard) {
+          navigator.clipboard.writeText(en.magnet).then(() => {
+            const o = cp.textContent; cp.textContent = '✓';
+            setTimeout(() => { cp.textContent = o; }, 900);
+          }, () => {});
+        }
+        return;
+      }
+      const rm = e.target.closest('[data-xfer-remove]');
+      if (rm) { const row = rm.closest('[data-xfer-id]'); if (row) remove(row.dataset.xferId); return; }
+      const addBtn = e.target.closest('[data-xfer-add]');
+      if (addBtn) { const inp = document.querySelector('[data-xfer-file]'); if (inp) inp.click(); return; }
+      const mg = e.target.closest('[data-xfer-magnet]');
+      if (mg) {
+        const row = document.querySelector('[data-xfer-magnet-row]');
+        if (row) { row.hidden = !row.hidden; if (!row.hidden) { const i = row.querySelector('[data-xfer-magnet-input]'); if (i) i.focus(); } }
+        return;
+      }
+      const mgo = e.target.closest('[data-xfer-magnet-go]');
+      if (mgo) { e.preventDefault(); addMagnetFromInput(); return; }
       const btn = e.target.closest('[data-p2p-action]');
       if (!btn) return;
       e.preventDefault();
@@ -406,17 +585,27 @@
       const k = btn.dataset.kind || 'other';
       if (!m) return;
       if (a === 'copy') copy(m);
-      else if (a === 'download') download(m);
+      else if (a === 'download') download(m, { name: btn.dataset.title, kind: k });
       else if (a === 'open') open(m, k);
+    });
+    // Native file picker → create + seed a torrent for each chosen file.
+    document.addEventListener('change', (e) => {
+      const inp = e.target.closest('[data-xfer-file]');
+      if (!inp) return;
+      seedFiles(inp.files);
+      inp.value = '';   // allow re-picking the same file later
+    });
+    // Enter inside the paste-a-magnet field submits it.
+    document.addEventListener('submit', (e) => {
+      if (e.target.closest('[data-xfer-magnet-row]')) { e.preventDefault(); addMagnetFromInput(); }
     });
     // True page exit destroys everything; SPA nav only clears the viewer.
     addEventListener('beforeunload', () => {
-      try { mirrorStop(); } catch (_) {}
       try { teardown(); } catch (_) {}
       if (client) { try { client.destroy(); } catch (_) {} client = null; }
     });
   }
 
-  window.siteP2P = { teardown, init, open, download, copy, mirrorScan, mirrorStart, mirrorStop, mirrorIsActive };
+  window.siteP2P = { teardown, init, open, copy, download, seedAll, seedFiles, pause, resume, remove };
   init();
 })();

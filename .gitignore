@@ -15,6 +15,9 @@ Icon
 
 .lock
 
+# Kirby 5 unsaved-content drafts — git-content must not commit transient changes
+/content/**/_changes/
+
 # Editors
 # (sensitive workspace files)
 # ---------------------------
@@ -61,3 +64,4 @@ Icon
 /vendor/
 kirby
 site/plugins/static-site-generator
+site/plugins/git-content

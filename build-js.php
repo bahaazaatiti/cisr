@@ -1,6 +1,13 @@
 <?php
-// Minimal JS minifier. Usage: php build-js.php <input.js> <output.min.js>
+// Minify JS via JShrink (tedivm/jshrink) — a battle-tested state-machine
+// minifier, replacing the old bespoke regex chain. Pure PHP, keeps the
+// "no Node for the build" constraint. Usage: php build-js.php <in.js> <out.min.js>
 declare(strict_types=1);
+
+use JShrink\Minifier;
+
+// Standalone CLI script — pull in Composer's autoloader for the JShrink class.
+require __DIR__ . '/vendor/autoload.php';
 
 if ($argc < 3) {
     fwrite(STDERR, "usage: php build-js.php <input.js> <output.min.js>\n");
@@ -10,38 +17,17 @@ if ($argc < 3) {
 $src = file_get_contents($in);
 if ($src === false) { fwrite(STDERR, "read error: $in\n"); exit(1); }
 
-// Strip /* ... */ block comments first (no nested */ in our sources).
-$src = preg_replace('~/\*[\s\S]*?\*/~', '', $src);
+// flaggedComments=false: our own source carries no /*! … */ license banners,
+// so drop every comment (the vendored *.min.js bundles aren't processed here).
+// minify() re-throws on a parse error rather than returning silently — fail loud.
+try {
+    $min = Minifier::minify($src, ['flaggedComments' => false]);
+} catch (\Throwable $e) {
+    fwrite(STDERR, "minify error: $in — {$e->getMessage()}\n");
+    exit(1);
+}
 
-// Extract string + regex literals into placeholders so the line-comment
-// stripper can't corrupt them. Regex form: `/` only after these prev tokens.
-$tokens = [];
-$ph = "\x01JSMIN%d\x01";
-$pattern = '~
-    (
-        "(?:\\\\.|[^"\\\\\n])*"
-      | \'(?:\\\\.|[^\'\\\\\n])*\'
-      | `(?:\\\\.|[^`\\\\])*`
-      | (?<=[(,=:;\[!&|?{}\n\r\t ])/(?:\\\\.|\[[^\]\n]*\]|[^/\\\\\n])+/[gimsuy]*
-    )
-~xu';
-$src = preg_replace_callback($pattern, function ($m) use (&$tokens, $ph) {
-    $tokens[] = $m[0];
-    return sprintf($ph, count($tokens) - 1);
-}, $src);
-
-$src = preg_replace('~//[^\n]*~', '', $src);
-$src = preg_replace('/[ \t]+/', ' ', $src);
-$src = preg_replace('/\s*\n\s*/', "\n", $src);
-$src = preg_replace('/\n+/', "\n", $src);
-// Strip whitespace around structural punctuation only — arith ops (i++ +j) stay safe.
-$src = preg_replace('/\s*([{};,:()\[\]])\s*/', '$1', $src);
-$src = preg_replace('/\s*=\s*/', '=', $src);
-$src = preg_replace('/\s*<\s*/', '<', $src);
-$src = preg_replace('/\s*>\s*/', '>', $src);
-
-$src = preg_replace_callback('~\x01JSMIN(\d+)\x01~', fn($m) => $tokens[(int)$m[1]], $src);
-file_put_contents($out, trim($src) . "\n");
+file_put_contents($out, trim($min) . "\n");
 $raw = filesize($out);
 $gz  = strlen(gzencode(file_get_contents($out), 9));
 fprintf(STDERR, "built: %s — %d bytes raw, %d bytes gz\n", $out, $raw, $gz);

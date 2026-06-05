@@ -1,0 +1,212 @@
+/* HIGHK light + RETICLE dark — Kirby panel restyled to match the public site.
+   Strategy: replace tokens, kill shadows, force monospace, then patch the
+   few surfaces Kirby colours via component-specific selectors (status SVGs,
+   list dividers, section headlines). */
+
+:root {
+  /* — Surfaces & text — */
+  --color-background: #FFFFFF;
+  --color-backdrop: #FFFFFF;
+  --color-text: #000000;
+  --color-text-light: #666666;
+  --color-text-dark: #000000;
+  --color-border: #000000;
+  --color-focus: #0000FF;
+  --color-light: #F2F2F2;
+
+  /* — Gray scale: stark steps, no HSL fuzz — */
+  --color-gray-100: #FFFFFF;
+  --color-gray-200: #F2F2F2;
+  --color-gray-250: #E8E8E8;
+  --color-gray-300: #E0E0E0;
+  --color-gray-400: #CCCCCC;
+  --color-gray-500: #999999;
+  --color-gray-600: #666666;
+  --color-gray-700: #333333;
+  --color-gray-800: #1A1A1A;
+  --color-gray-900: #000000;
+
+  /* — Blue accent everywhere — */
+  --color-blue-200: #DDE3FF;
+  --color-blue-300: #B8C5FF;
+  --color-blue-400: #8A9EFF;
+  --color-blue-500: #5C7AFF;
+  --color-blue-600: #2E55FF;
+  --color-blue-700: #0000FF;
+  --color-blue-800: #0000CC;
+  --color-blue-900: #000099;
+
+  /* — Status colours: positive becomes accent, error stays red — */
+  --color-positive: #0000FF;
+  --color-positive-light: #DDE3FF;
+  --color-positive-dark: #000099;
+  --color-negative: #FF0000;
+  --color-negative-light: #FFD6D6;
+  --color-notice: #FFB000;
+
+  /* — Greens used by SVG status icons resolve via these — */
+  --color-green-300: #B8C5FF;
+  --color-green-400: #0000FF;
+  --color-green-500: #0000CC;
+
+  /* Kirby derives every "positive"/"green"-themed element (status pips,
+     submit buttons, success rows, etc.) from a hue/saturation primitive.
+     Forcing green's HUE to blue cascades through the entire panel. */
+  --color-green-h: 240;
+  --color-green-s: 100%;
+  --color-green-boost: 0%;
+
+  /* — Type & shape — */
+  --font-mono: monospace;
+  --font-sans: monospace;
+  --font-family-sans: monospace;
+  --rounded: 2px;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Surfaces */
+    --color-background: #000000;
+    --color-backdrop: #000000;
+    --color-light: #0a0a0a;
+
+    /* Text + structural — green-on-black RETICLE, orange accent (matches the
+       public site's .dark palette: --foreground #00A645, --accent #FFB000) */
+    --color-text: #00A645;
+    --color-text-light: #999999;
+    --color-text-dark: #00A645;
+    --color-border: #00A645;
+    --color-focus: #FFB000;
+
+    /* CRITICAL: Kirby uses light-dark(gray-100, gray-900) for backgrounds
+       and the reverse for text. Convention: gray-100 = lightest, gray-900 =
+       darkest. KEEP THAT semantic in dark mode; do NOT swap or html bg ends
+       up green. The "dark" theming comes from light-dark() picking the right
+       end per mode, not from us inverting the scale. */
+    --color-gray-100: #00A645;     /* "lightest" = green text */
+    --color-gray-200: #00A645;
+    --color-gray-250: #009939;
+    --color-gray-300: #007029;     /* muted-darker green */
+    --color-gray-400: #999999;     /* medium neutral, readable on black */
+    --color-gray-500: #777777;
+    --color-gray-600: #444444;
+    --color-gray-700: #2a2a2a;     /* subtle bg */
+    --color-gray-800: #111111;     /* card bg tint */
+    --color-gray-900: #000000;     /* "darkest" = deepest bg */
+
+    /* Accent scales: blues become orange, greens stay green */
+    --color-blue-200: #3D2E00;
+    --color-blue-300: #5C4400;
+    --color-blue-400: #806000;
+    --color-blue-500: #A37D00;
+    --color-blue-600: #D19500;
+    --color-blue-700: #FFB000;
+    --color-blue-800: #FFA000;
+    --color-blue-900: #FF9000;
+
+    --color-green-300: #00CC55;
+    --color-green-400: #00A645;
+    --color-green-500: #007029;
+
+    /* In dark mode the accent is orange (#FFB000 ≈ H42 S100% L50%) — same
+       hue/sat cascade trick as light mode. */
+    --color-green-h: 42;
+    --color-green-s: 100%;
+    --color-green-boost: 0%;
+
+    --color-positive: #00A645;
+    --color-positive-light: #003311;
+    --color-positive-dark: #00CC55;
+    --color-negative: #FF4444;
+    --color-negative-light: #2a0000;
+    --color-notice: #FFB000;
+  }
+}
+
+/* — Monospace everywhere — */
+.k-panel,
+.k-panel input,
+.k-panel textarea,
+.k-panel select,
+.k-panel button,
+.k-panel .k-text,
+.k-panel .k-headline,
+.k-panel .k-label,
+.k-panel .k-field-label { font-family: monospace; }
+
+/* — Kill drop-shadows on every panel surface — */
+.k-panel *,
+.k-panel *::before,
+.k-panel *::after { box-shadow: none !important; }
+
+/* — Cards, dialogs, popovers: hairline border, sharp corners — */
+.k-card,
+.k-login-form,
+.k-box,
+.k-dialog,
+.k-drawer,
+.k-popover { border: 1px solid var(--color-border) !important; border-radius: 2px !important; }
+
+/* — Inputs (the wrapper holds the border in Kirby) — */
+.k-input { border: 1px solid var(--color-border) !important; border-radius: 2px !important; background: var(--color-background) !important; }
+.k-input--focus,
+.k-input:focus-within { border-color: var(--color-focus) !important; outline: 1px solid var(--color-focus) !important; outline-offset: -1px; }
+
+/* — Buttons: flat, hairline, accent-on-hover (mirrors .ui-badge from the site) — */
+.k-button { border-radius: 2px !important; }
+.k-button--filled,
+.k-login-button {
+  background: var(--color-background) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+}
+.k-button--filled:hover,
+.k-login-button:hover {
+  background: var(--color-focus) !important;
+  color: #FFFFFF !important;
+  border-color: var(--color-focus) !important;
+}
+@media (prefers-color-scheme: dark) {
+  .k-button--filled:hover,
+  .k-login-button:hover { color: #000000 !important; }
+}
+
+/* — Status icons (the green dot on listed pages, etc.). SVG fills via
+     currentColor; force the icon button's text colour to the accent so the
+     icon picks it up. — */
+.k-page-status-icon-option,
+.k-page-status-icon-option .k-icon,
+.k-page-status-icon-option svg,
+.k-status,
+.k-status .k-icon { color: var(--color-focus) !important; }
+
+/* — Field + section labels: mirror the public site's .ui-sku / table-th
+     typography (all caps, letterspaced) without recolouring — Kirby uses
+     these labels everywhere, so colour shifts would over-saturate. — */
+.k-label-text,
+.k-section-headline,
+.k-headline {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+/* The big top page title stays at full size, not letterspaced — it's display. */
+.k-view > .k-header .k-headline,
+.k-view > .k-header h1 { text-transform: none; letter-spacing: 0; font-size: 1.5rem; font-weight: 700; }
+
+/* — List items: dashed bottom border, matches .ui-table tbody rows on the site — */
+.k-list-item,
+.k-items > * { border-bottom: 1px dashed var(--color-border) !important; }
+.k-list-item:last-child,
+.k-items > *:last-child { border-bottom: 0 !important; }
+.k-list-item:hover {
+  background: var(--color-light) !important;
+  box-shadow: inset 2px 0 0 var(--color-focus) !important;
+}
+
+/* — Block separators in the Blocks editor: same dashed pattern — */
+.k-block-container { border-bottom: 1px dashed var(--color-border) !important; }

@@ -12,14 +12,19 @@ concurrency:
   group: pages-deploy
   cancel-in-progress: false
 
+env:
+  # Pin Tailwind: the version string flows into the download URL AND the cache
+  # key, so a bump here invalidates the cache automatically. Bump in lockstep
+  # with any @tailwindcss/* changes that require a newer CLI.
+  TAILWIND_VERSION: v4.3.0
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          # cisr_build_stamp() reads the short SHA — full history not needed,
-          # but fetch-depth: 0 makes blame/log fully available if anything else wants it later.
+          # build_stamp() only needs the short SHA — shallow clone is fine.
           fetch-depth: 1
 
       - name: Set up PHP 8.3
@@ -44,18 +49,44 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .bin
-          key: tailwind-v4-linux-x64
+          key: tailwind-${{ env.TAILWIND_VERSION }}-linux-x64
 
       - name: Download Tailwind binary
         if: steps.tailwind-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p .bin
           curl -sLo .bin/tailwindcss \
-            https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64
+            https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-linux-x64
           chmod +x .bin/tailwindcss
 
       - name: Rebuild CSS + minified JS
         run: ./build.sh
+
+      # The built CSS/JS are committed (forkers + local dev read them without the
+      # toolchain). build.sh just regenerated them from source; if that produced
+      # a diff, the committed copies were stale — fail so they're never shipped
+      # out of sync. Tailwind is pinned (TAILWIND_VERSION) so output is stable.
+      - name: Verify committed CSS/JS match source
+        run: |
+          if ! git diff --quiet -- assets/css/app.css assets/js/app.min.js assets/js/p2p.min.js assets/js/comm.min.js assets/js/ticker.min.js assets/js/broadcast.min.js; then
+            echo "::error::Committed build artifacts are stale. Run ./build.sh and commit the result."
+            git --no-pager diff --stat -- assets/css/app.css assets/js/*.min.js
+            exit 1
+          fi
+          echo "Build artifacts in sync with source."
+
+      # Guard: committed app.css / *.min.js must match a fresh build from source.
+      # CI rebuilds them above, so the deploy is always correct regardless — this
+      # only catches a commit where tailwind.src.css / *.js changed but the built
+      # artifacts weren't regenerated (stale local dev + dirty tree).
+      - name: Verify build artifacts are in sync with source
+        run: |
+          if ! git diff --quiet -- assets/css/app.css assets/js/*.min.js; then
+            echo "::error::Stale build artifacts. Run ./build.sh and commit assets/css/app.css + assets/js/*.min.js."
+            git --no-pager diff --stat -- assets/css/app.css assets/js/*.min.js
+            exit 1
+          fi
+          echo "Build artifacts in sync."
 
       # Pick the deploy prefix so any forker gets the right base automatically:
       #   - CNAME present              → custom domain, base "/"
@@ -68,27 +99,58 @@ jobs:
           OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
           REPO_LOWER=$(echo "${REPO}" | tr '[:upper:]' '[:lower:]')
           if [ -f CNAME ]; then
-            BASE="/"
+            BASE="/"; SITE="https://$(head -n1 CNAME | tr -d '[:space:]')"
           elif [ "$REPO_LOWER" = "${OWNER_LOWER}.github.io" ]; then
-            BASE="/"
+            BASE="/"; SITE="https://${OWNER_LOWER}.github.io"
           else
-            BASE="/${REPO}/"
+            BASE="/${REPO}/"; SITE="https://${OWNER_LOWER}.github.io"
           fi
           echo "BASE_URL=${BASE}" >> "$GITHUB_ENV"
-          echo "Detected deploy base: ${BASE}"
+          echo "SITE_URL=${SITE}" >> "$GITHUB_ENV"
+          echo "Detected deploy base: ${BASE}  site: ${SITE}"
 
       - name: Generate static site
         run: php bin/generate.php
         env:
           BASE_URL: ${{ env.BASE_URL }}
+          SITE_URL: ${{ env.SITE_URL }}
 
+      # Diff per-route gz sizes vs the prior gh-pages deploy. Fails open if
+      # gh-pages doesn't exist yet (first deploy) — prior treated as empty.
+      - name: Size diff vs prior deploy
+        run: |
+          curl -sfL -o prior.json "https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/_sizes.json" || echo '{}' > prior.json
+          php -r '
+            $prior = json_decode(file_get_contents("prior.json"), true) ?: [];
+            $curr  = json_decode(file_get_contents("static/_sizes.json"), true) ?: [];
+            $keys  = array_unique(array_merge(array_keys($prior), array_keys($curr)));
+            sort($keys);
+            $out = "## Per-route byte budget (gz)\n\n| route | before | after | Δ |\n|---|---:|---:|---:|\n";
+            $totA = 0; $totB = 0; $rows = 0;
+            foreach ($keys as $k) {
+              $a = $prior[$k] ?? null;
+              $b = $curr[$k]  ?? null;
+              if ($a !== null) $totA += $a;
+              if ($b !== null) $totB += $b;
+              if ($a === $b) continue;
+              $rows++;
+              $delta = ($a !== null && $b !== null) ? sprintf("%+d", $b - $a) : "new";
+              $out .= "| `" . $k . "` | " . ($a ?? "—") . " | " . ($b ?? "—") . " | " . $delta . " |\n";
+            }
+            $out .= "| **TOTAL** | **" . $totA . "** | **" . $totB . "** | **" . sprintf("%+d", $totB - $totA) . "** |\n";
+            if ($rows === 0) $out .= "\n_No route changed size._\n";
+            file_put_contents(getenv("GITHUB_STEP_SUMMARY") ?: "php://stderr", $out, FILE_APPEND);
+            echo count($curr), " routes; total ", $totA, " → ", $totB, " bytes\n";
+          '
+
+      # bin/generate.php already touches .nojekyll inside static/, so the
+      # default Jekyll behaviour is suppressed without needing enable_jekyll.
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./static
           publish_branch: gh-pages
-          enable_jekyll: false
           commit_message: 'deploy ${{ github.sha }}'
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'

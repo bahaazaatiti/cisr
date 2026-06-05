@@ -1,0 +1,15 @@
+# Shared pages-listing section. Consumers extend and override:
+#   status:   draft | unlisted | listed
+#   template: required by Kirby (the consumer's template name)
+#   label / headline / info / empty / sortBy: optional overrides
+#
+# Used by articles.yml, fraternals.yml, etc. to DRY the drafts+published pair.
+# `create:` is intentionally omitted — consumers with one template don't need
+# it (Kirby autoenables), and consumers with multiple templates would break
+# if we forced a default template here.
+type: pages
+layout: list
+status: listed
+sortBy: title asc
+info: "{{ page.intendedTemplate }}"
+empty: Nothing here yet — use + to add.
