@@ -22,7 +22,10 @@ if ! php -m | grep -qix gd; then
       https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions
     sudo chmod +x /usr/local/bin/install-php-extensions
   fi
-  sudo install-php-extensions gd intl
+  # sudo resets the env, so pass PHP_INI_DIR through — install-php-extensions calls
+  # docker-php-ext-enable, which writes the enable .ini to $PHP_INI_DIR/conf.d and
+  # fails ("cannot create /conf.d/...: Directory nonexistent") when it's stripped.
+  sudo PHP_INI_DIR="${PHP_INI_DIR:-/usr/local/etc/php}" install-php-extensions gd intl
   php -m | grep -qix gd || { echo "✗ ext-gd still not loaded after install — aborting."; exit 1; }
 fi
 
