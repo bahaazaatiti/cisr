@@ -13,7 +13,7 @@ $libraryJson = function (?string $lang = null): \Kirby\Http\Response {
     return new \Kirby\Http\Response($body, 'application/json');
 };
 
-return [
+$config = [
     'debug' => false,
     'languages' => true,
     'cache' => [
@@ -107,3 +107,18 @@ return [
         ['pattern' => '(ar|fr)/library.json', 'action' => fn($lang) => $libraryJson($lang)],
     ],
 ];
+
+// In a Codespace, the dev server sits behind an HTTPS proxy that forwards
+// `Host: localhost`, so Kirby's URL auto-detection emits http://localhost:8765
+// links — cross-origin to the public *.github.dev page, so the site's CSP ('self')
+// blocks the CSS/JS/images and the Panel white-screens. Relative URLs are same-origin
+// on whatever host serves the page. host() still resolves to localhost from the
+// request so isLocal() stays true; panel.install is a belt-and-braces so first-user
+// creation works even if the proxy host ever trips that check. Scoped to Codespaces,
+// so local dev and the static build (no CODESPACE_NAME) are untouched.
+if (getenv('CODESPACE_NAME')) {
+    $config['url'] = '/';
+    $config['panel']['install'] = true;
+}
+
+return $config;
