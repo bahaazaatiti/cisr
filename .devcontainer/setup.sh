@@ -8,15 +8,22 @@ echo " Kirby dev environment setup"
 echo "──────────────────────────────────────────"
 
 # ── 1. PHP extensions Kirby needs (gd for image processing, intl) ──────────────
-# MUST run BEFORE `composer install`: composer platform-checks ext-gd, and the
-# mcr…/devcontainers/php base image does NOT enable gd — Kirby pulls
-# claviska/simpleimage + league/color-extractor, both require it, so the install
-# aborts without this. install-php-extensions ships in that image + is idempotent.
-# Guarded so a non-Codespace run (local PHP already has the extensions; the helper
-# isn't installed) skips it instead of erroring.
-if command -v install-php-extensions >/dev/null 2>&1; then
-  echo "→ Ensuring PHP extensions (gd, intl)..."
+# Kirby (claviska/simpleimage + league/color-extractor) REQUIRES ext-gd, and the
+# devcontainers/php:8.3 base image does NOT ship it — install it BEFORE `composer
+# install`, which platform-checks ext-gd and aborts without it. mlocati's
+# install-php-extensions handles gd's system libs + enables it, but it is NOT on
+# PATH in this image, so fetch the self-contained script when it's missing. Skip the
+# whole step when gd is already loaded (local dev), and VERIFY afterward so a silent
+# miss can never resurface as a cryptic composer "ext-gd missing" abort.
+if ! php -m | grep -qix gd; then
+  echo "→ Installing PHP extensions (gd, intl)..."
+  if ! command -v install-php-extensions >/dev/null 2>&1; then
+    sudo curl -fsSLo /usr/local/bin/install-php-extensions \
+      https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions
+    sudo chmod +x /usr/local/bin/install-php-extensions
+  fi
   sudo install-php-extensions gd intl
+  php -m | grep -qix gd || { echo "✗ ext-gd still not loaded after install — aborting."; exit 1; }
 fi
 
 # ── 2. Composer deps ───────────────────────────────────────────────────────────
