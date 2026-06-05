@@ -22,17 +22,10 @@
 <?php if (ticker_active()): ?>
 <script src="<?= url('assets/js/ticker.min.js') ?>" defer></script>
 <?php endif ?>
-<?php /* Broadcast viewer ships only when a broadcast is live. It joins the room
-         receive-only and features the signature-verified broadcaster. */ ?>
-<?php if (broadcast_active()): ?>
-<script src="<?= url('assets/js/broadcast.min.js') ?>"
-        data-comm-vendor="<?= url('assets/js/vendor/trystero.min.js') ?>"
-        data-broadcast-room="<?= esc(broadcast_room(), 'attr') ?>"
-        data-broadcast-pubkey="<?= esc(broadcast_pubkey(), 'attr') ?>"
-        data-broadcast-relay="<?= broadcast_relay() ? '1' : '0' ?>"
-        data-broadcast-relays="<?= esc($commRelays, 'attr') ?>"
-        data-broadcast-turn="<?= esc(implode('|;|', trackers_list('turn')), 'attr') ?>"
-        defer></script>
-<?php endif ?>
+<?php /* The broadcast VIEWER script is not here — it ships inside the hero snippet
+         (page/broadcast-hero.php) so it loads only on the home page that has the
+         hero, not site-wide. app.js re-executes #panel scripts on SPA-nav, so it
+         still (re)starts when you navigate home. (comm.js above carries
+         data-comm-broadcast-room for the broadcaster side, which IS site-wide.) */ ?>
 </body>
 </html>

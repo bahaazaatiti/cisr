@@ -1,9 +1,9 @@
 <?php
   // Live broadcast hero — only when a broadcast is on (toggle + room + pubkey).
   // Two accent marquee frames (reusing the ticker's CSS-only crawl) bracket a
-  // 16:9 player. assets/js/broadcast.js joins the room receive-only and fills the
-  // <video> once it verifies the broadcaster's signature. Config rides on the
-  // script tag (footer); this markup only carries the DOM hooks + the warning.
+  // 16:9 player. assets/js/broadcast.js (loaded at the END of this snippet, so it
+  // ships only on the live home page — not site-wide) joins the room receive-only
+  // and fills the <video> once it verifies the broadcaster's signature.
   if (!broadcast_active()) return;
 
   // Mode-aware privacy line — honest about whether the relay actually hides IPs.
@@ -49,3 +49,19 @@
     <button type="button" class="ui-badge bc-unmute" data-broadcast-unmute hidden><?= t('bc.unmute', 'TAP TO UNMUTE') ?></button>
   </div>
 </section>
+<?php
+  // Viewer script lives HERE (inside #panel), not the footer — so broadcast.min.js
+  // + the trystero pull + WebRTC happen ONLY on the live home page, never on inner
+  // pages with no hero. app.js re-executes #panel scripts on SPA-nav, so it
+  // (re)starts when you navigate home. comm.js (footer, all pages) provides the
+  // signedReceiver it calls. Config rides on the data-* attributes.
+  $commRelays = implode(' ', trackers_list('relays') ?: (array) option('comm.relays', []));
+?>
+<script src="<?= url('assets/js/broadcast.min.js') ?>"
+        data-comm-vendor="<?= url('assets/js/vendor/trystero.min.js') ?>"
+        data-broadcast-room="<?= esc(broadcast_room(), 'attr') ?>"
+        data-broadcast-pubkey="<?= esc(broadcast_pubkey(), 'attr') ?>"
+        data-broadcast-relay="<?= broadcast_relay() ? '1' : '0' ?>"
+        data-broadcast-relays="<?= esc($commRelays, 'attr') ?>"
+        data-broadcast-turn="<?= esc(implode('|;|', trackers_list('turn')), 'attr') ?>"
+        defer></script>

@@ -51,18 +51,6 @@ return [
                 'link'  => 'pages/fraternals',
             ],
             '-',
-            // Panel-only config pages.
-            'news-ticker' => [
-                'icon'  => 'bell',
-                'label' => 'News ticker',
-                'link'  => 'pages/news-ticker',
-            ],
-            'broadcast' => [
-                'icon'  => 'video',
-                'label' => 'Live broadcast',
-                'link'  => 'pages/broadcast',
-            ],
-            '-',
             // Quick-add buttons — open Kirby's create dialog pre-targeted.
             'quick-article' => [
                 'icon'  => 'pen',

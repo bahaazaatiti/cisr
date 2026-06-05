@@ -144,11 +144,9 @@ if (!function_exists('ticker_feeds')) {
     // plus the editor's pasted link. No text lives here: the posts come from
     // the live fetch (see assets/js/ticker.js). Enabled, non-empty rows only.
     function ticker_feeds(): array {
-        $tk = page('news-ticker');
-        if (!$tk) return [];
         $out = [];
         foreach (['telegram' => 'tg', 'twitter' => 'x'] as $field => $kind) {
-            foreach ($tk->$field()->toStructure() as $row) {
+            foreach (site()->$field()->toStructure() as $row) {
                 if (!$row->enabled()->toBool()) continue;
                 $url = trim((string) $row->url());
                 if ($url !== '') $out[] = ['kind' => $kind, 'url' => $url];
@@ -162,10 +160,8 @@ if (!function_exists('ticker_news')) {
     // The one hand-written lane: breaking-news lines typed by the editor.
     // Rendered server-side so they show instantly and survive a dead proxy.
     function ticker_news(): array {
-        $tk = page('news-ticker');
-        if (!$tk) return [];
         $out = [];
-        foreach ($tk->breaking()->toStructure() as $row) {
+        foreach (site()->breaking()->toStructure() as $row) {
             if (!$row->enabled()->toBool()) continue;
             $text = trim((string) $row->text());
             if ($text !== '') $out[] = ['text' => $text, 'url' => trim((string) $row->url())];
@@ -175,23 +171,16 @@ if (!function_exists('ticker_news')) {
 }
 
 if (!function_exists('ticker_livenews')) {
-    // Live-news rooms: a signed editor's chat in a Trystero room surfaces in the
-    // crawl, verified browser-side against the row's public key. Global (not
-    // per-language) like the broadcast, so one identity reaches every language.
-    // Enabled rows that carry both a room and a public key.
+    // Live-news identity: a signed editor's chat in a Trystero room surfaces in
+    // the crawl, verified browser-side against the public key. Single identity
+    // (a twin of the broadcast), global (not per-language). Returns a 0-or-1
+    // element list (keeps ticker.php/.js iterating a list) when on + room + key set.
     function ticker_livenews(): array {
-        $tk = page('news-ticker');
-        if (!$tk) return [];
-        $out = [];
-        foreach ($tk->livenews()->toStructure() as $row) {
-            if (!$row->enabled()->toBool()) continue;
-            $room = trim((string) $row->room());
-            $pub  = trim((string) $row->pubkey());
-            if ($room !== '' && $pub !== '') {
-                $out[] = ['room' => $room, 'label' => trim((string) $row->label()), 'pubkey' => $pub];
-            }
-        }
-        return $out;
+        if (!site()->livenews_on()->toBool()) return [];
+        $room = trim((string) site()->livenews_room());
+        $pub  = trim((string) site()->livenews_pubkey());
+        if ($room === '' || $pub === '') return [];
+        return [['room' => $room, 'label' => trim((string) site()->livenews_label()), 'pubkey' => $pub]];
     }
 }
 
@@ -205,37 +194,34 @@ if (!function_exists('ticker_active')) {
     }
 }
 
-// ---- Live broadcast (panel-only `broadcast` page) ----
+// ---- Live broadcast ----
 // One global switch: when on + a room + a public key are set, the homepage shows
 // a BREAKING-LIVE player that auto-joins the room receive-only and features the
 // editor's signed conference camera. Browser-only (Trystero/WebRTC), no backend.
+// All config lives on the site model (the Broadcast tab); broadcast_active()
+// ANDs the on toggle + room + pubkey.
 if (!function_exists('broadcast_on')) {
-    // The on/off switch now lives on the Site dashboard; room/relay/pubkey stay
-    // on the broadcast page. broadcast_active() still ANDs all three.
     function broadcast_on(): bool {
         return site()->broadcast_on()->toBool();
     }
 }
 if (!function_exists('broadcast_room')) {
     function broadcast_room(): string {
-        $b = page('broadcast');
-        return $b ? trim((string) $b->broadcast_room()) : '';
+        return trim((string) site()->broadcast_room());
     }
 }
 if (!function_exists('broadcast_relay')) {
     // TURN-relay mode: when on, viewers connect relay-only so their IP is hidden
     // behind the TURN server (honest privacy, at the cost of free-TURN limits).
     function broadcast_relay(): bool {
-        $b = page('broadcast');
-        return $b ? $b->broadcast_relay()->toBool() : false;
+        return site()->broadcast_relay()->toBool();
     }
 }
 if (!function_exists('broadcast_pubkey')) {
     // The signing public key (PEM), baked into the build so viewers verify which
     // stream is the real broadcaster. Public by design — safe to publish.
     function broadcast_pubkey(): string {
-        $b = page('broadcast');
-        return $b ? trim((string) $b->broadcast_pubkey()) : '';
+        return trim((string) site()->broadcast_pubkey());
     }
 }
 if (!function_exists('broadcast_active')) {

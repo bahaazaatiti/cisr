@@ -36,10 +36,8 @@ $kirby = new Kirby\Cms\App();
 // Lean leaves render as rows in the parent listing instead of earning a page.
 $pages = $kirby->site()->index()->filter(function ($p) {
     $tpl = $p->intendedTemplate()->name();
-    // Panel-only config pages — never public routes. Their fields feed the
-    // front-end (ticker crawl / live broadcast), read while other pages render.
-    if ($tpl === 'news-ticker') return false;
-    if ($tpl === 'broadcast') return false;
+    // Media is the only panel-only page left (the file overview). Broadcast +
+    // ticker config now live on the site model, so there's nothing else to skip.
     if ($tpl === 'media') return false;
     if (in_array($tpl, ['library-item', 'video', 'fraternal'], true)) {
         return $p->isRich();
@@ -150,16 +148,41 @@ if ($siteUrl !== '') {
 
 // Per-route gz size manifest. Lets CI surface byte-budget diffs vs prior
 // build and gives clients a cheap way to read the page weight before navigating.
+// The same pass records which minified JS bundles the HTML actually references,
+// so the asset trim below can drop everything else.
 $sizes = [];
+$usedMin = [];
 $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($outputFolder, RecursiveDirectoryIterator::SKIP_DOTS));
 foreach ($it as $f) {
     $path = $f->getPathname();
     if (!str_ends_with($path, '.html')) continue;
-    $rel = '/' . str_replace($outputFolder . '/', '', $path);
-    $sizes[$rel] = strlen((string) gzencode((string) file_get_contents($path), 9));
+    $html = (string) file_get_contents($path);
+    $rel  = '/' . str_replace($outputFolder . '/', '', $path);
+    $sizes[$rel] = strlen((string) gzencode($html, 9));
+    if (preg_match_all('~/assets/js/([A-Za-z0-9_.-]+\.min\.js)~', $html, $m)) {
+        foreach ($m[1] as $name) $usedMin[$name] = true;
+    }
 }
 ksort($sizes);
 file_put_contents($outputFolder . '/_sizes.json', json_encode($sizes, JSON_PRETTY_PRINT) . "\n");
 fwrite(STDERR, "wrote:    _sizes.json (" . count($sizes) . " routes)\n");
+
+// Trim deploy-only dead weight from static/assets/js (top level; vendor/ is a
+// subfolder and is left alone): the unminified .js sources (build inputs — the
+// deploy references only the .min builds) AND any *.min.js that no built page
+// references (e.g. broadcast.min.js / ticker.min.js when their feature is off).
+// Driven by the actual HTML refs above, so per-language differences are handled.
+$jsDir = $outputFolder . '/assets/js';
+if (is_dir($jsDir)) {
+    $trimmed = 0;
+    foreach (glob($jsDir . '/*.js') as $js) {
+        $base = basename($js);
+        $drop = str_ends_with($base, '.min.js')
+            ? !isset($usedMin[$base])                       // minified bundle no page loads
+            : file_exists(substr($js, 0, -3) . '.min.js');  // source with a .min twin
+        if ($drop) { unlink($js); $trimmed++; }
+    }
+    fwrite(STDERR, "trimmed:  {$trimmed} unused js from static/assets/js\n");
+}
 
 fwrite(STDERR, "done\n");

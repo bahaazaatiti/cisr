@@ -7,12 +7,11 @@
 // line against it. The panel runs on the editor's own machine (static deploy), so
 // generation is local, not exposed anywhere.
 //
-//   broadcast/genkey — one global identity → public key auto-saved onto the
-//                       broadcast page, private streamed as a .txt download.
-//   ticker/genkey    — live-news rows are a structure (many rooms), so there is
-//                       no single field to auto-fill; instead we show the public
-//                       key to paste into a row and offer the private key as a
-//                       clean .txt download. JS/style-free so no panel-CSP snag.
+//   broadcast/genkey — one global identity → public key auto-saved onto the site
+//                       (Broadcast tab), private streamed as a .txt download.
+//   ticker/genkey    — single live-news identity (twin of broadcast) → public key
+//                       auto-saved onto the site `livenews_pubkey` field, private
+//                       streamed as a .txt download.
 //
 // PEM in, PEM out. The browser side converts PEM → SPKI/PKCS8 for Web Crypto.
 
@@ -56,13 +55,13 @@ Kirby::plugin('site/broadcast-keys', [
                             );
                         }
 
-                        // Persist ONLY the public key onto the broadcast page.
-                        $page = $kirby->page('broadcast');
-                        if ($page) {
-                            $kirby->impersonate('kirby', function () use ($page, $kp) {
-                                $page->update(['broadcast_pubkey' => $kp['pub']]);
-                            });
-                        }
+                        // Persist ONLY the public key onto the site (Broadcast tab).
+                        $kirby->impersonate('kirby', function () use ($kirby, $kp) {
+                            $kirby->site()->update(
+                                ['broadcast_pubkey' => $kp['pub']],
+                                $kirby->defaultLanguage()?->code()
+                            );
+                        });
 
                         // Stream the private key as a download. Never stored.
                         $stamp = date('Ymd-His');
@@ -88,30 +87,20 @@ Kirby::plugin('site/broadcast-keys', [
                             );
                         }
 
-                        // No single field to auto-fill (rows are a structure), so
-                        // hand both keys to the editor: public to copy into a row,
-                        // private as a clean .txt download (loadable on the site).
-                        // Plain HTML, no inline JS/CSS — bulletproof under any CSP.
+                        // Auto-save the public key onto the site `livenews_pubkey`
+                        // field (single live-news identity — mirrors broadcast).
+                        $kirby->impersonate('kirby', function () use ($kirby, $kp) {
+                            $kirby->site()->update(
+                                ['livenews_pubkey' => $kp['pub']],
+                                $kirby->defaultLanguage()?->code()
+                            );
+                        });
+
+                        // Stream the private key as a download. Never stored.
                         $stamp = date('Ymd-His');
-                        $pub   = htmlspecialchars($kp['pub'], ENT_QUOTES, 'UTF-8');
-                        $href  = 'data:application/octet-stream;base64,' . base64_encode($kp['priv']);
-                        $file  = 'cisr-livenews-key-' . $stamp . '.txt';
-                        $html  = '<!doctype html><html><head><meta charset="utf-8">'
-                            . '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                            . '<title>Live-news identity</title></head><body>'
-                            . '<h1>Live-news identity generated</h1>'
-                            . '<p><b>1.</b> Copy the <b>public key</b> below and paste it into a '
-                            . 'live-news row&rsquo;s &ldquo;Public key&rdquo; field in the panel, then Save.</p>'
-                            . '<p><textarea readonly rows="6" style="width:100%;max-width:48rem;font-family:monospace">'
-                            . $pub . '</textarea></p>'
-                            . '<p><b>2.</b> <a download="' . $file . '" href="' . $href . '">'
-                            . '&#x2913; Download the private key</a> &mdash; keep it safe. Load it on the '
-                            . 'site (open COMMS &rarr; WHO&rsquo;S HERE) to write live news. It is never '
-                            . 'stored on the server.</p>'
-                            . '<p><a href="/panel/pages/news-ticker">&larr; Back to the ticker</a></p>'
-                            . '</body></html>';
-                        return new \Kirby\Http\Response($html, 'text/html', 200, [
-                            'Cache-Control' => 'no-store',
+                        return new \Kirby\Http\Response($kp['priv'], 'application/x-pem-file', 200, [
+                            'Content-Disposition' => 'attachment; filename="cisr-livenews-key-' . $stamp . '.txt"',
+                            'Cache-Control'       => 'no-store',
                         ]);
                     },
                 ],

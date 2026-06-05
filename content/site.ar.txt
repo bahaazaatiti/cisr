@@ -19,3 +19,39 @@ Body:
 ----
 
 Featured: - page://ohmijxm2sh4x7rur
+
+----
+
+Telegram:
+
+- 
+  enabled: 'true'
+  url: https://t.me/C_Military1
+  id: "0"
+
+----
+
+Twitter:
+
+- 
+  enabled: 'false'
+  url: https://x.com/AJABreaking
+  id: "0"
+
+----
+
+Breaking:
+
+- 
+  enabled: 'false'
+  text: >
+    بيان المنظمة — حول
+    مهام المناضلين
+    الأمميين
+  url: ""
+  id: "0"
+- 
+  enabled: 'false'
+  text: 'جديد في المكتبة: قراءات بورديغا الكاملة'
+  url: ""
+  id: "1"
