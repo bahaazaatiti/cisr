@@ -19,6 +19,14 @@ return [
     'cache' => [
         'pages' => ['active' => true],
     ],
+    // thathoff/kirby-git-content (require-dev — Panel/edit-time only, never in the
+    // static build). Editors commit + push content straight from /panel: auto-commit
+    // + auto-push on every save, so an edit lands on the current branch and (on main)
+    // trips the build.yml deploy. Branch UI off so editors stay on the branch they
+    // opened. Auto-commit is scoped to the saved item (a `git add -- <path>`, not -A).
+    'thathoff.git-content.commit' => true,
+    'thathoff.git-content.push'   => true,
+    'thathoff.git-content.disableBranchManagement' => true,
     // Panel:
     //  - vue compiler off (see https://getkirby.com/security/vue-compiler);
     //    panel-theme is CSS-only, nothing needs runtime template compilation.
@@ -78,6 +86,13 @@ return [
                 'icon'  => 'image',
                 'label' => 'Media',
                 'link'  => 'pages/media',
+            ],
+            '-',
+            // git-content — "Publish": commit/push status, history + manual controls.
+            'git-content' => [
+                'icon'  => 'upload',
+                'label' => 'Publish',
+                'link'  => 'git-content',
             ],
         ],
     ],

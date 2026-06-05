@@ -37,5 +37,8 @@
       "Composer\\Config::disableProcessTimeout",
       "@php -S localhost:8765 router.php"
     ]
+  },
+  "require-dev": {
+    "thathoff/kirby-git-content": "^5.4"
   }
 }
